@@ -49,10 +49,10 @@ contract LPNRegistryV0 is ILPNRegistry {
         return requestId;
     }
 
-    function respond(uint256 _requestId, uint256 result) external {
+    function respond(uint256 requestId_, uint256 result) external {
         // TODO: Verify proof
-        address client = requests[_requestId];
-        requests[requestId] = address(0);
-        ILPNClient(client).lpnCallback(_requestId, result);
+        address client = requests[requestId_];
+        requests[requestId_] = address(0);
+        ILPNClient(client).lpnCallback(requestId_, result);
     }
 }
