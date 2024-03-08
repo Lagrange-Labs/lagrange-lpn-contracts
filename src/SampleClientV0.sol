@@ -2,15 +2,15 @@
 pragma solidity ^0.8.13;
 
 import {LPNClientV0} from "./LPNClientV0.sol";
-import {LPNRegistryV0, OperationType} from "./LPNRegistryV0.sol";
+import {ILPNRegistry, OperationType} from "./interfaces/ILPNRegistry.sol";
 
 contract SampleClientV0 is LPNClientV0 {
-    uint256 numHolders; // storage slot 0
-    mapping(address holder => uint256 balance) balances; // storage slot 1
+    uint256 numHolders; // storage slot 1 (storage slot 0 is inherited)
+    mapping(address holder => uint256 balance) balances; // storage slot 2
 
     mapping(uint256 requestId => address holder) requests;
 
-    LPNRegistryV0 public lpnRegistry;
+    constructor(ILPNRegistry lpnRegistry) LPNClientV0(lpnRegistry) {}
 
     function addHolder(address holder, uint256 amount) external {
         balances[holder] = amount;
@@ -26,7 +26,11 @@ contract SampleClientV0 is LPNClientV0 {
 
     function queryAverage(address holder) external {
         uint256 requestId = lpnRegistry.request(
-            address(this), bytes32(uint256(uint160(holder))), block.number - 10, block.number, OperationType.AVERAGE
+            address(this),
+            bytes32(uint256(uint160(holder))),
+            block.number - 10,
+            block.number,
+            OperationType.AVERAGE
         );
 
         // We can store the requestID if we need to access other data in the callback
@@ -34,10 +38,13 @@ contract SampleClientV0 is LPNClientV0 {
     }
 
     function lpnRegister() external {
-        lpnRegistry.register(1, 0);
+        lpnRegistry.register(2, 1);
     }
 
-    function lpnCallback(uint256 requestId, uint256 result) external override {
+    function processCallback(uint256 requestId, uint256 result)
+        internal
+        override
+    {
         address holder = requests[requestId];
         // Process result
     }
