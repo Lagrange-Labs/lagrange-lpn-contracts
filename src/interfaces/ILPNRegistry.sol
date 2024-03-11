@@ -38,7 +38,7 @@ interface ILPNRegistry {
         OperationType op
     );
 
-    /// @notice Event emitted when a new request is made.
+    /// @notice Event emitted when a response is received.
     /// @param requestId The ID of the request.
     /// @param client The address of the client who made the matching request.
     /// @param result The computed result for the request.
