@@ -23,11 +23,12 @@ contract LPNRegistryV0 is ILPNRegistry, OwnableWhitelist, Initializable {
         OwnableWhitelist._initialize(owner);
     }
 
-    function register(uint256 mappingSlot, uint256 lengthSlot)
-        external
-        onlyWhitelist
-    {
-        emit NewRegistration(msg.sender, mappingSlot, lengthSlot);
+    function register(
+        address storageContract,
+        uint256 mappingSlot,
+        uint256 lengthSlot
+    ) external onlyWhitelist(storageContract) {
+        emit NewRegistration(storageContract, mappingSlot, lengthSlot);
     }
 
     function request(
@@ -36,7 +37,12 @@ contract LPNRegistryV0 is ILPNRegistry, OwnableWhitelist, Initializable {
         uint256 startBlock,
         uint256 endBlock,
         OperationType op
-    ) external onlyWhitelist returns (uint256) {
+    )
+        // TODO: Should we check the whitelist for requester address?
+        // onlyWhitelist(msg.sender)
+        external
+        returns (uint256)
+    {
         unchecked {
             requestId++;
         }

@@ -28,5 +28,6 @@ local_deploy_registry   :; forge script DeployLPNRegistry --rpc-url local --broa
 testnet_deploy_registry :; forge script DeployLPNRegistry --rpc-url sepolia --broadcast -vvvv --skip-simulation --slow
 
 # Then deploy client
+
 local_deploy_client:; forge script DeploySampleClient --rpc-url local --broadcast -vvvv
 testnet_deploy_client:; forge script DeploySampleClient --rpc-url sepolia --broadcast -vvvv --skip-simulation --slow

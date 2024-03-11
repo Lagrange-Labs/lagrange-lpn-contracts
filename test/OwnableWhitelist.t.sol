@@ -14,7 +14,7 @@ contract MockOwnableWhitelist is OwnableWhitelist, Initializable {
         OwnableWhitelist._initialize(owner);
     }
 
-    function onlyWhitelistedFunction() public view onlyWhitelist {}
+    function onlyWhitelistedFunction() public view onlyWhitelist(msg.sender) {}
 }
 
 contract OwnableWhitelistTest is Test {

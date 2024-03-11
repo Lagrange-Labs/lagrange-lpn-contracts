@@ -13,8 +13,8 @@ abstract contract OwnableWhitelist is Ownable {
     mapping(address => bool) public whitelist;
 
     /// @notice Modifier to restrict access to whitelisted addresses only.
-    modifier onlyWhitelist() {
-        if (!whitelist[msg.sender]) {
+    modifier onlyWhitelist(address someAddress) {
+        if (!whitelist[someAddress]) {
             revert NotAuthorized();
         }
         _;

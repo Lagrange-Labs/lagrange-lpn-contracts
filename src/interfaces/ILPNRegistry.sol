@@ -47,9 +47,14 @@ interface ILPNRegistry {
     );
 
     /// @notice Registers a client with the provided mapping and length slots.
+    /// @param storageContract The address of the contract to be queried.
     /// @param mappingSlot The storage slot of the client's mapping to be computed and proved over.
     /// @param lengthSlot The storage slot of the variable storing the length of the client's mapping.
-    function register(uint256 mappingSlot, uint256 lengthSlot) external;
+    function register(
+        address storageContract,
+        uint256 mappingSlot,
+        uint256 lengthSlot
+    ) external;
 
     /// @notice Submits a new request to the registry.
     /// @param account The address of the smart contract with the storage associated with the request.

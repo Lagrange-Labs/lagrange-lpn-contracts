@@ -21,8 +21,11 @@ contract MockLPNClient is ILPNClient {
 
 contract LPNRegistryV0Test is Test {
     LPNRegistryV0 public registry;
-
     MockLPNClient client;
+
+    address storageContract = makeAddr("storageContract");
+    address notWhitelisted = makeAddr("notWhitelisted");
+
     address owner = makeAddr("owner");
     address notOwner = makeAddr("notOwner");
 
@@ -49,7 +52,7 @@ contract LPNRegistryV0Test is Test {
 
         client = new MockLPNClient();
         hoax(owner);
-        registry.toggleWhitelist(address(client));
+        registry.toggleWhitelist(storageContract);
     }
 
     function testInitialize() public {
@@ -65,59 +68,53 @@ contract LPNRegistryV0Test is Test {
         uint256 lengthSlot = 2;
 
         vm.expectEmit(true, true, true, true);
-        emit NewRegistration(address(client), mappingSlot, lengthSlot);
+        emit NewRegistration(storageContract, mappingSlot, lengthSlot);
 
         vm.prank(address(client));
-        registry.register(mappingSlot, lengthSlot);
+        registry.register(storageContract, mappingSlot, lengthSlot);
     }
 
     function testRegisterNotWhitelisted() public {
         uint256 mappingSlot = 1;
         uint256 lengthSlot = 2;
 
-        hoax(owner);
-        registry.toggleWhitelist(address(client));
-
         vm.expectRevert(NotAuthorized.selector);
         vm.prank(address(client));
-        registry.register(mappingSlot, lengthSlot);
+        registry.register(notWhitelisted, mappingSlot, lengthSlot);
     }
 
     function testRequest() public {
-        address account = address(0x2);
         bytes32 key = keccak256("key");
         uint256 startBlock = 100;
         uint256 endBlock = 200;
         OperationType op = OperationType.AVERAGE;
 
         vm.expectEmit(true, true, true, true);
-        emit NewRequest(1, account, key, startBlock, endBlock, op);
+        emit NewRequest(1, storageContract, key, startBlock, endBlock, op);
 
         vm.prank(address(client));
         uint256 requestId =
-            registry.request(account, key, startBlock, endBlock, op);
+            registry.request(storageContract, key, startBlock, endBlock, op);
 
         assertEq(requestId, 1);
         assertEq(registry.requests(requestId), address(client));
     }
 
-    function testRequestNotWhitelisted() public {
-        address account = address(0x2);
-        bytes32 key = keccak256("key");
-        uint256 startBlock = 100;
-        uint256 endBlock = 200;
-        OperationType op = OperationType.AVERAGE;
-
-        hoax(owner);
-        registry.toggleWhitelist(address(client));
-
-        vm.expectRevert(NotAuthorized.selector);
-        vm.prank(address(client));
-        registry.request(account, key, startBlock, endBlock, op);
-    }
+    // function testRequestNotWhitelisted() public {
+    //     bytes32 key = keccak256("key");
+    //     uint256 startBlock = 100;
+    //     uint256 endBlock = 200;
+    //     OperationType op = OperationType.AVERAGE;
+    //
+    //     hoax(owner);
+    //     registry.toggleWhitelist(address(client));
+    //
+    //     vm.expectRevert(NotAuthorized.selector);
+    //     vm.prank(address(client));
+    //     registry.request(storageContract, key, startBlock, endBlock, op);
+    // }
 
     function testRespond() public {
-        address account = address(0x2);
         bytes32 key = keccak256("key");
         uint256 startBlock = 100;
         uint256 endBlock = 200;
@@ -126,7 +123,7 @@ contract LPNRegistryV0Test is Test {
 
         vm.prank(address(client));
         uint256 requestId =
-            registry.request(account, key, startBlock, endBlock, op);
+            registry.request(storageContract, key, startBlock, endBlock, op);
 
         vm.expectEmit(true, true, true, true);
         emit NewResponse(requestId, address(client), result);
