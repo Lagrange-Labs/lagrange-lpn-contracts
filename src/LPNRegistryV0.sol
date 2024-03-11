@@ -3,7 +3,7 @@ pragma solidity ^0.8.13;
 
 import {ILPNRegistry, OperationType} from "./interfaces/ILPNRegistry.sol";
 import {ILPNClient} from "./interfaces/ILPNClient.sol";
-import {OwnableWhitelist} from "./OwnableWhitelist.sol";
+import {OwnableWhitelist} from "./utils/OwnableWhitelist.sol";
 import {Initializable} from
     "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 

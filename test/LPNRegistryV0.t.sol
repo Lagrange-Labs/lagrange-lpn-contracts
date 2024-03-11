@@ -3,7 +3,7 @@ pragma solidity ^0.8.13;
 
 import {Test, console} from "forge-std/Test.sol";
 import {LPNRegistryV0} from "../src/LPNRegistryV0.sol";
-import {NotAuthorized} from "../src/OwnableWhitelist.sol";
+import {NotAuthorized} from "../src/utils/OwnableWhitelist.sol";
 import {ILPNRegistry, OperationType} from "../src/interfaces/ILPNRegistry.sol";
 import {ILPNClient} from "../src/interfaces/ILPNClient.sol";
 import {Initializable} from

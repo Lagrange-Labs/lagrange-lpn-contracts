@@ -2,7 +2,7 @@
 pragma solidity ^0.8.13;
 
 import {LPNClientV0} from "./LPNClientV0.sol";
-import {ILPNRegistry, OperationType} from "./interfaces/ILPNRegistry.sol";
+import {ILPNRegistry, OperationType} from "../interfaces/ILPNRegistry.sol";
 
 contract SampleClientV0 is LPNClientV0 {
     uint256 numHolders; // storage slot 1 (storage slot 0 is inherited)
