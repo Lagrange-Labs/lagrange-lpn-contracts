@@ -4,7 +4,7 @@ out = "out"
 libs = ["lib"]
 optimizer = true
 optimizer_runs = 200
-solc-version = "0.8.19"
+solc-version = "0.8.20"
 verbosity = 4
 
 [fmt]
@@ -15,5 +15,5 @@ local = "http://localhost:8545"
 sepolia = "${SEPOLIA_RPC_URL}"
 
 [etherscan]
-arbitrum = { key = "${ETHERSCAN_KEY}" }
-arbitrum-goerli = { key = "${ETHERSCAN_KEY}" }
+# arbitrum = { key = "${ETHERSCAN_KEY}" }
+# arbitrum-goerli = { key = "${ETHERSCAN_KEY}" }
