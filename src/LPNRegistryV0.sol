@@ -3,28 +3,24 @@ pragma solidity ^0.8.13;
 
 import {ILPNRegistry, OperationType} from "./interfaces/ILPNRegistry.sol";
 import {ILPNClient} from "./interfaces/ILPNClient.sol";
+import {OwnableWhitelist} from "./OwnableWhitelist.sol";
+import {Initializable} from
+    "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
 /// @notice Error thrown when an unauthorized caller attempts to perform an action.
 error NotAuthorized();
 
 /// @title LPNRegistryV0
 /// @notice A registry contract for managing LPN (Lagrange Proving Network) clients and requests.
-contract LPNRegistryV0 is ILPNRegistry {
+contract LPNRegistryV0 is ILPNRegistry, OwnableWhitelist, Initializable {
     /// @notice A counter that assigns unique ids for client requests.
     uint256 public requestId;
-
-    /// @notice Mapping to track whitelisted addresses.
-    mapping(address => bool) public whitelist; // TODO: Do we need this?
 
     /// @notice Mapping to track requests and their associated clients.
     mapping(uint256 => address) public requests;
 
-    /// @notice Modifier to restrict access to whitelisted addresses only.
-    modifier onlyWhitelist() {
-        if (!whitelist[msg.sender]) {
-            revert NotAuthorized();
-        }
-        _;
+    function initialize(address owner) external initializer {
+        OwnableWhitelist._initialize(owner);
     }
 
     function register(uint256 mappingSlot, uint256 lengthSlot)
@@ -53,6 +49,9 @@ contract LPNRegistryV0 is ILPNRegistry {
         // TODO: Verify proof
         address client = requests[requestId_];
         requests[requestId_] = address(0);
+
+        emit NewResponse(requestId_, client, result);
+
         ILPNClient(client).lpnCallback(requestId_, result);
     }
 }

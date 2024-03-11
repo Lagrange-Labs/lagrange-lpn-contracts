@@ -6,6 +6,11 @@ enum OperationType {
     AVERAGE
 }
 
+struct Operation {
+    OperationType op;
+    bytes32 key;
+}
+
 /// @title ILPNRegistry
 /// @notice Interface for the LPNRegistryV0 contract.
 interface ILPNRegistry {
@@ -31,6 +36,14 @@ interface ILPNRegistry {
         uint256 startBlock,
         uint256 endBlock,
         OperationType op
+    );
+
+    /// @notice Event emitted when a new request is made.
+    /// @param requestId The ID of the request.
+    /// @param client The address of the client who made the matching request.
+    /// @param result The computed result for the request.
+    event NewResponse(
+        uint256 indexed requestId, address indexed client, uint256 result
     );
 
     /// @notice Registers a client with the provided mapping and length slots.
