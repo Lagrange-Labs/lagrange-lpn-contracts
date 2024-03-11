@@ -8,7 +8,7 @@ abstract contract BaseScript is Script {
     address public deployer;
 
     // @dev The salt used for deterministic deployment addresses with CREATE2
-    bytes32 internal salt;
+    bytes32 public salt;
 
     modifier broadcaster() {
         vm.startBroadcast(deployer);
