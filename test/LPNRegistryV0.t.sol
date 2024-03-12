@@ -4,6 +4,7 @@ pragma solidity ^0.8.13;
 import {Test, console} from "forge-std/Test.sol";
 import {
     LPNRegistryV0,
+    ContractAlreadyRegistered,
     QueryUnregistered,
     QueryBeforeIndexed,
     QueryAfterCurrentBlock,
@@ -101,6 +102,18 @@ contract LPNRegistryV0Test is Test {
         vm.expectRevert(NotAuthorized.selector);
         vm.prank(address(client));
         registry.register(notWhitelisted, mappingSlot, lengthSlot);
+    }
+
+    function testRegisterContractAlreadyRegistered() public {
+        uint256 mappingSlot = 1;
+        uint256 lengthSlot = 2;
+
+        vm.prank(address(client));
+        registry.register(storageContract, mappingSlot, lengthSlot);
+
+        vm.expectRevert(ContractAlreadyRegistered.selector);
+        vm.prank(address(client));
+        registry.register(storageContract, mappingSlot, lengthSlot);
     }
 
     function testRequest() public {

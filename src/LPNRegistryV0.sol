@@ -7,6 +7,9 @@ import {OwnableWhitelist} from "./utils/OwnableWhitelist.sol";
 import {Initializable} from
     "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
+/// @notice Error thrown when attempting to register a storage contract more than once.
+error ContractAlreadyRegistered();
+
 /// @notice Error thrown when attempting to query a storage contract that is not registered.
 error QueryUnregistered();
 
@@ -83,6 +86,10 @@ contract LPNRegistryV0 is ILPNRegistry, OwnableWhitelist, Initializable {
         uint256 mappingSlot,
         uint256 lengthSlot
     ) external onlyWhitelist(storageContract) {
+        // TODO: the id for a storage contract should be hash(address, mappingSlot)
+        if (indexStart[storageContract] != 0) {
+            revert ContractAlreadyRegistered();
+        }
         indexStart[storageContract] = block.number;
         emit NewRegistration(
             storageContract, msg.sender, mappingSlot, lengthSlot
