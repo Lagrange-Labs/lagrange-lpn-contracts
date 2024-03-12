@@ -2,7 +2,14 @@
 pragma solidity ^0.8.13;
 
 import {Test, console} from "forge-std/Test.sol";
-import {LPNRegistryV0} from "../src/LPNRegistryV0.sol";
+import {
+    LPNRegistryV0,
+    QueryUnregistered,
+    QueryBeforeIndexed,
+    QueryAfterCurrentBlock,
+    QueryInvalidRange,
+    QueryGreaterThanMaxRange
+} from "../src/LPNRegistryV0.sol";
 import {NotAuthorized} from "../src/utils/OwnableWhitelist.sol";
 import {ILPNRegistry, OperationType} from "../src/interfaces/ILPNRegistry.sol";
 import {ILPNClient} from "../src/interfaces/ILPNClient.sol";
@@ -30,12 +37,16 @@ contract LPNRegistryV0Test is Test {
     address notOwner = makeAddr("notOwner");
 
     event NewRegistration(
-        address indexed client, uint256 mappingSlot, uint256 lengthSlot
+        address indexed storageContract,
+        address indexed client,
+        uint256 mappingSlot,
+        uint256 lengthSlot
     );
 
     event NewRequest(
         uint256 indexed requestId,
-        address indexed account,
+        address indexed storageContract,
+        address indexed client,
         bytes32 key,
         uint256 startBlock,
         uint256 endBlock,
@@ -45,6 +56,13 @@ contract LPNRegistryV0Test is Test {
     event NewResponse(
         uint256 indexed requestId, address indexed client, uint256 result
     );
+
+    function register(address client_, uint256 mappingSlot, uint256 lengthSlot)
+        private
+    {
+        vm.prank(client_);
+        registry.register(storageContract, mappingSlot, lengthSlot);
+    }
 
     function setUp() public {
         registry = new LPNRegistryV0();
@@ -68,10 +86,12 @@ contract LPNRegistryV0Test is Test {
         uint256 lengthSlot = 2;
 
         vm.expectEmit(true, true, true, true);
-        emit NewRegistration(storageContract, mappingSlot, lengthSlot);
+        emit NewRegistration(
+            storageContract, address(client), mappingSlot, lengthSlot
+        );
 
-        vm.prank(address(client));
-        registry.register(storageContract, mappingSlot, lengthSlot);
+        register(address(client), mappingSlot, lengthSlot);
+        assertEq(registry.indexStart(storageContract), block.number);
     }
 
     function testRegisterNotWhitelisted() public {
@@ -84,13 +104,16 @@ contract LPNRegistryV0Test is Test {
     }
 
     function testRequest() public {
+        register(address(client), 1, 2);
         bytes32 key = keccak256("key");
-        uint256 startBlock = 100;
-        uint256 endBlock = 200;
+        uint256 startBlock = registry.indexStart(storageContract);
+        uint256 endBlock = startBlock;
         OperationType op = OperationType.AVERAGE;
 
         vm.expectEmit(true, true, true, true);
-        emit NewRequest(1, storageContract, key, startBlock, endBlock, op);
+        emit NewRequest(
+            1, storageContract, address(client), key, startBlock, endBlock, op
+        );
 
         vm.prank(address(client));
         uint256 requestId =
@@ -98,6 +121,48 @@ contract LPNRegistryV0Test is Test {
 
         assertEq(requestId, 1);
         assertEq(registry.requests(requestId), address(client));
+    }
+
+    function testRequestValidateQueryRange() public {
+        bytes32 key = keccak256("key");
+        uint256 startBlock;
+        uint256 endBlock;
+        OperationType op = OperationType.AVERAGE;
+
+        // Test QueryUnregistered error
+        vm.expectRevert(QueryUnregistered.selector);
+        vm.prank(address(client));
+        registry.request(storageContract, key, startBlock, endBlock, op);
+
+        // Test QueryBeforeIndexed error
+        register(address(client), 1, 2);
+        startBlock = registry.indexStart(storageContract) - 1;
+        endBlock = block.number;
+        vm.expectRevert(QueryBeforeIndexed.selector);
+        vm.prank(address(client));
+        registry.request(storageContract, key, startBlock, endBlock, op);
+
+        // Test QueryAfterCurrentBlock error
+        startBlock = block.number;
+        endBlock = block.number + 1;
+        vm.expectRevert(QueryAfterCurrentBlock.selector);
+        vm.prank(address(client));
+        registry.request(storageContract, key, startBlock, endBlock, op);
+
+        // Test QueryInvalidRange error
+        startBlock = registry.indexStart(storageContract);
+        endBlock = startBlock - 1;
+        vm.expectRevert(QueryInvalidRange.selector);
+        vm.prank(address(client));
+        registry.request(storageContract, key, startBlock, endBlock, op);
+
+        vm.roll(block.number + (registry.MAX_QUERY_RANGE() + 1));
+        // Test QueryGreaterThanMaxRange error
+        startBlock = registry.indexStart(storageContract);
+        endBlock = startBlock + (registry.MAX_QUERY_RANGE() + 1);
+        vm.expectRevert(QueryGreaterThanMaxRange.selector);
+        vm.prank(address(client));
+        registry.request(storageContract, key, startBlock, endBlock, op);
     }
 
     // function testRequestNotWhitelisted() public {
@@ -116,11 +181,12 @@ contract LPNRegistryV0Test is Test {
 
     function testRespond() public {
         bytes32 key = keccak256("key");
-        uint256 startBlock = 100;
-        uint256 endBlock = 200;
+        uint256 startBlock = block.number;
+        uint256 endBlock = block.number;
         OperationType op = OperationType.AVERAGE;
         uint256 result = 42;
 
+        register(address(client), 1, 2);
         vm.prank(address(client));
         uint256 requestId =
             registry.request(storageContract, key, startBlock, endBlock, op);
