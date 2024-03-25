@@ -5,7 +5,7 @@ import {BaseScript} from "./BaseScript.s.sol";
 import {SampleClientV0} from "../src/client/examples/SampleClientV0.sol";
 import {ILPNRegistry} from "../src/interfaces/ILPNRegistry.sol";
 
-contract DeployLPNRegistry is BaseScript {
+contract DeploySampleClient is BaseScript {
     SampleClientV0 client;
 
     function run() external returns (SampleClientV0) {
@@ -20,8 +20,10 @@ contract DeployLPNRegistry is BaseScript {
         broadcaster
         returns (SampleClientV0)
     {
-        // TODO: Fill in lpnRegistry address
-        return new SampleClientV0{salt: _salt}(ILPNRegistry(address(0)));
+        // TODO: Read registry address from `broadcasts` folder
+        return new SampleClientV0{salt: _salt}(
+            ILPNRegistry(0x2cb22fb821608d273bAfC94933F6137fA0B48421)
+        );
     }
 
     function assertions() private view {}
