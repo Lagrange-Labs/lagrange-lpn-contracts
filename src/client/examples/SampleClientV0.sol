@@ -28,7 +28,7 @@ contract SampleClientV0 is LPNClientV0 {
         uint256 requestId = lpnRegistry.request(
             address(this),
             bytes32(uint256(uint160(holder))),
-            block.number - 10,
+            block.number,
             block.number,
             OperationType.AVERAGE
         );

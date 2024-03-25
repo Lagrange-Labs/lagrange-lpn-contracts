@@ -3,13 +3,19 @@ pragma solidity ^0.8.13;
 
 import {LPNClientV0} from "../LPNClientV0.sol";
 import {ILPNRegistry, OperationType} from "../../interfaces/ILPNRegistry.sol";
-import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import {ERC721Enumerable} from
+    "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Pausable.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract AirdropNFTCrosschain is LPNClientV0 {
     // Fill these in with the values that match the deployed NFT contract you want to query:
-    address public constant LLOONS_NFT_ADDRESS = address(0); /* Change Me */
-    uint256 public constant BALANCES_STORAGE_SLOT = 3; /* Change Me */
-    uint256 public constant BALANCES_SIZE_SLOT = 6; /* Change Me */
+    uint256 public constant OWNERS_STORAGE_SLOT = 2; /* Change Me */
+    uint256 public constant OWNERS_SIZE_SLOT = 8; /* Change Me */
+
+    address public lloons;
 
     // Use this to store context from the request for processing the result in the callback
     mapping(uint256 requestId => RequestMetadata request) public requests;
@@ -19,14 +25,16 @@ contract AirdropNFTCrosschain is LPNClientV0 {
         uint96 queriedBlockNumber;
     }
 
-    constructor(ILPNRegistry lpnRegistry) LPNClientV0(lpnRegistry) {}
+    constructor(ILPNRegistry lpnRegistry, LagrangeLoonsNFT lloons_)
+        LPNClientV0(lpnRegistry)
+    {
+        lloons = address(lloons_);
+    }
 
     // This function is used to register the storage slots of the LagrangeLoonsNFT contract with the LPN registry.
     // It registers the storage slot of the _balances mapping at slot 3 and the numOwners variable at slot 6.
     function lpnRegister() external {
-        lpnRegistry.register(
-            LLOONS_NFT_ADDRESS, BALANCES_STORAGE_SLOT, BALANCES_SIZE_SLOT
-        );
+        lpnRegistry.register(lloons, OWNERS_STORAGE_SLOT, OWNERS_SIZE_SLOT);
     }
 
     // This function is used to query the balance of a specific holder at a specific block.
@@ -37,7 +45,7 @@ contract AirdropNFTCrosschain is LPNClientV0 {
         // Query avg balance of holder 10 blocks ago
         // If result > 0, address held the NFT at that time
         uint256 requestId = lpnRegistry.request(
-            address(this),
+            address(lloons),
             bytes32(uint256(uint160(holder))),
             blockSnapshot,
             blockSnapshot,
@@ -70,30 +78,20 @@ contract AirdropNFTCrosschain is LPNClientV0 {
     function airdropTokens(address holder, uint256 amount) private {}
 }
 
-contract LagrangeLoonsNFT is ERC721 {
+contract LagrangeLoonsNFT is ERC721Enumerable, Ownable {
     // It is important to register the correct storage slot of the mapping you want to query.
-    // The `_balances` mapping is in storage slot 3 in the OpenZeppelin ERC721 implementation:
-    //     `mapping(address => uint256) private _balances;`
-
-    // This variable keeps track of the number of unique owners of the NFTs.
-    // It reflects the number of defined keys in `_balances`
-    // It is important to update this variable whenever the balance of a holder changes from 0 to 1+ or vice versa.
-    uint256 private _balancesSize; // storage slot 6
+    // The `_owners` mapping is in storage slot 2 in the OpenZeppelin ERC721 implementation:
+    //     `mapping(uint256 => address) private _onwers;`
 
     uint256 id;
 
-    constructor() ERC721("Lagrange Loons", "LLOON") {}
+    constructor() ERC721("Lagrange Loons", "LLOON") Ownable(msg.sender) {}
 
     function _baseURI() internal pure override returns (string memory) {
         return "https://lagrange.dev/loons/";
     }
 
     function mint() external {
-        if (balanceOf(msg.sender) == 0) {
-            unchecked {
-                _balancesSize++;
-            }
-        }
         _mint(msg.sender, id);
         unchecked {
             id++;
@@ -101,10 +99,6 @@ contract LagrangeLoonsNFT is ERC721 {
     }
 
     function burn(uint256 id_) external {
-        address owner = _ownerOf(id_);
-        if (balanceOf(owner) == 1) {
-            _balancesSize--;
-        }
         _burn(id_);
     }
 }
