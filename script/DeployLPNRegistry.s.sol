@@ -5,6 +5,8 @@ import {BaseScript} from "./BaseScript.s.sol";
 import {LPNRegistryV0} from "../src/LPNRegistryV0.sol";
 import {ERC1967Factory} from "solady/utils/ERC1967Factory.sol";
 import {ERC1967FactoryConstants} from "solady/utils/ERC1967FactoryConstants.sol";
+import {console2} from "forge-std/Script.sol";
+import "../src/client/examples/AirdropNFTCrosschain.sol";
 
 contract DeployLPNRegistry is BaseScript {
     LPNRegistryV0 registry;
@@ -15,6 +17,13 @@ contract DeployLPNRegistry is BaseScript {
 
     function run() external returns (LPNRegistryV0, address) {
         (registry, impl) = deploy(salt);
+        LagrangeLoonsNFT lloons = new LagrangeLoonsNFT();
+        print("LagrangeLoonsNFT", address(lloons));
+        AirdropNFTCrosschain client = new AirdropNFTCrosschain(registry, lloons);
+        print("AirdropNFTCrosschain", address(client));
+
+        registry.toggleWhitelist(address(lloons));
+
         assertions();
         return (registry, impl);
     }

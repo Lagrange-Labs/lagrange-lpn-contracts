@@ -18,7 +18,7 @@ contract DeployLPNRegistryTest is Test {
     bytes32 salt;
 
     function setUp() public {
-        salt = deployScript.salt();
+        salt = bytes32(abi.encodePacked(deployScript.deployer(), "LPN_V0_TEST"));
     }
 
     function testDeploy() public {
