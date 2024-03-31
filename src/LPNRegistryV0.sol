@@ -6,6 +6,7 @@ import {ILPNClient} from "./interfaces/ILPNClient.sol";
 import {OwnableWhitelist} from "./utils/OwnableWhitelist.sol";
 import {Initializable} from
     "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import {Groth16Verifier} from "./Groth16Verifier.sol";
 
 /// @notice Error thrown when attempting to register a storage contract more than once.
 error ContractAlreadyRegistered();
@@ -125,13 +126,19 @@ contract LPNRegistryV0 is ILPNRegistry, OwnableWhitelist, Initializable {
         return requestId;
     }
 
-    function respond(uint256 requestId_, uint256 result) external {
+    function respond(
+        uint256 requestId_,
+        uint256[8] calldata proofs,
+        uint256[3] calldata inputs
+    ) external {
         // TODO: Verify proof
         address client = requests[requestId_];
         requests[requestId_] = address(0);
 
-        emit NewResponse(requestId_, client, result);
+        uint256[] memory results = Groth16Verifier.respond(proofs, inputs);
 
-        ILPNClient(client).lpnCallback(requestId_, result);
+        ILPNClient(client).lpnCallback(requestId_, results);
+
+        emit NewResponse(requestId_, client, results);
     }
 }

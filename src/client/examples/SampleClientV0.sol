@@ -30,7 +30,7 @@ contract SampleClientV0 is LPNClientV0 {
             bytes32(uint256(uint160(holder))),
             block.number,
             block.number,
-            OperationType.AVERAGE
+            OperationType.SELECT
         );
 
         // We can store the requestID if we need to access other data in the callback
@@ -41,7 +41,7 @@ contract SampleClientV0 is LPNClientV0 {
         lpnRegistry.register(address(this), 2, 1);
     }
 
-    function processCallback(uint256 requestId, uint256 result)
+    function processCallback(uint256 requestId, uint256[] calldata results)
         internal
         override
     {

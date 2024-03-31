@@ -19,11 +19,13 @@ import {Initializable} from
 
 contract MockLPNClient is ILPNClient {
     uint256 public lastRequestId;
-    uint256 public lastResult;
+    uint256[] public lastResult;
 
-    function lpnCallback(uint256 _requestId, uint256 _result) external {
+    function lpnCallback(uint256 _requestId, uint256[] calldata _results)
+        external
+    {
         lastRequestId = _requestId;
-        lastResult = _result;
+        lastResult = _results;
     }
 }
 
@@ -121,7 +123,7 @@ contract LPNRegistryV0Test is Test {
         bytes32 key = keccak256("key");
         uint256 startBlock = registry.indexStart(storageContract);
         uint256 endBlock = startBlock;
-        OperationType op = OperationType.AVERAGE;
+        OperationType op = OperationType.SELECT;
 
         vm.expectEmit(true, true, true, true);
         emit NewRequest(
@@ -140,7 +142,7 @@ contract LPNRegistryV0Test is Test {
         bytes32 key = keccak256("key");
         uint256 startBlock;
         uint256 endBlock;
-        OperationType op = OperationType.AVERAGE;
+        OperationType op = OperationType.SELECT;
 
         // Test QueryUnregistered error
         vm.expectRevert(QueryUnregistered.selector);
@@ -196,8 +198,11 @@ contract LPNRegistryV0Test is Test {
         bytes32 key = keccak256("key");
         uint256 startBlock = block.number;
         uint256 endBlock = block.number;
-        OperationType op = OperationType.AVERAGE;
+        OperationType op = OperationType.SELECT;
         uint256 result = 42;
+        uint256 one = uint256(1);
+        uint256[8] memory proofs = [one, one, one, one, one, one, one, one];
+        uint256[3] memory inputs = [one, one, one];
 
         register(address(client), 1, 2);
         vm.prank(address(client));
@@ -207,10 +212,10 @@ contract LPNRegistryV0Test is Test {
         vm.expectEmit(true, true, true, true);
         emit NewResponse(requestId, address(client), result);
 
-        registry.respond(requestId, result);
+        registry.respond(requestId, proofs, inputs);
 
         assertEq(client.lastRequestId(), requestId);
-        assertEq(client.lastResult(), result);
+        assertEq(client.lastResult(2), inputs[2]);
         assertEq(registry.requests(requestId), address(0));
     }
 }

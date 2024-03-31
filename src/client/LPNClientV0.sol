@@ -20,14 +20,14 @@ abstract contract LPNClientV0 is ILPNClient {
         lpnRegistry = _lpnRegistry;
     }
 
-    function lpnCallback(uint256 requestId, uint256 result)
+    function lpnCallback(uint256 requestId, uint256[] calldata results)
         external
         onlyLagrangeRegistry
     {
-        processCallback(requestId, result);
+        processCallback(requestId, results);
     }
 
-    function processCallback(uint256 requestId, uint256 result)
+    function processCallback(uint256 requestId, uint256[] calldata results)
         internal
         virtual;
 }

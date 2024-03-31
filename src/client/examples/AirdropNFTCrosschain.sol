@@ -49,7 +49,7 @@ contract AirdropNFTCrosschain is LPNClientV0 {
             bytes32(uint256(uint160(holder))),
             blockSnapshot,
             blockSnapshot,
-            OperationType.AVERAGE
+            OperationType.SELECT
         );
 
         // We can store the requestID if we need to access other data in the callback
@@ -61,12 +61,12 @@ contract AirdropNFTCrosschain is LPNClientV0 {
 
     // This function is called by the LPN registry to provide the result of our query above.
     // It sends an airdrop of a token if the address is an NFT holder.
-    function processCallback(uint256 requestId, uint256 result)
+    function processCallback(uint256 requestId, uint256[] calldata results)
         internal
         override
     {
         // Process result:
-        bool isHolder = result > 0;
+        bool isHolder = results.length > 0;
 
         // Take some action based on the result:
         RequestMetadata memory req = requests[requestId];

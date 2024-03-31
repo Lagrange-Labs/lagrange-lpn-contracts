@@ -3,7 +3,7 @@ pragma solidity ^0.8.13;
 
 /// @notice Enum representing the types of operations supported by Lagrange.
 enum OperationType {
-    AVERAGE
+    SELECT
 }
 
 struct Operation {
@@ -47,9 +47,9 @@ interface ILPNRegistry {
     /// @notice Event emitted when a response is received.
     /// @param requestId The ID of the request.
     /// @param client The address of the client who made the matching request.
-    /// @param result The computed result for the request.
+    /// @param results The computed results for the request.
     event NewResponse(
-        uint256 indexed requestId, address indexed client, uint256 result
+        uint256 indexed requestId, address indexed client, uint256[] results
     );
 
     /// @notice Registers a client with the provided mapping and length slots.
@@ -80,6 +80,11 @@ interface ILPNRegistry {
 
     /// @notice Submits a response to a specific request.
     /// @param requestId_ The ID of the request to respond to.
-    /// @param result The result of the request.
-    function respond(uint256 requestId_, uint256 result) external;
+    /// @param proofs The proof to verify.
+    /// @param inputs The inputs to the proof.
+    function respond(
+        uint256 requestId_,
+        uint256[8] calldata proofs,
+        uint256[3] calldata inputs
+    ) external;
 }
