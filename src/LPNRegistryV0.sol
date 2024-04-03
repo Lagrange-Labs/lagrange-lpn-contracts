@@ -104,8 +104,6 @@ contract LPNRegistryV0 is ILPNRegistry, OwnableWhitelist, Initializable {
         uint256 endBlock
     )
         external
-        // TODO: Should we check the whitelist for requester address?
-        // onlyWhitelist(msg.sender)
         validateQueryRange(storageContract, startBlock, endBlock)
         returns (uint256)
     {
