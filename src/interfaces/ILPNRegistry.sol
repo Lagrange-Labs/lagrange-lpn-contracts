@@ -1,16 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-/// @notice Enum representing the types of operations supported by Lagrange.
-enum OperationType {
-    SELECT
-}
-
-struct Operation {
-    OperationType op;
-    bytes32 key;
-}
-
 /// @title ILPNRegistry
 /// @notice Interface for the LPNRegistryV0 contract.
 interface ILPNRegistry {
@@ -33,15 +23,13 @@ interface ILPNRegistry {
     /// @param key The key of the mapping for the value associated with the request.
     /// @param startBlock The starting block for the computation.
     /// @param endBlock The ending block for the computation.
-    /// @param op The operation to be calculated.
     event NewRequest(
         uint256 indexed requestId,
         address indexed storageContract,
         address indexed client,
         bytes32 key,
         uint256 startBlock,
-        uint256 endBlock,
-        OperationType op
+        uint256 endBlock
     );
 
     /// @notice Event emitted when a response is received.
@@ -67,15 +55,12 @@ interface ILPNRegistry {
     /// @param key The key of the mapping for the value associated with the request.
     /// @param startBlock The starting block for the computation.
     /// @param endBlock The ending block for the computation.
-    /// @param op The operation to be calculated.
     /// @return The ID of the newly created request.
-    // TODO: Do we need the `key` ?
     function request(
         address storageContract,
         bytes32 key,
         uint256 startBlock,
-        uint256 endBlock,
-        OperationType op
+        uint256 endBlock
     ) external returns (uint256);
 
     /// @notice Submits a response to a specific request.

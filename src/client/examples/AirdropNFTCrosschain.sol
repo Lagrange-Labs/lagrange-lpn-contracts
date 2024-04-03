@@ -2,7 +2,7 @@
 pragma solidity ^0.8.13;
 
 import {LPNClientV0} from "../LPNClientV0.sol";
-import {ILPNRegistry, OperationType} from "../../interfaces/ILPNRegistry.sol";
+import {ILPNRegistry} from "../../interfaces/ILPNRegistry.sol";
 import {ERC721Enumerable} from
     "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
@@ -48,8 +48,7 @@ contract AirdropNFTCrosschain is LPNClientV0 {
             address(lloons),
             bytes32(uint256(uint160(holder))),
             blockSnapshot,
-            blockSnapshot,
-            OperationType.SELECT
+            blockSnapshot
         );
 
         // We can store the requestID if we need to access other data in the callback

@@ -12,7 +12,7 @@ import {
     QueryGreaterThanMaxRange
 } from "../src/LPNRegistryV0.sol";
 import {NotAuthorized} from "../src/utils/OwnableWhitelist.sol";
-import {ILPNRegistry, OperationType} from "../src/interfaces/ILPNRegistry.sol";
+import {ILPNRegistry} from "../src/interfaces/ILPNRegistry.sol";
 import {ILPNClient} from "../src/interfaces/ILPNClient.sol";
 import {Initializable} from
     "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
@@ -53,8 +53,7 @@ contract LPNRegistryV0Test is Test {
         address indexed client,
         bytes32 key,
         uint256 startBlock,
-        uint256 endBlock,
-        OperationType op
+        uint256 endBlock
     );
 
     event NewResponse(
@@ -124,16 +123,15 @@ contract LPNRegistryV0Test is Test {
         bytes32 key = keccak256("key");
         uint256 startBlock = registry.indexStart(storageContract);
         uint256 endBlock = startBlock;
-        OperationType op = OperationType.SELECT;
 
         vm.expectEmit(true, true, true, true);
         emit NewRequest(
-            1, storageContract, address(client), key, startBlock, endBlock, op
+            1, storageContract, address(client), key, startBlock, endBlock
         );
 
         vm.prank(address(client));
         uint256 requestId =
-            registry.request(storageContract, key, startBlock, endBlock, op);
+            registry.request(storageContract, key, startBlock, endBlock);
 
         (,, address clientAddress,,,) = registry.queries(requestId);
 
@@ -145,12 +143,11 @@ contract LPNRegistryV0Test is Test {
         bytes32 key = keccak256("key");
         uint256 startBlock;
         uint256 endBlock;
-        OperationType op = OperationType.SELECT;
 
         // Test QueryUnregistered error
         vm.expectRevert(QueryUnregistered.selector);
         vm.prank(address(client));
-        registry.request(storageContract, key, startBlock, endBlock, op);
+        registry.request(storageContract, key, startBlock, endBlock);
 
         // Test QueryBeforeIndexed error
         register(address(client), 1, 2);
@@ -158,21 +155,21 @@ contract LPNRegistryV0Test is Test {
         endBlock = block.number;
         vm.expectRevert(QueryBeforeIndexed.selector);
         vm.prank(address(client));
-        registry.request(storageContract, key, startBlock, endBlock, op);
+        registry.request(storageContract, key, startBlock, endBlock);
 
         // Test QueryAfterCurrentBlock error
         startBlock = block.number;
         endBlock = block.number + 1;
         vm.expectRevert(QueryAfterCurrentBlock.selector);
         vm.prank(address(client));
-        registry.request(storageContract, key, startBlock, endBlock, op);
+        registry.request(storageContract, key, startBlock, endBlock);
 
         // Test QueryInvalidRange error
         startBlock = registry.indexStart(storageContract);
         endBlock = startBlock - 1;
         vm.expectRevert(QueryInvalidRange.selector);
         vm.prank(address(client));
-        registry.request(storageContract, key, startBlock, endBlock, op);
+        registry.request(storageContract, key, startBlock, endBlock);
 
         vm.roll(block.number + (registry.MAX_QUERY_RANGE() + 1));
         // Test QueryGreaterThanMaxRange error
@@ -180,7 +177,7 @@ contract LPNRegistryV0Test is Test {
         endBlock = startBlock + (registry.MAX_QUERY_RANGE() + 1);
         vm.expectRevert(QueryGreaterThanMaxRange.selector);
         vm.prank(address(client));
-        registry.request(storageContract, key, startBlock, endBlock, op);
+        registry.request(storageContract, key, startBlock, endBlock);
     }
 
     function testRespond() public {
@@ -188,7 +185,6 @@ contract LPNRegistryV0Test is Test {
         bytes32 key = keccak256("key");
         uint256 startBlock = block.number;
         uint256 endBlock = block.number;
-        OperationType op = OperationType.SELECT;
         uint256[] memory results = new uint256[](3);
         uint256 one = uint256(1);
         uint256[3] memory inputs = [one, one, one];
@@ -204,7 +200,7 @@ contract LPNRegistryV0Test is Test {
         register(address(client), 1, 2);
         vm.prank(address(client));
         uint256 requestId =
-            registry.request(storageContract, key, startBlock, endBlock, op);
+            registry.request(storageContract, key, startBlock, endBlock);
 
         vm.expectEmit(true, true, true, true);
         emit NewResponse(requestId, address(client), results);

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import {ILPNRegistry, OperationType} from "./interfaces/ILPNRegistry.sol";
+import {ILPNRegistry} from "./interfaces/ILPNRegistry.sol";
 import {ILPNClient} from "./interfaces/ILPNClient.sol";
 import {OwnableWhitelist} from "./utils/OwnableWhitelist.sol";
 import {Initializable} from
@@ -101,8 +101,7 @@ contract LPNRegistryV0 is ILPNRegistry, OwnableWhitelist, Initializable {
         address storageContract,
         bytes32 key,
         uint256 startBlock,
-        uint256 endBlock,
-        OperationType op
+        uint256 endBlock
     )
         external
         // TODO: Should we check the whitelist for requester address?
@@ -124,13 +123,7 @@ contract LPNRegistryV0 is ILPNRegistry, OwnableWhitelist, Initializable {
         });
 
         emit NewRequest(
-            requestId,
-            storageContract,
-            msg.sender,
-            key,
-            startBlock,
-            endBlock,
-            op
+            requestId, storageContract, msg.sender, key, startBlock, endBlock
         );
         return requestId;
     }
