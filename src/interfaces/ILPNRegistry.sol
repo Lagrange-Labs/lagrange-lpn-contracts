@@ -80,11 +80,9 @@ interface ILPNRegistry {
 
     /// @notice Submits a response to a specific request.
     /// @param requestId_ The ID of the request to respond to.
-    /// @param proofs The proof to verify.
-    /// @param inputs The inputs to the proof.
-    function respond(
-        uint256 requestId_,
-        uint256[8] calldata proofs,
-        uint256[3] calldata inputs
-    ) external;
+    /// @param data The proof, inputs, and public inputs to verify.
+    /// - groth16_proof.proofs: 8 * U256 = 256 bytes
+    /// - groth16_proof.inputs: 3 * U256 = 96 bytes
+    /// - plonky2_proof.public_inputs: the little-endian bytes of public inputs exported by user
+    function respond(uint256 requestId_, bytes32[] calldata data) external;
 }

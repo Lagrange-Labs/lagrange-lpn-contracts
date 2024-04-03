@@ -16,6 +16,7 @@ import {ILPNRegistry, OperationType} from "../src/interfaces/ILPNRegistry.sol";
 import {ILPNClient} from "../src/interfaces/ILPNClient.sol";
 import {Initializable} from
     "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import {Groth16Verifier} from "../src/Groth16Verifier.sol";
 
 contract MockLPNClient is ILPNClient {
     uint256 public lastRequestId;
@@ -57,7 +58,7 @@ contract LPNRegistryV0Test is Test {
     );
 
     event NewResponse(
-        uint256 indexed requestId, address indexed client, uint256 result
+        uint256 indexed requestId, address indexed client, uint256[] results
     );
 
     function register(address client_, uint256 mappingSlot, uint256 lengthSlot)
@@ -134,8 +135,10 @@ contract LPNRegistryV0Test is Test {
         uint256 requestId =
             registry.request(storageContract, key, startBlock, endBlock, op);
 
+        (,, address clientAddress,,,) = registry.queries(requestId);
+
         assertEq(requestId, 1);
-        assertEq(registry.requests(requestId), address(client));
+        assertEq(clientAddress, address(client));
     }
 
     function testRequestValidateQueryRange() public {
@@ -180,29 +183,23 @@ contract LPNRegistryV0Test is Test {
         registry.request(storageContract, key, startBlock, endBlock, op);
     }
 
-    // function testRequestNotWhitelisted() public {
-    //     bytes32 key = keccak256("key");
-    //     uint256 startBlock = 100;
-    //     uint256 endBlock = 200;
-    //     OperationType op = OperationType.AVERAGE;
-    //
-    //     hoax(owner);
-    //     registry.toggleWhitelist(address(client));
-    //
-    //     vm.expectRevert(NotAuthorized.selector);
-    //     vm.prank(address(client));
-    //     registry.request(storageContract, key, startBlock, endBlock, op);
-    // }
-
     function testRespond() public {
+        // TODO: Fix with verification
         bytes32 key = keccak256("key");
         uint256 startBlock = block.number;
         uint256 endBlock = block.number;
         OperationType op = OperationType.SELECT;
-        uint256 result = 42;
+        uint256[] memory results = new uint256[](3);
         uint256 one = uint256(1);
-        uint256[8] memory proofs = [one, one, one, one, one, one, one, one];
         uint256[3] memory inputs = [one, one, one];
+        bytes32[] memory data = new bytes32[](13);
+        for (uint256 i = 0; i < 13; i++) {
+            data[i] = bytes32(one);
+        }
+
+        for (uint256 i = 0; i < 3; i++) {
+            results[i] = one;
+        }
 
         register(address(client), 1, 2);
         vm.prank(address(client));
@@ -210,12 +207,14 @@ contract LPNRegistryV0Test is Test {
             registry.request(storageContract, key, startBlock, endBlock, op);
 
         vm.expectEmit(true, true, true, true);
-        emit NewResponse(requestId, address(client), result);
+        emit NewResponse(requestId, address(client), results);
 
-        registry.respond(requestId, proofs, inputs);
+        registry.respond(requestId, data);
+
+        (,, address clientAddress,,,) = registry.queries(requestId);
 
         assertEq(client.lastRequestId(), requestId);
         assertEq(client.lastResult(2), inputs[2]);
-        assertEq(registry.requests(requestId), address(0));
+        assertEq(clientAddress, address(0));
     }
 }
