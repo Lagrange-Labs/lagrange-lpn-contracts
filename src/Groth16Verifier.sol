@@ -436,7 +436,6 @@ library Groth16Verifier {
             mstore(add(f, 0x20), CONSTANT_Y)
             mstore(g, PUB_0_X)
             mstore(add(g, 0x20), PUB_0_Y)
-            // s := calldataload(input)
             s := mload(input)
             mstore(add(g, 0x40), s)
             success := and(success, lt(s, R))
@@ -446,7 +445,6 @@ library Groth16Verifier {
                 and(success, staticcall(gas(), PRECOMPILE_ADD, f, 0x80, f, 0x40))
             mstore(g, PUB_1_X)
             mstore(add(g, 0x20), PUB_1_Y)
-            // s := calldataload(add(input, 32))
             s := mload(add(input, 32))
             mstore(add(g, 0x40), s)
             success := and(success, lt(s, R))
@@ -456,7 +454,6 @@ library Groth16Verifier {
                 and(success, staticcall(gas(), PRECOMPILE_ADD, f, 0x80, f, 0x40))
             mstore(g, PUB_2_X)
             mstore(add(g, 0x20), PUB_2_Y)
-            // s := calldataload(add(input, 64))
             s := mload(add(input, 64))
             mstore(add(g, 0x40), s)
             success := and(success, lt(s, R))
@@ -582,7 +579,6 @@ library Groth16Verifier {
 
             // Copy points (A, B, C) to memory. They are already in correct encoding.
             // This is pairing e(A, B) and G1 of e(C, -δ).
-            // calldatacopy(f, proof, 0x100)
             mstore(f, mload(add(proof, 0x00)))
             mstore(add(f, 0x20), mload(add(proof, 0x20)))
             mstore(add(f, 0x40), mload(add(proof, 0x40)))
