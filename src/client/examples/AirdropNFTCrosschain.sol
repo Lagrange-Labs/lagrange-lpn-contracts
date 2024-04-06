@@ -42,8 +42,7 @@ contract AirdropNFTCrosschain is LPNClientV0 {
     function queryHolder(address holder) external {
         uint256 blockSnapshot = block.number - 10;
 
-        // Query avg balance of holder 10 blocks ago
-        // If result > 0, address held the NFT at that time
+        // Query for token ids of holder as of 10 blocks ago
         uint256 requestId = lpnRegistry.request(
             address(lloons),
             bytes32(uint256(uint160(holder))),

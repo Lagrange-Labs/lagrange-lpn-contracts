@@ -69,5 +69,10 @@ interface ILPNRegistry {
     /// - groth16_proof.proofs: 8 * U256 = 256 bytes
     /// - groth16_proof.inputs: 3 * U256 = 96 bytes
     /// - plonky2_proof.public_inputs: the little-endian bytes of public inputs exported by user
-    function respond(uint256 requestId_, bytes32[] calldata data) external;
+    /// @param blockNumber The block number of the block hash corresponding to the proof.
+    function respond(
+        uint256 requestId_,
+        bytes32[] calldata data,
+        uint256 blockNumber
+    ) external;
 }

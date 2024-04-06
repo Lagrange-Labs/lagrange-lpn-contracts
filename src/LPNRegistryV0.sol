@@ -6,7 +6,7 @@ import {ILPNClient} from "./interfaces/ILPNClient.sol";
 import {OwnableWhitelist} from "./utils/OwnableWhitelist.sol";
 import {Initializable} from
     "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import {Groth16Verifier} from "./Groth16Verifier.sol";
+import {Groth16VerifierExtensions} from "./Groth16VerifierExtensions.sol";
 
 /// @notice Error thrown when attempting to register a storage contract more than once.
 error ContractAlreadyRegistered();
@@ -34,13 +34,14 @@ error QueryInvalidRange();
 /// @notice A registry contract for managing LPN (Lagrange Proving Network) clients and requests.
 contract LPNRegistryV0 is ILPNRegistry, OwnableWhitelist, Initializable {
     /// @notice The maximum number of blocks a query can be computed over
-    uint256 public constant MAX_QUERY_RANGE = 100;
+    uint256 public constant MAX_QUERY_RANGE = 1000;
 
     /// @notice A counter that assigns unique ids for client requests.
     uint256 public requestId;
 
     /// @notice Mapping to track requests and their associated clients.
-    mapping(uint256 requestId => Groth16Verifier.Query query) public queries;
+    mapping(uint256 requestId => Groth16VerifierExtensions.Query query) public
+        queries;
 
     /// @notice Mapping to track the first block indexed for a contract.
     mapping(address storageContract => uint256 genesisBlock) public indexStart;
@@ -111,7 +112,7 @@ contract LPNRegistryV0 is ILPNRegistry, OwnableWhitelist, Initializable {
             requestId++;
         }
 
-        queries[requestId] = Groth16Verifier.Query({
+        queries[requestId] = Groth16VerifierExtensions.Query({
             contractAddress: storageContract,
             userAddress: address(uint160(uint256(key))),
             minBlockNumber: startBlock,
@@ -126,10 +127,14 @@ contract LPNRegistryV0 is ILPNRegistry, OwnableWhitelist, Initializable {
         return requestId;
     }
 
-    function respond(uint256 requestId_, bytes32[] calldata data) external {
-        Groth16Verifier.Query memory query = queries[requestId_];
+    function respond(
+        uint256 requestId_,
+        bytes32[] calldata data,
+        uint256 blockNumber
+    ) external {
+        Groth16VerifierExtensions.Query memory query = queries[requestId_];
 
-        queries[requestId_] = Groth16Verifier.Query({
+        queries[requestId_] = Groth16VerifierExtensions.Query({
             contractAddress: address(0),
             userAddress: address(0),
             minBlockNumber: 0,
@@ -138,17 +143,12 @@ contract LPNRegistryV0 is ILPNRegistry, OwnableWhitelist, Initializable {
             clientAddress: address(0)
         });
 
-        uint32[] memory results = Groth16Verifier.processQuery(data, query);
-        uint256[] memory convertedResults;
+        query.blockHash = blockhash(blockNumber);
+        uint256[] memory results =
+            Groth16VerifierExtensions.processQuery(data, query);
 
-        for (uint256 i = 0; i < results.length; i++) {
-            convertedResults[i] = uint256(results[i]);
-        }
+        ILPNClient(query.clientAddress).lpnCallback(requestId_, results);
 
-        ILPNClient(query.clientAddress).lpnCallback(
-            requestId_, convertedResults
-        );
-
-        emit NewResponse(requestId_, query.clientAddress, convertedResults);
+        emit NewResponse(requestId_, query.clientAddress, results);
     }
 }

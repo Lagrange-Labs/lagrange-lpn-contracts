@@ -34,7 +34,7 @@ contract LPNRegistryV0Test is Test {
     LPNRegistryV0 public registry;
     MockLPNClient client;
 
-    address storageContract = makeAddr("storageContract");
+    address storageContract = 0x0101010101010101010101010101010101010101;
     address notWhitelisted = makeAddr("notWhitelisted");
 
     address owner = makeAddr("owner");
@@ -181,36 +181,75 @@ contract LPNRegistryV0Test is Test {
     }
 
     function testRespond() public {
-        // TODO: Fix with verification
-        bytes32 key = keccak256("key");
-        uint256 startBlock = block.number;
-        uint256 endBlock = block.number;
-        uint256[] memory results = new uint256[](3);
-        uint256 one = uint256(1);
-        uint256[3] memory inputs = [one, one, one];
-        bytes32[] memory data = new bytes32[](13);
-        for (uint256 i = 0; i < 13; i++) {
-            data[i] = bytes32(one);
+        uint256 startBlock = 100;
+        uint256 endBlock = 1000;
+        address userAddress = 0x0202020202020202020202020202020202020202;
+        bytes32 key = bytes32(uint256(uint160(userAddress)));
+
+        uint32[5] memory nftIds = [0, 16777216, 33554432, 50331648, 67108864];
+
+        uint256[] memory expectedResults = new uint256[](5);
+        for (uint256 i = 0; i < nftIds.length; i++) {
+            expectedResults[i] = nftIds[i];
         }
 
-        for (uint256 i = 0; i < 3; i++) {
-            results[i] = one;
-        }
+        register(storageContract, 1, 2);
 
-        register(address(client), 1, 2);
+        vm.roll(endBlock);
         vm.prank(address(client));
         uint256 requestId =
             registry.request(storageContract, key, startBlock, endBlock);
 
         vm.expectEmit(true, true, true, true);
-        emit NewResponse(requestId, address(client), results);
+        emit NewResponse(requestId, address(client), expectedResults);
 
-        registry.respond(requestId, data);
+        bytes32[] memory proof = readProof();
+        registry.respond(requestId, proof, block.number);
 
         (,, address clientAddress,,,) = registry.queries(requestId);
 
         assertEq(client.lastRequestId(), requestId);
-        assertEq(client.lastResult(2), inputs[2]);
+        for (uint256 i = 0; i < expectedResults.length; i++) {
+            assertEq(client.lastResult(i), expectedResults[i]);
+        }
         assertEq(clientAddress, address(0));
+    }
+
+    function readProof() private view returns (bytes32[] memory) {
+        string memory root = vm.projectRoot();
+        string memory path = string.concat(root, "/test/full_proof.bin");
+
+        bytes memory proofData = vm.readFileBinary(path);
+        // Calculate the number of bytes32 elements needed
+        uint256 numBytes32 = (proofData.length + 31) / 32;
+
+        // Create a bytes32[] array to hold the proof data
+        bytes32[] memory proof = new bytes32[](numBytes32);
+
+        console.logBytes(proofData);
+        // Copy the proof data into the bytes32[] array
+        for (uint256 i = 0; i < numBytes32; i++) {
+            bytes32 chunk = bytesToBytes32(proofData, i * 32);
+            proof[i] = chunk;
+            console.logBytes32(proof[i]);
+        }
+        return proof;
+    }
+
+    function bytesToBytes32(bytes memory b, uint256 offset)
+        private
+        pure
+        returns (bytes32)
+    {
+        bytes32 out;
+
+        for (uint256 i = 0; i < 32; i++) {
+            if (offset + i >= b.length) {
+                out |= bytes32(0x00 & 0xFF) >> (i * 8);
+            } else {
+                out |= bytes32(b[offset + i] & 0xFF) >> (i * 8);
+            }
+        }
+        return out;
     }
 }
