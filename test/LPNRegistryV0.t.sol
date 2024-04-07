@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import {Test, console} from "forge-std/Test.sol";
+import {Test} from "forge-std/Test.sol";
 import {
     LPNRegistryV0,
     ContractAlreadyRegistered,
@@ -186,7 +186,7 @@ contract LPNRegistryV0Test is Test {
         address userAddress = 0x0202020202020202020202020202020202020202;
         bytes32 key = bytes32(uint256(uint160(userAddress)));
 
-        uint32[5] memory nftIds = [0, 16777216, 33554432, 50331648, 67108864];
+        uint8[5] memory nftIds = [0, 1, 2, 3, 4];
 
         uint256[] memory expectedResults = new uint256[](5);
         for (uint256 i = 0; i < nftIds.length; i++) {
@@ -226,12 +226,10 @@ contract LPNRegistryV0Test is Test {
         // Create a bytes32[] array to hold the proof data
         bytes32[] memory proof = new bytes32[](numBytes32);
 
-        console.logBytes(proofData);
         // Copy the proof data into the bytes32[] array
         for (uint256 i = 0; i < numBytes32; i++) {
             bytes32 chunk = bytesToBytes32(proofData, i * 32);
             proof[i] = chunk;
-            console.logBytes32(proof[i]);
         }
         return proof;
     }

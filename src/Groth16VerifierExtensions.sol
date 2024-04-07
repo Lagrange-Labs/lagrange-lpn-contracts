@@ -199,7 +199,8 @@ library Groth16VerifierExtensions {
     {
         uint256[] memory nft_ids = new uint256[](L);
         for (uint32 i = 0; i < L; ++i) {
-            nft_ids[i] = uint256(convertToU32(pis, PI_NFT_IDS_OFFSET + i * 8));
+            nft_ids[i] =
+                uint256(convertToLeftPaddingU32(pis, PI_NFT_IDS_OFFSET + i * 8));
         }
 
         return nft_ids;
@@ -224,6 +225,20 @@ library Groth16VerifierExtensions {
         uint32 result;
         for (uint32 i = 0; i < 4; ++i) {
             result |= uint32(uint8(data[i + offset])) << (8 * i);
+        }
+
+        return result;
+    }
+
+    // Convert to an uint32 of left padding from a memory offset.
+    function convertToLeftPaddingU32(bytes memory data, uint32 offset)
+        internal
+        pure
+        returns (uint32)
+    {
+        uint32 result;
+        for (uint32 i = 0; i < 4; ++i) {
+            result |= uint32(uint8(data[i + offset])) << (8 * (3 - i));
         }
 
         return result;

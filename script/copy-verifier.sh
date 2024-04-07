@@ -7,6 +7,7 @@ VERIFIER_FILE=./src/Groth16Verifier.sol
 VERIFIER_EXTENSIONS_FILE=./src/Groth16VerifierExtensions.sol
 
 cd $GIT_REPO_PATH && \
+    git fetch origin $BRANCH && \
     git checkout $BRANCH && \
     git pull origin $BRANCH && \
     cd -
