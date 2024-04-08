@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import {ILPNRegistry, OperationType} from "./interfaces/ILPNRegistry.sol";
+import {ILPNRegistry} from "./interfaces/ILPNRegistry.sol";
 import {ILPNClient} from "./interfaces/ILPNClient.sol";
 import {OwnableWhitelist} from "./utils/OwnableWhitelist.sol";
 import {Initializable} from
     "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import {Groth16VerifierExtensions} from "./Groth16VerifierExtensions.sol";
 
 /// @notice Error thrown when attempting to register a storage contract more than once.
 error ContractAlreadyRegistered();
@@ -33,13 +34,14 @@ error QueryInvalidRange();
 /// @notice A registry contract for managing LPN (Lagrange Proving Network) clients and requests.
 contract LPNRegistryV0 is ILPNRegistry, OwnableWhitelist, Initializable {
     /// @notice The maximum number of blocks a query can be computed over
-    uint256 public constant MAX_QUERY_RANGE = 100;
+    uint256 public constant MAX_QUERY_RANGE = 1000;
 
     /// @notice A counter that assigns unique ids for client requests.
     uint256 public requestId;
 
     /// @notice Mapping to track requests and their associated clients.
-    mapping(uint256 requestId => address client) public requests;
+    mapping(uint256 requestId => Groth16VerifierExtensions.Query query) public
+        queries;
 
     /// @notice Mapping to track the first block indexed for a contract.
     mapping(address storageContract => uint256 genesisBlock) public indexStart;
@@ -100,38 +102,53 @@ contract LPNRegistryV0 is ILPNRegistry, OwnableWhitelist, Initializable {
         address storageContract,
         bytes32 key,
         uint256 startBlock,
-        uint256 endBlock,
-        OperationType op
+        uint256 endBlock
     )
         external
-        // TODO: Should we check the whitelist for requester address?
-        // onlyWhitelist(msg.sender)
         validateQueryRange(storageContract, startBlock, endBlock)
         returns (uint256)
     {
         unchecked {
             requestId++;
         }
-        requests[requestId] = msg.sender;
+
+        queries[requestId] = Groth16VerifierExtensions.Query({
+            contractAddress: storageContract,
+            userAddress: address(uint160(uint256(key))),
+            minBlockNumber: startBlock,
+            maxBlockNumber: endBlock,
+            blockHash: 0,
+            clientAddress: msg.sender
+        });
+
         emit NewRequest(
-            requestId,
-            storageContract,
-            msg.sender,
-            key,
-            startBlock,
-            endBlock,
-            op
+            requestId, storageContract, msg.sender, key, startBlock, endBlock
         );
         return requestId;
     }
 
-    function respond(uint256 requestId_, uint256 result) external {
-        // TODO: Verify proof
-        address client = requests[requestId_];
-        requests[requestId_] = address(0);
+    function respond(
+        uint256 requestId_,
+        bytes32[] calldata data,
+        uint256 blockNumber
+    ) external {
+        Groth16VerifierExtensions.Query memory query = queries[requestId_];
 
-        emit NewResponse(requestId_, client, result);
+        queries[requestId_] = Groth16VerifierExtensions.Query({
+            contractAddress: address(0),
+            userAddress: address(0),
+            minBlockNumber: 0,
+            maxBlockNumber: 0,
+            blockHash: 0,
+            clientAddress: address(0)
+        });
 
-        ILPNClient(client).lpnCallback(requestId_, result);
+        query.blockHash = blockhash(blockNumber);
+        uint256[] memory results =
+            Groth16VerifierExtensions.processQuery(data, query);
+
+        ILPNClient(query.clientAddress).lpnCallback(requestId_, results);
+
+        emit NewResponse(requestId_, query.clientAddress, results);
     }
 }

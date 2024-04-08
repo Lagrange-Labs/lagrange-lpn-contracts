@@ -1,16 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-/// @notice Enum representing the types of operations supported by Lagrange.
-enum OperationType {
-    AVERAGE
-}
-
-struct Operation {
-    OperationType op;
-    bytes32 key;
-}
-
 /// @title ILPNRegistry
 /// @notice Interface for the LPNRegistryV0 contract.
 interface ILPNRegistry {
@@ -33,23 +23,21 @@ interface ILPNRegistry {
     /// @param key The key of the mapping for the value associated with the request.
     /// @param startBlock The starting block for the computation.
     /// @param endBlock The ending block for the computation.
-    /// @param op The operation to be calculated.
     event NewRequest(
         uint256 indexed requestId,
         address indexed storageContract,
         address indexed client,
         bytes32 key,
         uint256 startBlock,
-        uint256 endBlock,
-        OperationType op
+        uint256 endBlock
     );
 
     /// @notice Event emitted when a response is received.
     /// @param requestId The ID of the request.
     /// @param client The address of the client who made the matching request.
-    /// @param result The computed result for the request.
+    /// @param results The computed results for the request.
     event NewResponse(
-        uint256 indexed requestId, address indexed client, uint256 result
+        uint256 indexed requestId, address indexed client, uint256[] results
     );
 
     /// @notice Registers a client with the provided mapping and length slots.
@@ -67,19 +55,24 @@ interface ILPNRegistry {
     /// @param key The key of the mapping for the value associated with the request.
     /// @param startBlock The starting block for the computation.
     /// @param endBlock The ending block for the computation.
-    /// @param op The operation to be calculated.
     /// @return The ID of the newly created request.
-    // TODO: Do we need the `key` ?
     function request(
         address storageContract,
         bytes32 key,
         uint256 startBlock,
-        uint256 endBlock,
-        OperationType op
+        uint256 endBlock
     ) external returns (uint256);
 
     /// @notice Submits a response to a specific request.
     /// @param requestId_ The ID of the request to respond to.
-    /// @param result The result of the request.
-    function respond(uint256 requestId_, uint256 result) external;
+    /// @param data The proof, inputs, and public inputs to verify.
+    /// - groth16_proof.proofs: 8 * U256 = 256 bytes
+    /// - groth16_proof.inputs: 3 * U256 = 96 bytes
+    /// - plonky2_proof.public_inputs: the little-endian bytes of public inputs exported by user
+    /// @param blockNumber The block number of the block hash corresponding to the proof.
+    function respond(
+        uint256 requestId_,
+        bytes32[] calldata data,
+        uint256 blockNumber
+    ) external;
 }

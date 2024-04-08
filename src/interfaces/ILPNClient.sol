@@ -10,6 +10,7 @@ import {ILPNRegistry} from "./ILPNRegistry.sol";
 interface ILPNClient {
     /// @notice Callback function called by the LPNRegistry contract.
     /// @param requestId The ID of the request.
-    /// @param result The result of the request.
-    function lpnCallback(uint256 requestId, uint256 result) external;
+    /// @param results The result of the request.
+    function lpnCallback(uint256 requestId, uint256[] calldata results)
+        external;
 }

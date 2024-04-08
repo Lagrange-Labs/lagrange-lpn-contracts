@@ -2,7 +2,7 @@
 pragma solidity ^0.8.13;
 
 import {LPNClientV0} from "../LPNClientV0.sol";
-import {ILPNRegistry, OperationType} from "../../interfaces/ILPNRegistry.sol";
+import {ILPNRegistry} from "../../interfaces/ILPNRegistry.sol";
 import {ERC721Enumerable} from
     "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
@@ -42,14 +42,12 @@ contract AirdropNFTCrosschain is LPNClientV0 {
     function queryHolder(address holder) external {
         uint256 blockSnapshot = block.number - 10;
 
-        // Query avg balance of holder 10 blocks ago
-        // If result > 0, address held the NFT at that time
+        // Query for token ids of holder as of 10 blocks ago
         uint256 requestId = lpnRegistry.request(
             address(lloons),
             bytes32(uint256(uint160(holder))),
             blockSnapshot,
-            blockSnapshot,
-            OperationType.AVERAGE
+            blockSnapshot
         );
 
         // We can store the requestID if we need to access other data in the callback
@@ -61,12 +59,12 @@ contract AirdropNFTCrosschain is LPNClientV0 {
 
     // This function is called by the LPN registry to provide the result of our query above.
     // It sends an airdrop of a token if the address is an NFT holder.
-    function processCallback(uint256 requestId, uint256 result)
+    function processCallback(uint256 requestId, uint256[] calldata results)
         internal
         override
     {
         // Process result:
-        bool isHolder = result > 0;
+        bool isHolder = results.length > 0;
 
         // Take some action based on the result:
         RequestMetadata memory req = requests[requestId];

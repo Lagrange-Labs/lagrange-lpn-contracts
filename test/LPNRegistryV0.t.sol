@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import {Test, console} from "forge-std/Test.sol";
+import {Test} from "forge-std/Test.sol";
 import {
     LPNRegistryV0,
     ContractAlreadyRegistered,
@@ -12,18 +12,21 @@ import {
     QueryGreaterThanMaxRange
 } from "../src/LPNRegistryV0.sol";
 import {NotAuthorized} from "../src/utils/OwnableWhitelist.sol";
-import {ILPNRegistry, OperationType} from "../src/interfaces/ILPNRegistry.sol";
+import {ILPNRegistry} from "../src/interfaces/ILPNRegistry.sol";
 import {ILPNClient} from "../src/interfaces/ILPNClient.sol";
 import {Initializable} from
     "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import {Groth16Verifier} from "../src/Groth16Verifier.sol";
 
 contract MockLPNClient is ILPNClient {
     uint256 public lastRequestId;
-    uint256 public lastResult;
+    uint256[] public lastResult;
 
-    function lpnCallback(uint256 _requestId, uint256 _result) external {
+    function lpnCallback(uint256 _requestId, uint256[] calldata _results)
+        external
+    {
         lastRequestId = _requestId;
-        lastResult = _result;
+        lastResult = _results;
     }
 }
 
@@ -31,7 +34,7 @@ contract LPNRegistryV0Test is Test {
     LPNRegistryV0 public registry;
     MockLPNClient client;
 
-    address storageContract = makeAddr("storageContract");
+    address storageContract = 0x0101010101010101010101010101010101010101;
     address notWhitelisted = makeAddr("notWhitelisted");
 
     address owner = makeAddr("owner");
@@ -50,12 +53,11 @@ contract LPNRegistryV0Test is Test {
         address indexed client,
         bytes32 key,
         uint256 startBlock,
-        uint256 endBlock,
-        OperationType op
+        uint256 endBlock
     );
 
     event NewResponse(
-        uint256 indexed requestId, address indexed client, uint256 result
+        uint256 indexed requestId, address indexed client, uint256[] results
     );
 
     function register(address client_, uint256 mappingSlot, uint256 lengthSlot)
@@ -121,31 +123,31 @@ contract LPNRegistryV0Test is Test {
         bytes32 key = keccak256("key");
         uint256 startBlock = registry.indexStart(storageContract);
         uint256 endBlock = startBlock;
-        OperationType op = OperationType.AVERAGE;
 
         vm.expectEmit(true, true, true, true);
         emit NewRequest(
-            1, storageContract, address(client), key, startBlock, endBlock, op
+            1, storageContract, address(client), key, startBlock, endBlock
         );
 
         vm.prank(address(client));
         uint256 requestId =
-            registry.request(storageContract, key, startBlock, endBlock, op);
+            registry.request(storageContract, key, startBlock, endBlock);
+
+        (,, address clientAddress,,,) = registry.queries(requestId);
 
         assertEq(requestId, 1);
-        assertEq(registry.requests(requestId), address(client));
+        assertEq(clientAddress, address(client));
     }
 
     function testRequestValidateQueryRange() public {
         bytes32 key = keccak256("key");
         uint256 startBlock;
         uint256 endBlock;
-        OperationType op = OperationType.AVERAGE;
 
         // Test QueryUnregistered error
         vm.expectRevert(QueryUnregistered.selector);
         vm.prank(address(client));
-        registry.request(storageContract, key, startBlock, endBlock, op);
+        registry.request(storageContract, key, startBlock, endBlock);
 
         // Test QueryBeforeIndexed error
         register(address(client), 1, 2);
@@ -153,21 +155,21 @@ contract LPNRegistryV0Test is Test {
         endBlock = block.number;
         vm.expectRevert(QueryBeforeIndexed.selector);
         vm.prank(address(client));
-        registry.request(storageContract, key, startBlock, endBlock, op);
+        registry.request(storageContract, key, startBlock, endBlock);
 
         // Test QueryAfterCurrentBlock error
         startBlock = block.number;
         endBlock = block.number + 1;
         vm.expectRevert(QueryAfterCurrentBlock.selector);
         vm.prank(address(client));
-        registry.request(storageContract, key, startBlock, endBlock, op);
+        registry.request(storageContract, key, startBlock, endBlock);
 
         // Test QueryInvalidRange error
         startBlock = registry.indexStart(storageContract);
         endBlock = startBlock - 1;
         vm.expectRevert(QueryInvalidRange.selector);
         vm.prank(address(client));
-        registry.request(storageContract, key, startBlock, endBlock, op);
+        registry.request(storageContract, key, startBlock, endBlock);
 
         vm.roll(block.number + (registry.MAX_QUERY_RANGE() + 1));
         // Test QueryGreaterThanMaxRange error
@@ -175,42 +177,77 @@ contract LPNRegistryV0Test is Test {
         endBlock = startBlock + (registry.MAX_QUERY_RANGE() + 1);
         vm.expectRevert(QueryGreaterThanMaxRange.selector);
         vm.prank(address(client));
-        registry.request(storageContract, key, startBlock, endBlock, op);
+        registry.request(storageContract, key, startBlock, endBlock);
     }
 
-    // function testRequestNotWhitelisted() public {
-    //     bytes32 key = keccak256("key");
-    //     uint256 startBlock = 100;
-    //     uint256 endBlock = 200;
-    //     OperationType op = OperationType.AVERAGE;
-    //
-    //     hoax(owner);
-    //     registry.toggleWhitelist(address(client));
-    //
-    //     vm.expectRevert(NotAuthorized.selector);
-    //     vm.prank(address(client));
-    //     registry.request(storageContract, key, startBlock, endBlock, op);
-    // }
-
     function testRespond() public {
-        bytes32 key = keccak256("key");
-        uint256 startBlock = block.number;
-        uint256 endBlock = block.number;
-        OperationType op = OperationType.AVERAGE;
-        uint256 result = 42;
+        uint256 startBlock = 100;
+        uint256 endBlock = 1000;
+        address userAddress = 0x0202020202020202020202020202020202020202;
+        bytes32 key = bytes32(uint256(uint160(userAddress)));
 
-        register(address(client), 1, 2);
+        uint8[5] memory nftIds = [0, 1, 2, 3, 4];
+
+        uint256[] memory expectedResults = new uint256[](5);
+        for (uint256 i = 0; i < nftIds.length; i++) {
+            expectedResults[i] = nftIds[i];
+        }
+
+        register(storageContract, 1, 2);
+
+        vm.roll(endBlock);
         vm.prank(address(client));
         uint256 requestId =
-            registry.request(storageContract, key, startBlock, endBlock, op);
+            registry.request(storageContract, key, startBlock, endBlock);
 
         vm.expectEmit(true, true, true, true);
-        emit NewResponse(requestId, address(client), result);
+        emit NewResponse(requestId, address(client), expectedResults);
 
-        registry.respond(requestId, result);
+        bytes32[] memory proof = readProof();
+        registry.respond(requestId, proof, block.number);
+
+        (,, address clientAddress,,,) = registry.queries(requestId);
 
         assertEq(client.lastRequestId(), requestId);
-        assertEq(client.lastResult(), result);
-        assertEq(registry.requests(requestId), address(0));
+        for (uint256 i = 0; i < expectedResults.length; i++) {
+            assertEq(client.lastResult(i), expectedResults[i]);
+        }
+        assertEq(clientAddress, address(0));
+    }
+
+    function readProof() private view returns (bytes32[] memory) {
+        string memory root = vm.projectRoot();
+        string memory path = string.concat(root, "/test/full_proof.bin");
+
+        bytes memory proofData = vm.readFileBinary(path);
+        // Calculate the number of bytes32 elements needed
+        uint256 numBytes32 = (proofData.length + 31) / 32;
+
+        // Create a bytes32[] array to hold the proof data
+        bytes32[] memory proof = new bytes32[](numBytes32);
+
+        // Copy the proof data into the bytes32[] array
+        for (uint256 i = 0; i < numBytes32; i++) {
+            bytes32 chunk = bytesToBytes32(proofData, i * 32);
+            proof[i] = chunk;
+        }
+        return proof;
+    }
+
+    function bytesToBytes32(bytes memory b, uint256 offset)
+        private
+        pure
+        returns (bytes32)
+    {
+        bytes32 out;
+
+        for (uint256 i = 0; i < 32; i++) {
+            if (offset + i >= b.length) {
+                out |= bytes32(0x00 & 0xFF) >> (i * 8);
+            } else {
+                out |= bytes32(b[offset + i] & 0xFF) >> (i * 8);
+            }
+        }
+        return out;
     }
 }
