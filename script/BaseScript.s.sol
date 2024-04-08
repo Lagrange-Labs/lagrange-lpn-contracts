@@ -18,7 +18,7 @@ abstract contract BaseScript is Script {
 
     constructor() {
         deployer = vm.rememberKey(vm.envUint("PRIVATE_KEY"));
-        salt = bytes32(abi.encodePacked(deployer, "LPN_V0"));
+        salt = bytes32(abi.encodePacked(deployer, "LAGRANGE_EUCLID_V0"));
     }
 
     function setDeployer(address _deployer) public {

@@ -21,8 +21,8 @@ local_deploy_erc1967_proxy_factory:; sh script/deploy_erc1967_proxy_factory.sh
 # --- Deploy ---
 # Deploy the registry
 local_deploy_registry   :; forge script DeployLPNRegistry --rpc-url local --broadcast --json
-testnet_deploy_registry :; forge script DeployLPNRegistry --rpc-url sepolia --broadcast -vvvv --skip-simulation --slow
+testnet_deploy_registry :; forge script DeployLPNRegistry --rpc-url sepolia --broadcast -vvvv --slow
 
 # Deploy a client
 local_deploy_client:; forge script DeploySampleClient --rpc-url local --broadcast --json
-testnet_deploy_client:; forge script DeploySampleClient --rpc-url sepolia --broadcast -vvvv --skip-simulation --slow
+testnet_deploy_client:; forge script DeploySampleClient --rpc-url sepolia --broadcast -vvvv --slow
