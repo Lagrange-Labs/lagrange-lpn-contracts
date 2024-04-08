@@ -40,6 +40,7 @@ contract LPNRegistryV0Test is Test {
     address owner = makeAddr("owner");
     address notOwner = makeAddr("notOwner");
     uint256 gasFee;
+    uint256 offset = 3;
 
     event NewRegistration(
         address indexed storageContract,
@@ -55,6 +56,7 @@ contract LPNRegistryV0Test is Test {
         bytes32 key,
         uint256 startBlock,
         uint256 endBlock,
+        uint256 offset,
         uint256 gasFee
     );
 
@@ -137,12 +139,13 @@ contract LPNRegistryV0Test is Test {
             key,
             startBlock,
             endBlock,
+            offset,
             gasFee
         );
 
         vm.prank(address(client));
         uint256 requestId = registry.request{value: gasFee}(
-            storageContract, key, startBlock, endBlock
+            storageContract, key, startBlock, endBlock, offset
         );
 
         (,, address clientAddress,,,) = registry.queries(requestId);
@@ -160,7 +163,7 @@ contract LPNRegistryV0Test is Test {
         vm.expectRevert(QueryUnregistered.selector);
         vm.prank(address(client));
         registry.request{value: gasFee}(
-            storageContract, key, startBlock, endBlock
+            storageContract, key, startBlock, endBlock, offset
         );
 
         // Test QueryBeforeIndexed error
@@ -170,7 +173,7 @@ contract LPNRegistryV0Test is Test {
         vm.expectRevert(QueryBeforeIndexed.selector);
         vm.prank(address(client));
         registry.request{value: gasFee}(
-            storageContract, key, startBlock, endBlock
+            storageContract, key, startBlock, endBlock, offset
         );
 
         // Test QueryAfterCurrentBlock error
@@ -179,7 +182,7 @@ contract LPNRegistryV0Test is Test {
         vm.expectRevert(QueryAfterCurrentBlock.selector);
         vm.prank(address(client));
         registry.request{value: gasFee}(
-            storageContract, key, startBlock, endBlock
+            storageContract, key, startBlock, endBlock, offset
         );
 
         // Test QueryInvalidRange error
@@ -188,7 +191,7 @@ contract LPNRegistryV0Test is Test {
         vm.expectRevert(QueryInvalidRange.selector);
         vm.prank(address(client));
         registry.request{value: gasFee}(
-            storageContract, key, startBlock, endBlock
+            storageContract, key, startBlock, endBlock, offset
         );
 
         vm.roll(block.number + (registry.MAX_QUERY_RANGE() + 1));
@@ -198,7 +201,7 @@ contract LPNRegistryV0Test is Test {
         vm.expectRevert(QueryGreaterThanMaxRange.selector);
         vm.prank(address(client));
         registry.request{value: gasFee}(
-            storageContract, key, startBlock, endBlock
+            storageContract, key, startBlock, endBlock, offset
         );
     }
 
@@ -220,7 +223,7 @@ contract LPNRegistryV0Test is Test {
         vm.roll(endBlock);
         vm.prank(address(client));
         uint256 requestId = registry.request{value: gasFee}(
-            storageContract, key, startBlock, endBlock
+            storageContract, key, startBlock, endBlock, offset
         );
 
         vm.expectEmit(true, true, true, true);
@@ -257,7 +260,7 @@ contract LPNRegistryV0Test is Test {
         return proof;
     }
 
-    function bytesToBytes32(bytes memory b, uint256 offset)
+    function bytesToBytes32(bytes memory b, uint256 offset_)
         private
         pure
         returns (bytes32)
@@ -265,10 +268,10 @@ contract LPNRegistryV0Test is Test {
         bytes32 out;
 
         for (uint256 i = 0; i < 32; i++) {
-            if (offset + i >= b.length) {
+            if (offset_ + i >= b.length) {
                 out |= bytes32(0x00 & 0xFF) >> (i * 8);
             } else {
-                out |= bytes32(b[offset + i] & 0xFF) >> (i * 8);
+                out |= bytes32(b[offset_ + i] & 0xFF) >> (i * 8);
             }
         }
         return out;

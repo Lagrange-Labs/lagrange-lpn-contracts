@@ -30,6 +30,7 @@ interface ILPNRegistry {
         bytes32 key,
         uint256 startBlock,
         uint256 endBlock,
+        uint256 offset,
         uint256 gasFee
     );
 
@@ -64,7 +65,8 @@ interface ILPNRegistry {
         address storageContract,
         bytes32 key,
         uint256 startBlock,
-        uint256 endBlock
+        uint256 endBlock,
+        uint256 offset
     ) external payable returns (uint256);
 
     /// @notice Submits a response to a specific request.

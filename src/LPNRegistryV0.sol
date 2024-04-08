@@ -108,7 +108,8 @@ contract LPNRegistryV0 is ILPNRegistry, OwnableWhitelist, Initializable {
         address storageContract,
         bytes32 key,
         uint256 startBlock,
-        uint256 endBlock
+        uint256 endBlock,
+        uint256 offset
     )
         external
         payable
@@ -139,6 +140,7 @@ contract LPNRegistryV0 is ILPNRegistry, OwnableWhitelist, Initializable {
             key,
             startBlock,
             endBlock,
+            offset,
             GAS_FEE
         );
         return requestId;

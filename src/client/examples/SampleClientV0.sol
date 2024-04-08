@@ -25,11 +25,13 @@ contract SampleClientV0 is LPNClientV0 {
     }
 
     function queryAverage(address holder) external {
+        uint256 offset = 0;
         uint256 requestId = lpnRegistry.request{value: lpnRegistry.GAS_FEE()}(
             address(this),
             bytes32(uint256(uint160(holder))),
             block.number,
-            block.number
+            block.number,
+            offset
         );
 
         // We can store the requestID if we need to access other data in the callback

@@ -39,7 +39,8 @@ contract AirdropNFTCrosschain is LPNClientV0 {
 
     // This function is used to query the balance of a specific holder at a specific block.
     // It submits a request to the LPN registry to calculate the average balance of the holder at the specified block.
-    function queryHolder(address holder) external {
+    function queryHolder(address holder) external payable {
+        uint256 offset = 0;
         uint256 blockSnapshot = block.number - 10;
 
         // Query for token ids of holder as of 10 blocks ago
@@ -47,7 +48,8 @@ contract AirdropNFTCrosschain is LPNClientV0 {
             address(lloons),
             bytes32(uint256(uint160(holder))),
             blockSnapshot,
-            blockSnapshot
+            blockSnapshot,
+            offset
         );
 
         // We can store the requestID if we need to access other data in the callback
