@@ -39,6 +39,7 @@ contract LPNRegistryV0Test is Test {
 
     address owner = makeAddr("owner");
     address notOwner = makeAddr("notOwner");
+    uint256 gasFee;
 
     event NewRegistration(
         address indexed storageContract,
@@ -53,7 +54,8 @@ contract LPNRegistryV0Test is Test {
         address indexed client,
         bytes32 key,
         uint256 startBlock,
-        uint256 endBlock
+        uint256 endBlock,
+        uint256 gasFee
     );
 
     event NewResponse(
@@ -74,6 +76,9 @@ contract LPNRegistryV0Test is Test {
         client = new MockLPNClient();
         hoax(owner);
         registry.toggleWhitelist(storageContract);
+
+        gasFee = registry.GAS_FEE();
+        vm.deal(address(client), 10 ether);
     }
 
     function testInitialize() public {
@@ -126,12 +131,19 @@ contract LPNRegistryV0Test is Test {
 
         vm.expectEmit(true, true, true, true);
         emit NewRequest(
-            1, storageContract, address(client), key, startBlock, endBlock
+            1,
+            storageContract,
+            address(client),
+            key,
+            startBlock,
+            endBlock,
+            gasFee
         );
 
         vm.prank(address(client));
-        uint256 requestId =
-            registry.request(storageContract, key, startBlock, endBlock);
+        uint256 requestId = registry.request{value: gasFee}(
+            storageContract, key, startBlock, endBlock
+        );
 
         (,, address clientAddress,,,) = registry.queries(requestId);
 
@@ -147,7 +159,9 @@ contract LPNRegistryV0Test is Test {
         // Test QueryUnregistered error
         vm.expectRevert(QueryUnregistered.selector);
         vm.prank(address(client));
-        registry.request(storageContract, key, startBlock, endBlock);
+        registry.request{value: gasFee}(
+            storageContract, key, startBlock, endBlock
+        );
 
         // Test QueryBeforeIndexed error
         register(address(client), 1, 2);
@@ -155,21 +169,27 @@ contract LPNRegistryV0Test is Test {
         endBlock = block.number;
         vm.expectRevert(QueryBeforeIndexed.selector);
         vm.prank(address(client));
-        registry.request(storageContract, key, startBlock, endBlock);
+        registry.request{value: gasFee}(
+            storageContract, key, startBlock, endBlock
+        );
 
         // Test QueryAfterCurrentBlock error
         startBlock = block.number;
         endBlock = block.number + 1;
         vm.expectRevert(QueryAfterCurrentBlock.selector);
         vm.prank(address(client));
-        registry.request(storageContract, key, startBlock, endBlock);
+        registry.request{value: gasFee}(
+            storageContract, key, startBlock, endBlock
+        );
 
         // Test QueryInvalidRange error
         startBlock = registry.indexStart(storageContract);
         endBlock = startBlock - 1;
         vm.expectRevert(QueryInvalidRange.selector);
         vm.prank(address(client));
-        registry.request(storageContract, key, startBlock, endBlock);
+        registry.request{value: gasFee}(
+            storageContract, key, startBlock, endBlock
+        );
 
         vm.roll(block.number + (registry.MAX_QUERY_RANGE() + 1));
         // Test QueryGreaterThanMaxRange error
@@ -177,7 +197,9 @@ contract LPNRegistryV0Test is Test {
         endBlock = startBlock + (registry.MAX_QUERY_RANGE() + 1);
         vm.expectRevert(QueryGreaterThanMaxRange.selector);
         vm.prank(address(client));
-        registry.request(storageContract, key, startBlock, endBlock);
+        registry.request{value: gasFee}(
+            storageContract, key, startBlock, endBlock
+        );
     }
 
     function testRespond() public {
@@ -197,8 +219,9 @@ contract LPNRegistryV0Test is Test {
 
         vm.roll(endBlock);
         vm.prank(address(client));
-        uint256 requestId =
-            registry.request(storageContract, key, startBlock, endBlock);
+        uint256 requestId = registry.request{value: gasFee}(
+            storageContract, key, startBlock, endBlock
+        );
 
         vm.expectEmit(true, true, true, true);
         emit NewResponse(requestId, address(client), expectedResults);

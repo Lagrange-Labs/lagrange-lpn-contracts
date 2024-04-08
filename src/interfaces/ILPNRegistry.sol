@@ -29,7 +29,8 @@ interface ILPNRegistry {
         address indexed client,
         bytes32 key,
         uint256 startBlock,
-        uint256 endBlock
+        uint256 endBlock,
+        uint256 gasFee
     );
 
     /// @notice Event emitted when a response is received.
@@ -39,6 +40,9 @@ interface ILPNRegistry {
     event NewResponse(
         uint256 indexed requestId, address indexed client, uint256[] results
     );
+
+    /// @notice The gas fee paid for on request to reimburse the response transaction.
+    function GAS_FEE() external returns (uint256);
 
     /// @notice Registers a client with the provided mapping and length slots.
     /// @param storageContract The address of the contract to be queried.
@@ -61,7 +65,7 @@ interface ILPNRegistry {
         bytes32 key,
         uint256 startBlock,
         uint256 endBlock
-    ) external returns (uint256);
+    ) external payable returns (uint256);
 
     /// @notice Submits a response to a specific request.
     /// @param requestId_ The ID of the request to respond to.

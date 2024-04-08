@@ -30,11 +30,17 @@ error QueryGreaterThanMaxRange();
 /// @dev startBlock > endBlock
 error QueryInvalidRange();
 
+/// @notice Error thrown when gas fee is not paid.
+error InsufficientGasFee();
+
 /// @title LPNRegistryV0
 /// @notice A registry contract for managing LPN (Lagrange Proving Network) clients and requests.
 contract LPNRegistryV0 is ILPNRegistry, OwnableWhitelist, Initializable {
     /// @notice The maximum number of blocks a query can be computed over
     uint256 public constant MAX_QUERY_RANGE = 1000;
+
+    /// @notice A constant gas fee paid for each request to reimburse the relayer when it delivers the response
+    uint256 public constant GAS_FEE = 0.05 ether;
 
     /// @notice A counter that assigns unique ids for client requests.
     uint256 public requestId;
@@ -105,11 +111,16 @@ contract LPNRegistryV0 is ILPNRegistry, OwnableWhitelist, Initializable {
         uint256 endBlock
     )
         external
+        payable
         validateQueryRange(storageContract, startBlock, endBlock)
         returns (uint256)
     {
         unchecked {
             requestId++;
+        }
+
+        if (msg.value < GAS_FEE) {
+            revert InsufficientGasFee();
         }
 
         queries[requestId] = Groth16VerifierExtensions.Query({
@@ -122,7 +133,13 @@ contract LPNRegistryV0 is ILPNRegistry, OwnableWhitelist, Initializable {
         });
 
         emit NewRequest(
-            requestId, storageContract, msg.sender, key, startBlock, endBlock
+            requestId,
+            storageContract,
+            msg.sender,
+            key,
+            startBlock,
+            endBlock,
+            GAS_FEE
         );
         return requestId;
     }

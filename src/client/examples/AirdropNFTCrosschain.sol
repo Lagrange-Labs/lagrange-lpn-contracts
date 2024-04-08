@@ -43,7 +43,7 @@ contract AirdropNFTCrosschain is LPNClientV0 {
         uint256 blockSnapshot = block.number - 10;
 
         // Query for token ids of holder as of 10 blocks ago
-        uint256 requestId = lpnRegistry.request(
+        uint256 requestId = lpnRegistry.request{value: lpnRegistry.GAS_FEE()}(
             address(lloons),
             bytes32(uint256(uint160(holder))),
             blockSnapshot,
