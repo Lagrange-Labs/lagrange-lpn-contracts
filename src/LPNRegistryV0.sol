@@ -170,4 +170,10 @@ contract LPNRegistryV0 is ILPNRegistry, OwnableWhitelist, Initializable {
 
         emit NewResponse(requestId_, query.clientAddress, results);
     }
+
+    /// @notice The relayer withdraws all fees accumulated
+    function withdrawFees() external onlyOwner returns (bool) {
+        (bool sent,) = msg.sender.call{value: address(this).balance}("");
+        return sent;
+    }
 }
