@@ -35,7 +35,7 @@ contract LPNRegistryV0Test is Test {
     MockLPNClient client;
 
     address storageContract = 0x0101010101010101010101010101010101010101;
-    address otherStorageContract = 0xB90ED61bFfeD1DF72F2cEeBD965198AD57aDFCbd;
+    address otherStorageContract = 0xBd3531dA5CF5857e7CfAA92426877b022e612cf8;
 
     address notWhitelisted = makeAddr("notWhitelisted");
 
@@ -248,9 +248,9 @@ contract LPNRegistryV0Test is Test {
     // }
 
     function testRespondGroth16() public {
-        uint256 startBlock = 5594951;
-        uint256 endBlock = 5594951;
-        address userAddress = 0x21471C9771C39149b1E42483a785A49f3873D0a5;
+        uint256 startBlock = 19662380;
+        uint256 endBlock = 19662380;
+        address userAddress = 0x8B58f7C312406d7C6A5D01898f0C5aef31eE51a7;
         bytes32 key = bytes32(uint256(uint160(userAddress)));
 
         uint8[1] memory nftIds = [0];
@@ -260,8 +260,9 @@ contract LPNRegistryV0Test is Test {
             expectedResults[i] = nftIds[i];
         }
 
-        vm.roll(endBlock);
+        vm.roll(startBlock);
         register(otherStorageContract, 1, 2);
+        vm.roll(19662458);
 
         vm.prank(address(client));
         uint256 requestId = registry.request{value: gasFee}(
@@ -272,7 +273,7 @@ contract LPNRegistryV0Test is Test {
         emit NewResponse(requestId, address(client), expectedResults);
 
         bytes32[] memory proof = readProof("/test/full_proof.bin");
-        registry.respond(requestId, proof, block.number);
+        registry.respond(requestId, proof, 19662458);
 
         (,, address clientAddress,,,) = registry.queries(requestId);
 
