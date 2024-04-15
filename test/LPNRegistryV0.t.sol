@@ -35,10 +35,14 @@ contract LPNRegistryV0Test is Test {
     MockLPNClient client;
 
     address storageContract = 0x0101010101010101010101010101010101010101;
+    address otherStorageContract = 0xBd3531dA5CF5857e7CfAA92426877b022e612cf8;
+
     address notWhitelisted = makeAddr("notWhitelisted");
 
     address owner = makeAddr("owner");
     address notOwner = makeAddr("notOwner");
+    uint256 gasFee;
+    uint256 offset = 3;
 
     event NewRegistration(
         address indexed storageContract,
@@ -53,18 +57,22 @@ contract LPNRegistryV0Test is Test {
         address indexed client,
         bytes32 key,
         uint256 startBlock,
-        uint256 endBlock
+        uint256 endBlock,
+        uint256 offset,
+        uint256 gasFee
     );
 
     event NewResponse(
         uint256 indexed requestId, address indexed client, uint256[] results
     );
 
-    function register(address client_, uint256 mappingSlot, uint256 lengthSlot)
-        private
-    {
-        vm.prank(client_);
-        registry.register(storageContract, mappingSlot, lengthSlot);
+    function register(
+        address storageContract_,
+        uint256 mappingSlot,
+        uint256 lengthSlot
+    ) private {
+        vm.prank(address(client));
+        registry.register(storageContract_, mappingSlot, lengthSlot);
     }
 
     function setUp() public {
@@ -74,6 +82,11 @@ contract LPNRegistryV0Test is Test {
         client = new MockLPNClient();
         hoax(owner);
         registry.toggleWhitelist(storageContract);
+        hoax(owner);
+        registry.toggleWhitelist(otherStorageContract);
+
+        gasFee = registry.GAS_FEE();
+        vm.deal(address(client), 10 ether);
     }
 
     function testInitialize() public {
@@ -93,7 +106,7 @@ contract LPNRegistryV0Test is Test {
             storageContract, address(client), mappingSlot, lengthSlot
         );
 
-        register(address(client), mappingSlot, lengthSlot);
+        register(storageContract, mappingSlot, lengthSlot);
         assertEq(registry.indexStart(storageContract), block.number);
     }
 
@@ -119,19 +132,27 @@ contract LPNRegistryV0Test is Test {
     }
 
     function testRequest() public {
-        register(address(client), 1, 2);
+        register(storageContract, 1, 2);
         bytes32 key = keccak256("key");
         uint256 startBlock = registry.indexStart(storageContract);
         uint256 endBlock = startBlock;
 
         vm.expectEmit(true, true, true, true);
         emit NewRequest(
-            1, storageContract, address(client), key, startBlock, endBlock
+            1,
+            storageContract,
+            address(client),
+            key,
+            startBlock,
+            endBlock,
+            offset,
+            gasFee
         );
 
         vm.prank(address(client));
-        uint256 requestId =
-            registry.request(storageContract, key, startBlock, endBlock);
+        uint256 requestId = registry.request{value: gasFee}(
+            storageContract, key, startBlock, endBlock, offset
+        );
 
         (,, address clientAddress,,,) = registry.queries(requestId);
 
@@ -147,29 +168,37 @@ contract LPNRegistryV0Test is Test {
         // Test QueryUnregistered error
         vm.expectRevert(QueryUnregistered.selector);
         vm.prank(address(client));
-        registry.request(storageContract, key, startBlock, endBlock);
+        registry.request{value: gasFee}(
+            storageContract, key, startBlock, endBlock, offset
+        );
 
         // Test QueryBeforeIndexed error
-        register(address(client), 1, 2);
+        register(storageContract, 1, 2);
         startBlock = registry.indexStart(storageContract) - 1;
         endBlock = block.number;
         vm.expectRevert(QueryBeforeIndexed.selector);
         vm.prank(address(client));
-        registry.request(storageContract, key, startBlock, endBlock);
+        registry.request{value: gasFee}(
+            storageContract, key, startBlock, endBlock, offset
+        );
 
         // Test QueryAfterCurrentBlock error
         startBlock = block.number;
         endBlock = block.number + 1;
         vm.expectRevert(QueryAfterCurrentBlock.selector);
         vm.prank(address(client));
-        registry.request(storageContract, key, startBlock, endBlock);
+        registry.request{value: gasFee}(
+            storageContract, key, startBlock, endBlock, offset
+        );
 
         // Test QueryInvalidRange error
         startBlock = registry.indexStart(storageContract);
         endBlock = startBlock - 1;
         vm.expectRevert(QueryInvalidRange.selector);
         vm.prank(address(client));
-        registry.request(storageContract, key, startBlock, endBlock);
+        registry.request{value: gasFee}(
+            storageContract, key, startBlock, endBlock, offset
+        );
 
         vm.roll(block.number + (registry.MAX_QUERY_RANGE() + 1));
         // Test QueryGreaterThanMaxRange error
@@ -177,34 +206,74 @@ contract LPNRegistryV0Test is Test {
         endBlock = startBlock + (registry.MAX_QUERY_RANGE() + 1);
         vm.expectRevert(QueryGreaterThanMaxRange.selector);
         vm.prank(address(client));
-        registry.request(storageContract, key, startBlock, endBlock);
+        registry.request{value: gasFee}(
+            storageContract, key, startBlock, endBlock, offset
+        );
     }
 
-    function testRespond() public {
-        uint256 startBlock = 100;
-        uint256 endBlock = 1000;
-        address userAddress = 0x0202020202020202020202020202020202020202;
+    // function testRespond() public {
+    //     uint256 startBlock = 100;
+    //     uint256 endBlock = 1000;
+    //     address userAddress = 0x0202020202020202020202020202020202020202;
+    //     bytes32 key = bytes32(uint256(uint160(userAddress)));
+    //
+    //     uint8[5] memory nftIds = [0, 1, 2, 3, 4];
+    //
+    //     uint256[] memory expectedResults = new uint256[](5);
+    //     for (uint256 i = 0; i < nftIds.length; i++) {
+    //         expectedResults[i] = nftIds[i];
+    //     }
+    //
+    //     register(storageContract, 1, 2);
+    //
+    //     vm.roll(endBlock);
+    //     vm.prank(address(client));
+    //     uint256 requestId = registry.request{value: gasFee}(
+    //         storageContract, key, startBlock, endBlock, offset
+    //     );
+    //
+    //     vm.expectEmit(true, true, true, true);
+    //     emit NewResponse(requestId, address(client), expectedResults);
+    //
+    //     bytes32[] memory proof = readProof("/test/full_proof.bin");
+    //     registry.respond(requestId, proof, block.number);
+    //
+    //     (,, address clientAddress,,,) = registry.queries(requestId);
+    //
+    //     assertEq(client.lastRequestId(), requestId);
+    //     for (uint256 i = 0; i < expectedResults.length; i++) {
+    //         assertEq(client.lastResult(i), expectedResults[i]);
+    //     }
+    //     assertEq(clientAddress, address(0));
+    // }
+
+    function testRespondGroth16() public {
+        uint256 startBlock = 19662380;
+        uint256 endBlock = 19662380;
+        address userAddress = 0x8B58f7C312406d7C6A5D01898f0C5aef31eE51a7;
         bytes32 key = bytes32(uint256(uint160(userAddress)));
 
-        uint8[5] memory nftIds = [0, 1, 2, 3, 4];
+        uint8[1] memory nftIds = [0];
 
         uint256[] memory expectedResults = new uint256[](5);
         for (uint256 i = 0; i < nftIds.length; i++) {
             expectedResults[i] = nftIds[i];
         }
 
-        register(storageContract, 1, 2);
+        vm.roll(startBlock);
+        register(otherStorageContract, 1, 2);
+        vm.roll(19662458);
 
-        vm.roll(endBlock);
         vm.prank(address(client));
-        uint256 requestId =
-            registry.request(storageContract, key, startBlock, endBlock);
+        uint256 requestId = registry.request{value: gasFee}(
+            otherStorageContract, key, startBlock, endBlock, offset
+        );
 
         vm.expectEmit(true, true, true, true);
         emit NewResponse(requestId, address(client), expectedResults);
 
-        bytes32[] memory proof = readProof();
-        registry.respond(requestId, proof, block.number);
+        bytes32[] memory proof = readProof("/test/full_proof.bin");
+        registry.respond(requestId, proof, 19662458);
 
         (,, address clientAddress,,,) = registry.queries(requestId);
 
@@ -215,9 +284,13 @@ contract LPNRegistryV0Test is Test {
         assertEq(clientAddress, address(0));
     }
 
-    function readProof() private view returns (bytes32[] memory) {
+    function readProof(string memory proofFile)
+        private
+        view
+        returns (bytes32[] memory)
+    {
         string memory root = vm.projectRoot();
-        string memory path = string.concat(root, "/test/full_proof.bin");
+        string memory path = string.concat(root, proofFile);
 
         bytes memory proofData = vm.readFileBinary(path);
         // Calculate the number of bytes32 elements needed
@@ -234,7 +307,7 @@ contract LPNRegistryV0Test is Test {
         return proof;
     }
 
-    function bytesToBytes32(bytes memory b, uint256 offset)
+    function bytesToBytes32(bytes memory b, uint256 offset_)
         private
         pure
         returns (bytes32)
@@ -242,10 +315,10 @@ contract LPNRegistryV0Test is Test {
         bytes32 out;
 
         for (uint256 i = 0; i < 32; i++) {
-            if (offset + i >= b.length) {
+            if (offset_ + i >= b.length) {
                 out |= bytes32(0x00 & 0xFF) >> (i * 8);
             } else {
-                out |= bytes32(b[offset + i] & 0xFF) >> (i * 8);
+                out |= bytes32(b[offset_ + i] & 0xFF) >> (i * 8);
             }
         }
         return out;

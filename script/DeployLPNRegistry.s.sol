@@ -6,33 +6,40 @@ import {LPNRegistryV0} from "../src/LPNRegistryV0.sol";
 import {ERC1967Factory} from "solady/utils/ERC1967Factory.sol";
 import {ERC1967FactoryConstants} from "solady/utils/ERC1967FactoryConstants.sol";
 import {console2} from "forge-std/Script.sol";
-import "../src/client/examples/AirdropNFTCrosschain.sol";
+import {
+    AirdropNFTCrosschain,
+    LagrangeLoonsNFT
+} from "../src/client/examples/AirdropNFTCrosschain.sol";
+import {LPNQueryV0} from "../src/client/LPNQueryV0.sol";
 
 contract DeployLPNRegistry is BaseScript {
     LPNRegistryV0 registry;
     address impl;
+    AirdropNFTCrosschain client;
+    LagrangeLoonsNFT lloons;
 
     ERC1967Factory proxyFactory =
         ERC1967Factory(ERC1967FactoryConstants.ADDRESS);
 
-    function run() external returns (LPNRegistryV0, address) {
-        (registry, impl) = deploy(salt);
-        LagrangeLoonsNFT lloons = new LagrangeLoonsNFT();
-        print("LagrangeLoonsNFT", address(lloons));
-        AirdropNFTCrosschain client = new AirdropNFTCrosschain(registry, lloons);
-        print("AirdropNFTCrosschain", address(client));
+    address PUDGEY_PENGUINS = 0xBd3531dA5CF5857e7CfAA92426877b022e612cf8;
+    address toWhitelist = PUDGEY_PENGUINS;
 
-        registry.toggleWhitelist(address(lloons));
+    function run() external broadcaster returns (LPNRegistryV0, address) {
+        (registry, impl) = deploy(salt);
+
+        deployClients();
+
+        registry.toggleWhitelist(toWhitelist);
+
+        if (block.chainid != MAINNET) {
+            generateTestnetData();
+        }
 
         assertions();
         return (registry, impl);
     }
 
-    function deploy(bytes32 salt_)
-        public
-        broadcaster
-        returns (LPNRegistryV0, address)
-    {
+    function deploy(bytes32 salt_) public returns (LPNRegistryV0, address) {
         // Deploy a new implementation
         address registryImpl = address(new LPNRegistryV0());
         print("LPNRegistryV0 (implementation)", address(registryImpl));
@@ -59,6 +66,30 @@ contract DeployLPNRegistry is BaseScript {
         // Update proxy to point to new implementation contract
         proxyFactory.upgrade(proxy, registryImpl);
         return registryImpl;
+    }
+
+    function deployClients() private {
+        if (block.chainid != MAINNET) {
+            lloons = new LagrangeLoonsNFT();
+            print("LagrangeLoonsNFT", address(lloons));
+            client = new AirdropNFTCrosschain(registry, lloons);
+            print("AirdropNFTCrosschain", address(client));
+
+            toWhitelist = address(lloons);
+        } else {
+            LPNQueryV0 queryClient = new LPNQueryV0(registry);
+            print("LPNQueryV0", address(queryClient));
+        }
+    }
+
+    function generateTestnetData() private {
+        client.lpnRegister();
+
+        lloons.mint();
+        lloons.approve(address(client), 0);
+        lloons.mint();
+        lloons.transferFrom(deployer, address(client), 0);
+        // client.queryHolder{value: registry.GAS_FEE()}(deployer);
     }
 
     function assertions() private view {}
