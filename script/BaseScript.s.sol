@@ -4,6 +4,8 @@ pragma solidity ^0.8.13;
 import {Script, console2} from "forge-std/Script.sol";
 
 abstract contract BaseScript is Script {
+    uint256 constant MAINNET = 1;
+
     /// @dev The address of the contract deployer.
     address public deployer;
 
@@ -18,7 +20,11 @@ abstract contract BaseScript is Script {
 
     constructor() {
         deployer = vm.rememberKey(vm.envUint("PRIVATE_KEY"));
-        salt = bytes32(abi.encodePacked(deployer, "LAGRANGE_EUCLID_V0"));
+        if (block.chainid == MAINNET) {
+            salt = bytes32(abi.encodePacked(deployer, "V0_EUCLID_0"));
+        } else {
+            salt = bytes32(abi.encodePacked(deployer, "V0_EUCLID_1"));
+        }
     }
 
     function setDeployer(address _deployer) public {
