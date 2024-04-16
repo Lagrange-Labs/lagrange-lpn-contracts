@@ -6,7 +6,7 @@ import {ILPNRegistry} from "../interfaces/ILPNRegistry.sol";
 
 /**
  * @title LPNQueryV0
- * @dev A contract for querying NFT ownership using LPN (Light Prover Node) protocol.
+ * @dev A contract for querying NFT ownership using the Lagrange Euclid testnet.
  */
 contract LPNQueryV0 is LPNClientV0 {
     /**

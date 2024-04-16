@@ -22,7 +22,7 @@ local_deploy_erc1967_proxy_factory:; sh script/deploy_erc1967_proxy_factory.sh
 # Deploy the registry
 local_deploy_registry   :; forge script DeployLPNRegistry --rpc-url local --broadcast --json
 testnet_deploy_registry :; forge script DeployLPNRegistry --rpc-url sepolia --verify --broadcast -vvvv --slow --skip-simulation --priority-gas-price 0.1gwei
-mainnet_deploy_registry :; forge script DeployLPNRegistry --rpc-url mainnet --verify --broadcast -vvvv --slow --priority-gas-price 1.5gwei
+mainnet_deploy_registry :; forge script DeployLPNRegistry --rpc-url mainnet --verify --broadcast -vvvv --slow --priority-gas-price 0.5gwei
 
 # Deploy a client
 local_deploy_client:; forge script DeploySampleClient --rpc-url local --broadcast --json

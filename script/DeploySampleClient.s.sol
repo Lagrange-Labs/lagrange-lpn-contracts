@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
 import {BaseScript} from "./BaseScript.s.sol";
@@ -22,7 +22,7 @@ contract DeploySampleClient is BaseScript {
     {
         // TODO: Read registry address from `broadcasts` folder
         return new SampleClientV0{salt: _salt}(
-            ILPNRegistry(0x2cb22fb821608d273bAfC94933F6137fA0B48421)
+            ILPNRegistry(0x2584665Beff871534118aAbAE781BC267Af142f9)
         );
     }
 
