@@ -6,6 +6,8 @@ import {LPNRegistryV0} from "../src/LPNRegistryV0.sol";
 import {ERC1967Factory} from "solady/utils/ERC1967Factory.sol";
 import {ERC1967FactoryConstants} from "solady/utils/ERC1967FactoryConstants.sol";
 import {DeployLPNRegistry} from "../script/DeployLPNRegistry.s.sol";
+import {DeployERC1967ProxyFactory} from
+    "../script/DeployERC1967ProxyFactory.s.sol";
 
 contract DeployLPNRegistryTest is Test {
     DeployLPNRegistry public deployScript = new DeployLPNRegistry();
@@ -18,7 +20,10 @@ contract DeployLPNRegistryTest is Test {
     bytes32 salt;
 
     function setUp() public {
-        salt = bytes32(abi.encodePacked(deployScript.deployer(), "LPN_V0_TEST"));
+        vm.etch(
+            ERC1967FactoryConstants.ADDRESS, ERC1967FactoryConstants.BYTECODE
+        );
+        salt = bytes32(abi.encodePacked(address(deployScript), "LPN_V0_TEST"));
     }
 
     function testDeploy() public {
@@ -69,7 +74,7 @@ contract DeployLPNRegistryTest is Test {
         registryProxy = address(registry);
 
         bytes32 newSalt =
-            bytes32(abi.encodePacked(deployScript.deployer(), "LPN_V1"));
+            bytes32(abi.encodePacked(address(deployScript), "LPN_V1"));
         (LPNRegistryV0 newRegistry,) = deployScript.deploy(newSalt);
         address newRegistryProxy = address(newRegistry);
 
