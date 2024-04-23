@@ -11,6 +11,13 @@ import {
     LagrangeLoonsNFT
 } from "../src/client/examples/AirdropNFTCrosschain.sol";
 import {LPNQueryV0} from "../src/client/LPNQueryV0.sol";
+import {
+    ETH_MAINNET,
+    ETH_SEPOLIA,
+    BASE_MAINNET,
+    BASE_SEPOLIA,
+    PUDGEY_PENGUINS
+} from "../src/utils/Constants.sol";
 
 contract DeployLPNRegistry is BaseScript {
     LPNRegistryV0 registry;
@@ -21,7 +28,6 @@ contract DeployLPNRegistry is BaseScript {
     ERC1967Factory proxyFactory =
         ERC1967Factory(ERC1967FactoryConstants.ADDRESS);
 
-    address PUDGEY_PENGUINS = 0xBd3531dA5CF5857e7CfAA92426877b022e612cf8;
     address toWhitelist = PUDGEY_PENGUINS;
 
     function run() external broadcaster returns (LPNRegistryV0, address) {
@@ -31,7 +37,7 @@ contract DeployLPNRegistry is BaseScript {
 
         registry.toggleWhitelist(toWhitelist);
 
-        if (block.chainid != MAINNET) {
+        if (block.chainid != ETH_MAINNET) {
             generateTestnetData();
         }
 
@@ -88,17 +94,18 @@ contract DeployLPNRegistry is BaseScript {
     }
 
     function deployClients() private {
-        if (block.chainid != MAINNET) {
+        if (block.chainid == ETH_SEPOLIA || block.chainid == BASE_SEPOLIA) {
             lloons = new LagrangeLoonsNFT();
             print("LagrangeLoonsNFT", address(lloons));
             client = new AirdropNFTCrosschain(registry, lloons);
             print("AirdropNFTCrosschain", address(client));
 
             toWhitelist = address(lloons);
-        } else {
-            LPNQueryV0 queryClient = new LPNQueryV0(registry);
-            print("LPNQueryV0", address(queryClient));
+            return;
         }
+
+        LPNQueryV0 queryClient = new LPNQueryV0(registry);
+        print("LPNQueryV0", address(queryClient));
     }
 
     function generateTestnetData() private {
