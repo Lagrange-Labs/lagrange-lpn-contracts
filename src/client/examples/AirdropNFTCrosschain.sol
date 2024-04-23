@@ -32,20 +32,18 @@ contract AirdropNFTCrosschain is LPNClientV0 {
     }
 
     // This function is used to register the storage slots of the LagrangeLoonsNFT contract with the LPN registry.
-    // It registers the storage slot of the _balances mapping at slot 3 and the numOwners variable at slot 6.
     function lpnRegister() external {
         lpnRegistry.register(lloons, OWNERS_STORAGE_SLOT, OWNERS_SIZE_SLOT);
     }
 
-    // This function is used to query the balance of a specific holder at a specific block.
-    // It submits a request to the LPN registry to calculate the average balance of the holder at the specified block.
+    // This function is used to query the nft token ids of a specific holder over a range of blocks.
+    // It submits a request to the LPN registry to select the cumulative token ids owned by the holder in the block range.
     function queryHolder(
         address holder,
         uint256 startBlock,
         uint256 endBlock,
         uint256 offset
     ) external payable {
-        // Query for token ids of holder as of 10 blocks ago
         uint256 requestId = lpnRegistry.request{value: lpnRegistry.GAS_FEE()}(
             address(lloons),
             bytes32(uint256(uint160(holder))),

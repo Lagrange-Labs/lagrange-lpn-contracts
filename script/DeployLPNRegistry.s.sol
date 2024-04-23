@@ -36,7 +36,26 @@ contract DeployLPNRegistry is BaseScript {
         }
 
         assertions();
+
+        // query(
+        //     LPNQueryV0(0x80c0a42F808d6f35e83F4939482A485caE536e6a),
+        //     0x29469395eAf6f95920E59F858042f0e28D98a20B
+        // );
+        // withdraw(LPNRegistryV0(0x2584665Beff871534118aAbAE781BC267Af142f9));
         return (registry, impl);
+    }
+
+    function query(LPNQueryV0 queryClient, address holder) private {
+        uint256 startBlock = 19680500;
+        uint256 endBlock = startBlock + 1000;
+        uint8 offset = 0;
+        queryClient.query{value: 0.05 ether}(
+            PUDGEY_PENGUINS, holder, startBlock, endBlock, offset
+        );
+    }
+
+    function withdraw(LPNRegistryV0 registry_) private {
+        registry_.withdrawFees();
     }
 
     function deploy(bytes32 salt_) public returns (LPNRegistryV0, address) {
@@ -89,7 +108,6 @@ contract DeployLPNRegistry is BaseScript {
         lloons.approve(address(client), 0);
         lloons.mint();
         lloons.transferFrom(deployer, address(client), 0);
-        // client.queryHolder{value: registry.GAS_FEE()}(deployer);
     }
 
     function assertions() private view {}
