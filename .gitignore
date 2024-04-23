@@ -6,7 +6,12 @@ out/
 !/broadcast
 /broadcast/*/31337/
 /broadcast/**/dry-run/
-/broadcast/**/11155111/run-[!latest].json
+
+!/broadcast/**/11155111/run-latest.json
+/broadcast/**/11155111/run-*.json
+
+!/broadcast/**/1/run-latest.json
+/broadcast/**/1/run-*.json
 
 # Docs
 docs/
