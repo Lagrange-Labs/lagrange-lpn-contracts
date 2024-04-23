@@ -16,7 +16,7 @@ fmt    :; forge fmt
 
 # -- Integration Test ---
 setup_integration_test:; local_deploy_erc1967_proxy_factory local_deploy_registry local_deploy_client
-local_deploy_erc1967_proxy_factory:; sh script/deploy_erc1967_proxy_factory.sh
+local_deploy_erc1967_proxy_factory:; forge script DeployERC1967ProxyFactory --rpc-url local --broadcast --json
 
 # --- Deploy ---
 # Deploy the registry
