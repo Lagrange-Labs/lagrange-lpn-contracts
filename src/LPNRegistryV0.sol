@@ -7,6 +7,7 @@ import {OwnableWhitelist} from "./utils/OwnableWhitelist.sol";
 import {Initializable} from
     "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {Groth16VerifierExtensions} from "./Groth16VerifierExtensions.sol";
+import {L1Block} from "./utils/L1Block.sol";
 
 /// @notice Error thrown when attempting to register a storage contract more than once.
 error ContractAlreadyRegistered();
@@ -35,7 +36,12 @@ error InsufficientGasFee();
 
 /// @title LPNRegistryV0
 /// @notice A registry contract for managing LPN (Lagrange Proving Network) clients and requests.
-contract LPNRegistryV0 is ILPNRegistry, OwnableWhitelist, Initializable {
+contract LPNRegistryV0 is
+    ILPNRegistry,
+    OwnableWhitelist,
+    Initializable,
+    L1Block
+{
     /// @notice The maximum number of blocks a query can be computed over
     uint256 public constant MAX_QUERY_RANGE = 1000;
 
@@ -66,13 +72,18 @@ contract LPNRegistryV0 is ILPNRegistry, OwnableWhitelist, Initializable {
         uint256 startBlock,
         uint256 endBlock
     ) {
-        uint256 genesisBlock = indexStart[storageContract];
-        if (genesisBlock == 0) {
-            revert QueryUnregistered();
+        if (isEthereum()) {
+            uint256 genesisBlock = indexStart[storageContract];
+
+            if (genesisBlock == 0) {
+                revert QueryUnregistered();
+            }
+
+            if (startBlock < genesisBlock) {
+                revert QueryBeforeIndexed();
+            }
         }
-        if (startBlock < genesisBlock) {
-            revert QueryBeforeIndexed();
-        }
+
         if (endBlock > block.number) {
             revert QueryAfterCurrentBlock();
         }
@@ -124,12 +135,17 @@ contract LPNRegistryV0 is ILPNRegistry, OwnableWhitelist, Initializable {
             revert InsufficientGasFee();
         }
 
+        uint256 proofBlock = 0;
+        if (isOPStack()) {
+            proofBlock = L1BlockNumber();
+        }
+
         queries[requestId] = Groth16VerifierExtensions.Query({
             contractAddress: storageContract,
             userAddress: address(uint160(uint256(key))),
             minBlockNumber: startBlock,
             maxBlockNumber: endBlock,
-            blockHash: 0,
+            blockHash: L1BlockHash(proofBlock),
             clientAddress: msg.sender
         });
 
@@ -141,7 +157,8 @@ contract LPNRegistryV0 is ILPNRegistry, OwnableWhitelist, Initializable {
             startBlock,
             endBlock,
             offset,
-            GAS_FEE
+            GAS_FEE,
+            proofBlock
         );
         return requestId;
     }
@@ -162,7 +179,10 @@ contract LPNRegistryV0 is ILPNRegistry, OwnableWhitelist, Initializable {
             clientAddress: address(0)
         });
 
-        query.blockHash = blockhash(blockNumber);
+        if (isEthereum()) {
+            query.blockHash = blockhash(blockNumber);
+        }
+
         uint256[] memory results =
             Groth16VerifierExtensions.processQuery(data, query);
 
