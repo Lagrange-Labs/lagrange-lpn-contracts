@@ -7,7 +7,12 @@ import {OwnableWhitelist} from "./utils/OwnableWhitelist.sol";
 import {Initializable} from
     "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {Groth16VerifierExtensions} from "./Groth16VerifierExtensions.sol";
-import {L1Block} from "./utils/L1Block.sol";
+import {
+    isEthereum,
+    isOPStack,
+    L1BlockHash,
+    L1BlockNumber
+} from "./utils/L1Block.sol";
 
 /// @notice Error thrown when attempting to register a storage contract more than once.
 error ContractAlreadyRegistered();
@@ -36,12 +41,7 @@ error InsufficientGasFee();
 
 /// @title LPNRegistryV0
 /// @notice A registry contract for managing LPN (Lagrange Proving Network) clients and requests.
-contract LPNRegistryV0 is
-    ILPNRegistry,
-    OwnableWhitelist,
-    Initializable,
-    L1Block
-{
+contract LPNRegistryV0 is ILPNRegistry, OwnableWhitelist, Initializable {
     /// @notice The maximum number of blocks a query can be computed over
     uint256 public constant MAX_QUERY_RANGE = 1000;
 
