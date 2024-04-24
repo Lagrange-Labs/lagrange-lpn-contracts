@@ -44,16 +44,31 @@ abstract contract BaseScript is Script {
         return vm.envAddress("address");
     }
 
+    function print(string memory key, string memory value) internal pure {
+        console2.log(string(abi.encodePacked(key, "@", value)));
+    }
+
     function print(string memory contractName, address contractAddress)
         internal
         pure
     {
-        console2.log(
-            string(
-                abi.encodePacked(
-                    contractName, "@", vm.toString(address(contractAddress))
-                )
-            )
-        );
+        print(contractName, vm.toString(contractAddress));
+    }
+
+    function outputDir() internal returns (string memory) {
+        string memory chainName = getChain(block.chainid).chainAlias;
+        return string(abi.encodePacked("./script/output/", chainName));
+    }
+
+    function outputPath() internal returns (string memory) {
+        return string(abi.encodePacked(outputDir(), "deployment.json"));
+    }
+
+    function mkdir(string memory dirPath) internal {
+        string[] memory mkdirInputs = new string[](3);
+        mkdirInputs[0] = "mkdir";
+        mkdirInputs[1] = "-p";
+        mkdirInputs[2] = dirPath;
+        vm.ffi(mkdirInputs);
     }
 }

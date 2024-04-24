@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-import {BaseScript} from "./BaseScript.s.sol";
+import {BaseScript} from "../BaseScript.s.sol";
 import {ERC1967FactoryConstants} from "solady/utils/ERC1967FactoryConstants.sol";
 import {ERC1967Factory} from "solady/utils/ERC1967Factory.sol";
+
+import {isLocal} from "../../src/utils/Constants.sol";
 
 contract DeployERC1967ProxyFactory is BaseScript {
     bytes constant KEYLESS_CREATE2_TX_DATA =
@@ -28,7 +30,7 @@ contract DeployERC1967ProxyFactory is BaseScript {
             return;
         }
 
-        if (block.chainid != 31337) {
+        if (!isLocal()) {
             return;
         }
 
