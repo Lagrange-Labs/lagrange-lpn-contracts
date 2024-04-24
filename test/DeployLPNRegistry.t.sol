@@ -5,18 +5,17 @@ import "forge-std/Test.sol";
 import {LPNRegistryV0} from "../src/LPNRegistryV0.sol";
 import {ERC1967Factory} from "solady/utils/ERC1967Factory.sol";
 import {ERC1967FactoryConstants} from "solady/utils/ERC1967FactoryConstants.sol";
-import {DeployLPNRegistry} from "../script/DeployLPNRegistry.s.sol";
+import {DeployLPNRegistry} from "../script/deploy/DeployLPNRegistry.s.sol";
 import {DeployERC1967ProxyFactory} from
-    "../script/DeployERC1967ProxyFactory.s.sol";
+    "../script/deploy/DeployERC1967ProxyFactory.s.sol";
 
 contract DeployLPNRegistryTest is Test {
     DeployLPNRegistry public deployScript = new DeployLPNRegistry();
-    LPNRegistryV0 registry;
+    DeployLPNRegistry.Deployment deployment;
+
     ERC1967Factory proxyFactory =
         ERC1967Factory(ERC1967FactoryConstants.ADDRESS);
 
-    address registryImpl;
-    address registryProxy;
     bytes32 salt;
 
     function setUp() public {
@@ -27,57 +26,56 @@ contract DeployLPNRegistryTest is Test {
     }
 
     function testDeploy() public {
-        (registry, registryImpl) = deployScript.deploy(salt);
-        registryProxy = address(registry);
+        deployment = deployScript.deploy(salt);
 
-        assertEq(registry.owner(), deployScript.deployer());
-        assert(registryProxy != address(0));
+        assertEq(deployment.registryProxy.owner(), deployScript.deployer());
+        assert(address(deployment.registryProxy) != address(0));
     }
 
     function testUpgrade() public {
-        (registry, registryImpl) = deployScript.deploy(salt);
-        registryProxy = address(registry);
-        address oldImpl = registryImpl;
+        deployment = deployScript.deploy(salt);
+        address oldImpl = deployment.registryImpl;
 
-        address newImpl = deployScript.upgrade(registryProxy);
+        address newImpl =
+            deployScript.upgrade(address(deployment.registryProxy));
 
         assert(oldImpl != newImpl);
-        assertEq(registry.owner(), address(deployScript.deployer()));
+        assertEq(
+            deployment.registryProxy.owner(), address(deployScript.deployer())
+        );
     }
 
     function testProxyOwnership() public {
-        (registry, registryImpl) = deployScript.deploy(salt);
-        registryProxy = address(registry);
+        deployment = deployScript.deploy(salt);
 
         assertEq(
-            proxyFactory.adminOf(registryProxy),
+            proxyFactory.adminOf(address(deployment.registryProxy)),
             address(deployScript.deployer())
         );
     }
 
     function testProxyInitialization() public {
-        (registry,) = deployScript.deploy(salt);
+        deployment = deployScript.deploy(salt);
 
-        assertEq(registry.owner(), deployScript.deployer());
+        assertEq(deployment.registryProxy.owner(), deployScript.deployer());
     }
 
     function testDeterministicDeployment() public {
-        (registry,) = deployScript.deploy(salt);
-        registryProxy = address(registry);
+        deployScript.deploy(salt);
 
         vm.expectRevert(ERC1967Factory.DeploymentFailed.selector);
         deployScript.deploy(salt);
     }
 
     function testDeployWithDifferentSalt() public {
-        (registry,) = deployScript.deploy(salt);
-        registryProxy = address(registry);
+        deployment = deployScript.deploy(salt);
 
         bytes32 newSalt =
             bytes32(abi.encodePacked(address(deployScript), "LPN_V1"));
-        (LPNRegistryV0 newRegistry,) = deployScript.deploy(newSalt);
-        address newRegistryProxy = address(newRegistry);
 
-        assert(registryProxy != newRegistryProxy);
+        DeployLPNRegistry.Deployment memory newDeployment =
+            deployScript.deploy(newSalt);
+
+        assert(deployment.registryProxy != newDeployment.registryProxy);
     }
 }

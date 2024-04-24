@@ -13,9 +13,12 @@ out/
 !/broadcast/**/1/run-latest.json
 /broadcast/**/1/run-*.json
 
+/script/output/anvil
+
 # Docs
 docs/
 
 # Dotenv file
 .env
+
 

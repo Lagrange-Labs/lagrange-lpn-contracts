@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-import {BaseScript} from "./BaseScript.s.sol";
-import {SampleClientV0} from "../src/client/examples/SampleClientV0.sol";
-import {ILPNRegistry} from "../src/interfaces/ILPNRegistry.sol";
+import {BaseScript} from "../BaseScript.s.sol";
+import {SampleClientV0} from "../../src/client/examples/SampleClientV0.sol";
+import {ILPNRegistry} from "../../src/interfaces/ILPNRegistry.sol";
 
 contract DeploySampleClient is BaseScript {
     SampleClientV0 client;
@@ -20,10 +20,8 @@ contract DeploySampleClient is BaseScript {
         broadcaster
         returns (SampleClientV0)
     {
-        // TODO: Read registry address from `broadcasts` folder
-        return new SampleClientV0{salt: _salt}(
-            ILPNRegistry(0x2584665Beff871534118aAbAE781BC267Af142f9)
-        );
+        return
+            new SampleClientV0{salt: _salt}(ILPNRegistry(getDeployedRegistry()));
     }
 
     function assertions() private view {}

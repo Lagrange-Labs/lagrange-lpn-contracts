@@ -8,8 +8,11 @@ import {
     BASE_MAINNET,
     BASE_SEPOLIA
 } from "../src/utils/Constants.sol";
+import {stdJson} from "forge-std/stdJson.sol";
 
 abstract contract BaseScript is Script {
+    using stdJson for string;
+
     /// @dev The address of the contract deployer.
     address public deployer;
 
@@ -44,16 +47,41 @@ abstract contract BaseScript is Script {
         return vm.envAddress("address");
     }
 
+    function getDeployedRegistry() internal returns (address) {
+        string memory json = vm.readFile(outputPath());
+        return json.readAddress(".addresses.registryProxy");
+    }
+
+    function getDeployedQueryClient() internal returns (address) {
+        string memory json = vm.readFile(outputPath());
+        return json.readAddress(".addresses.queryClient");
+    }
+
+    function print(string memory key, string memory value) internal pure {
+        console2.log(string(abi.encodePacked(key, "@", value)));
+    }
+
     function print(string memory contractName, address contractAddress)
         internal
         pure
     {
-        console2.log(
-            string(
-                abi.encodePacked(
-                    contractName, "@", vm.toString(address(contractAddress))
-                )
-            )
-        );
+        print(contractName, vm.toString(contractAddress));
+    }
+
+    function outputDir() internal returns (string memory) {
+        string memory chainName = getChain(block.chainid).chainAlias;
+        return string.concat("./script/output/", chainName);
+    }
+
+    function outputPath() internal returns (string memory) {
+        return string.concat(outputDir(), "/deployment.json");
+    }
+
+    function mkdir(string memory dirPath) internal {
+        string[] memory mkdirInputs = new string[](3);
+        mkdirInputs[0] = "mkdir";
+        mkdirInputs[1] = "-p";
+        mkdirInputs[2] = dirPath;
+        vm.ffi(mkdirInputs);
     }
 }
