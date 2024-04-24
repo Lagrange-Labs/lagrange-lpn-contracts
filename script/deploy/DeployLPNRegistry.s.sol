@@ -81,8 +81,12 @@ contract DeployLPNRegistry is BaseScript {
         string memory json = "deploymentArtifact";
 
         string memory addresses = "addresses";
-        addresses.serialize("registryProxy", address(deployment.registryProxy));
-        addresses = addresses.serialize("registryImpl", deployment.registryImpl);
+        addresses.serialize("storageContract", address(0));
+        addresses.serialize("queryClient", address(0));
+        addresses.serialize("registryImpl", deployment.registryImpl);
+        addresses = addresses.serialize(
+            "registryProxy", address(deployment.registryProxy)
+        );
 
         string memory chainInfo = "chainInfo";
         chainInfo.serialize("chainId", block.chainid);

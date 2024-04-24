@@ -8,8 +8,11 @@ import {
     BASE_MAINNET,
     BASE_SEPOLIA
 } from "../src/utils/Constants.sol";
+import {stdJson} from "forge-std/stdJson.sol";
 
 abstract contract BaseScript is Script {
+    using stdJson for string;
+
     /// @dev The address of the contract deployer.
     address public deployer;
 
@@ -44,6 +47,11 @@ abstract contract BaseScript is Script {
         return vm.envAddress("address");
     }
 
+    function getDeployedRegistry() internal returns (address) {
+        string memory json = vm.readFile(outputPath());
+        return json.readAddress(".addresses.registryProxy");
+    }
+
     function print(string memory key, string memory value) internal pure {
         console2.log(string(abi.encodePacked(key, "@", value)));
     }
@@ -57,11 +65,11 @@ abstract contract BaseScript is Script {
 
     function outputDir() internal returns (string memory) {
         string memory chainName = getChain(block.chainid).chainAlias;
-        return string(abi.encodePacked("./script/output/", chainName));
+        return string.concat("./script/output/", chainName);
     }
 
     function outputPath() internal returns (string memory) {
-        return string(abi.encodePacked(outputDir(), "deployment.json"));
+        return string.concat(outputDir(), "/deployment.json");
     }
 
     function mkdir(string memory dirPath) internal {
