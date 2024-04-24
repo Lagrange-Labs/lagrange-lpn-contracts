@@ -16,6 +16,12 @@ address constant OP_STACK_L1_BLOCK_PREDEPLOY_ADDR =
 
 address constant PUDGEY_PENGUINS = 0xBd3531dA5CF5857e7CfAA92426877b022e612cf8;
 
+uint256 constant PUDGEY_PENGUINS_MAPPING_SLOT = 2;
+uint256 constant PUDGEY_PENGUINS_LENGTH_SLOT = 8;
+
+uint256 constant LAGRANGE_LOONS_MAPPING_SLOT = 2;
+uint256 constant LAGRANGE_LOONS_LENGTH_SLOT = 8;
+
 function isEthereum() view returns (bool) {
     return block.chainid == ETH_MAINNET || block.chainid == ETH_SEPOLIA;
 }
