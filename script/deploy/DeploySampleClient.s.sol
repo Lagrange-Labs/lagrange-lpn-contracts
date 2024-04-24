@@ -20,10 +20,8 @@ contract DeploySampleClient is BaseScript {
         broadcaster
         returns (SampleClientV0)
     {
-        // TODO: Read registry address from `broadcasts` folder
-        return new SampleClientV0{salt: _salt}(
-            ILPNRegistry(0x2584665Beff871534118aAbAE781BC267Af142f9)
-        );
+        return
+            new SampleClientV0{salt: _salt}(ILPNRegistry(getDeployedRegistry()));
     }
 
     function assertions() private view {}

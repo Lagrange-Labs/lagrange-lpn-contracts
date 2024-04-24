@@ -8,7 +8,7 @@ import {PUDGEY_PENGUINS} from "../../src/utils/Constants.sol";
 contract Query is BaseScript {
     function run() external broadcaster {
         query(
-            LPNQueryV0(0x80c0a42F808d6f35e83F4939482A485caE536e6a),
+            LPNQueryV0(getDeployedQueryClient()),
             0x29469395eAf6f95920E59F858042f0e28D98a20B
         );
     }

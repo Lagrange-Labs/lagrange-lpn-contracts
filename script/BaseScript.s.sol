@@ -52,6 +52,11 @@ abstract contract BaseScript is Script {
         return json.readAddress(".addresses.registryProxy");
     }
 
+    function getDeployedQueryClient() internal returns (address) {
+        string memory json = vm.readFile(outputPath());
+        return json.readAddress(".addresses.queryClient");
+    }
+
     function print(string memory key, string memory value) internal pure {
         console2.log(string(abi.encodePacked(key, "@", value)));
     }

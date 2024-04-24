@@ -8,6 +8,6 @@ import {PUDGEY_PENGUINS} from "../../src/utils/Constants.sol";
 
 contract WithdrawFees is BaseScript {
     function run() external broadcaster {
-        LPNRegistryV0(0x2584665Beff871534118aAbAE781BC267Af142f9).withdrawFees();
+        LPNRegistryV0(getDeployedRegistry()).withdrawFees();
     }
 }
