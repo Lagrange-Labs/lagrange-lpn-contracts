@@ -2,10 +2,14 @@
 pragma solidity ^0.8.13;
 
 import {Script, console2} from "forge-std/Script.sol";
+import {
+    ETH_MAINNET,
+    ETH_SEPOLIA,
+    BASE_MAINNET,
+    BASE_SEPOLIA
+} from "../src/utils/Constants.sol";
 
 abstract contract BaseScript is Script {
-    uint256 constant MAINNET = 1;
-
     /// @dev The address of the contract deployer.
     address public deployer;
 
@@ -20,10 +24,15 @@ abstract contract BaseScript is Script {
 
     constructor() {
         deployer = vm.rememberKey(vm.envUint("PRIVATE_KEY"));
-        if (block.chainid == MAINNET) {
+
+        if (block.chainid == ETH_MAINNET) {
             salt = bytes32(abi.encodePacked(deployer, "V0_EUCLID_0"));
-        } else {
+        } else if (block.chainid == BASE_MAINNET) {
+            salt = bytes32(abi.encodePacked(deployer, "V0_EUCLID_0"));
+        } else if (block.chainid == ETH_SEPOLIA) {
             salt = bytes32(abi.encodePacked(deployer, "V0_EUCLID_1"));
+        } else if (block.chainid == BASE_SEPOLIA) {
+            salt = bytes32(abi.encodePacked(deployer, "V0_EUCLID_0"));
         }
     }
 

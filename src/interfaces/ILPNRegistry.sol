@@ -23,6 +23,8 @@ interface ILPNRegistry {
     /// @param key The key of the mapping for the value associated with the request.
     /// @param startBlock The starting block for the computation.
     /// @param endBlock The ending block for the computation.
+    /// @param proofBlock The requested block for the proof to be computed against.
+    ///                   Currently required for OP Stack chains
     event NewRequest(
         uint256 indexed requestId,
         address indexed storageContract,
@@ -31,7 +33,8 @@ interface ILPNRegistry {
         uint256 startBlock,
         uint256 endBlock,
         uint256 offset,
-        uint256 gasFee
+        uint256 gasFee,
+        uint256 proofBlock
     );
 
     /// @notice Event emitted when a response is received.

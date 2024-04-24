@@ -17,6 +17,12 @@ import {ILPNClient} from "../src/interfaces/ILPNClient.sol";
 import {Initializable} from
     "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {Groth16Verifier} from "../src/Groth16Verifier.sol";
+import {
+    ETH_MAINNET,
+    BASE_MAINNET,
+    OP_STACK_L1_BLOCK_PREDEPLOY_ADDR
+} from "../src/utils/Constants.sol";
+import {IOptimismL1Block} from "../src/interfaces/IOptimismL1Block.sol";
 
 contract MockLPNClient is ILPNClient {
     uint256 public lastRequestId;
@@ -59,7 +65,8 @@ contract LPNRegistryV0Test is Test {
         uint256 startBlock,
         uint256 endBlock,
         uint256 offset,
-        uint256 gasFee
+        uint256 gasFee,
+        uint256 proofBlock
     );
 
     event NewResponse(
@@ -76,6 +83,7 @@ contract LPNRegistryV0Test is Test {
     }
 
     function setUp() public {
+        vm.chainId(ETH_MAINNET);
         registry = new LPNRegistryV0();
         registry.initialize(owner);
 
@@ -132,9 +140,13 @@ contract LPNRegistryV0Test is Test {
     }
 
     function testRequest() public {
+        uint256 blockNumber = 12345;
+        uint256 proofBlock = 0;
+        bytes32 blockHash = 0;
+        vm.roll(blockNumber);
         register(storageContract, 1, 2);
         bytes32 key = keccak256("key");
-        uint256 startBlock = registry.indexStart(storageContract);
+        uint256 startBlock = block.number;
         uint256 endBlock = startBlock;
 
         vm.expectEmit(true, true, true, true);
@@ -146,7 +158,8 @@ contract LPNRegistryV0Test is Test {
             startBlock,
             endBlock,
             offset,
-            gasFee
+            gasFee,
+            proofBlock
         );
 
         vm.prank(address(client));
@@ -154,10 +167,80 @@ contract LPNRegistryV0Test is Test {
             storageContract, key, startBlock, endBlock, offset
         );
 
-        (,, address clientAddress,,,) = registry.queries(requestId);
+        (
+            address storageContract_,
+            address key_,
+            address client_,
+            uint256 startBlock_,
+            uint256 endBlock_,
+            bytes32 blockhash_
+        ) = registry.queries(requestId);
 
         assertEq(requestId, 1);
-        assertEq(clientAddress, address(client));
+
+        assertEq(storageContract_, storageContract);
+        assertEq(key_, address(uint160(uint256(key))));
+        assertEq(client_, address(client));
+        assertEq(startBlock_, startBlock);
+        assertEq(endBlock_, endBlock);
+        assertEq(blockhash_, blockHash);
+    }
+
+    function testRequestOP() public {
+        uint256 l2Block = 12345;
+        uint256 l1Block = 123;
+        bytes32 l1BlockHash = bytes32("567");
+        vm.chainId(BASE_MAINNET);
+        vm.roll(l2Block);
+        bytes32 key = keccak256("key");
+        uint256 startBlock = l1Block;
+        uint256 endBlock = startBlock;
+
+        vm.expectEmit(true, true, true, true);
+        emit NewRequest(
+            1,
+            storageContract,
+            address(client),
+            key,
+            startBlock,
+            endBlock,
+            offset,
+            gasFee,
+            l1Block
+        );
+
+        vm.mockCall(
+            OP_STACK_L1_BLOCK_PREDEPLOY_ADDR,
+            abi.encodeWithSelector(IOptimismL1Block.number.selector),
+            abi.encode(l1Block)
+        );
+        vm.mockCall(
+            OP_STACK_L1_BLOCK_PREDEPLOY_ADDR,
+            abi.encodeWithSelector(IOptimismL1Block.hash.selector),
+            abi.encode(l1BlockHash)
+        );
+        vm.prank(address(client));
+        uint256 requestId = registry.request{value: gasFee}(
+            storageContract, key, startBlock, endBlock, offset
+        );
+
+        (
+            address storageContract_,
+            address key_,
+            address client_,
+            uint256 startBlock_,
+            uint256 endBlock_,
+            bytes32 blockhash_
+        ) = registry.queries(requestId);
+
+        assertEq(requestId, 1);
+
+        assertEq(storageContract_, storageContract);
+        assertEq(key_, address(uint160(uint256(key))));
+        assertEq(client_, address(client));
+        assertEq(startBlock_, startBlock);
+        assertEq(endBlock_, endBlock);
+        assertEq(blockhash_, l1BlockHash);
     }
 
     function testRequestValidateQueryRange() public {
@@ -211,6 +294,40 @@ contract LPNRegistryV0Test is Test {
         );
     }
 
+    function testRequestOPValidateQueryRange() public {
+        vm.chainId(BASE_MAINNET);
+        bytes32 key = keccak256("key");
+        vm.roll(12345);
+        uint256 startBlock;
+        uint256 endBlock;
+
+        // Test QueryAfterCurrentBlock error
+        startBlock = block.number;
+        endBlock = block.number + 1;
+        vm.expectRevert(QueryAfterCurrentBlock.selector);
+        vm.prank(address(client));
+        registry.request{value: gasFee}(
+            storageContract, key, startBlock, endBlock, offset
+        );
+
+        // Test QueryInvalidRange error
+        endBlock = startBlock - 1;
+        vm.expectRevert(QueryInvalidRange.selector);
+        vm.prank(address(client));
+        registry.request{value: gasFee}(
+            storageContract, key, startBlock, endBlock, offset
+        );
+
+        vm.roll(block.number + (registry.MAX_QUERY_RANGE() + 1));
+        // Test QueryGreaterThanMaxRange error
+        endBlock = startBlock + (registry.MAX_QUERY_RANGE() + 1);
+        vm.expectRevert(QueryGreaterThanMaxRange.selector);
+        vm.prank(address(client));
+        registry.request{value: gasFee}(
+            storageContract, key, startBlock, endBlock, offset
+        );
+    }
+
     function testRespond() public {
         uint256 startBlock = 19662380;
         uint256 endBlock = 19662380;
@@ -244,7 +361,7 @@ contract LPNRegistryV0Test is Test {
 
         // vm.expectEmit(true, true, true, true);
         // emit NewResponse(requestId, address(client), expectedResults);
-        registry.respond(requestId, proof, 19662458);
+        registry.respond(requestId, proof, proofBlock);
 
         // (,, address clientAddress,,,) = registry.queries(requestId);
 
@@ -253,6 +370,56 @@ contract LPNRegistryV0Test is Test {
         // assertEq(client.lastResult(i), expectedResults[i]);
         // }
         // assertEq(clientAddress, address(0));
+    }
+
+    function testRespondOP() public {
+        vm.chainId(BASE_MAINNET);
+        uint256 startBlock = 19662380;
+        uint256 endBlock = 19662380;
+        uint256 proofBlock = 19662458;
+        bytes32 l1BlockHash =
+            0x1753f6b036b3367cfacbdd088a1418ad57461c7e0d9929c79a7db2110e5480fd;
+        address userAddress = 0x8B58f7C312406d7C6A5D01898f0C5aef31eE51a7;
+        bytes32 key = bytes32(uint256(uint160(userAddress)));
+
+        uint16[5] memory nftIds = [8782, 8538, 2760, 4567, 4319];
+
+        uint256[] memory expectedResults = new uint256[](5);
+        for (uint256 i = 0; i < nftIds.length; i++) {
+            expectedResults[i] = nftIds[i];
+        }
+
+        vm.roll(proofBlock);
+
+        vm.mockCall(
+            OP_STACK_L1_BLOCK_PREDEPLOY_ADDR,
+            abi.encodeWithSelector(IOptimismL1Block.number.selector),
+            abi.encode(proofBlock)
+        );
+        vm.mockCall(
+            OP_STACK_L1_BLOCK_PREDEPLOY_ADDR,
+            abi.encodeWithSelector(IOptimismL1Block.hash.selector),
+            abi.encode(l1BlockHash)
+        );
+
+        vm.prank(address(client));
+        uint256 requestId = registry.request{value: gasFee}(
+            otherStorageContract, key, startBlock, endBlock, offset
+        );
+
+        bytes32[] memory proof = readProof("/test/full_proof.bin");
+
+        vm.expectEmit(true, true, true, true);
+        emit NewResponse(requestId, address(client), expectedResults);
+        registry.respond(requestId, proof, 0);
+
+        (,, address clientAddress,,,) = registry.queries(requestId);
+
+        assertEq(client.lastRequestId(), requestId);
+        for (uint256 i = 0; i < expectedResults.length; i++) {
+            assertEq(client.lastResult(i), expectedResults[i]);
+        }
+        assertEq(clientAddress, address(0));
     }
 
     function readProof(string memory proofFile)
