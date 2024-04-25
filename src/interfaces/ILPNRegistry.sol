@@ -46,7 +46,7 @@ interface ILPNRegistry {
     );
 
     /// @notice The gas fee paid for on request to reimburse the response transaction.
-    function GAS_FEE() external returns (uint256);
+    function gasFee() external returns (uint256);
 
     /// @notice Registers a client with the provided mapping and length slots.
     /// @param storageContract The address of the contract to be queried.

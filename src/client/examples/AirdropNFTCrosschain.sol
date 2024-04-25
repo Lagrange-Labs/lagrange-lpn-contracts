@@ -44,7 +44,7 @@ contract AirdropNFTCrosschain is LPNClientV0 {
         uint256 endBlock,
         uint256 offset
     ) external payable {
-        uint256 requestId = lpnRegistry.request{value: lpnRegistry.GAS_FEE()}(
+        uint256 requestId = lpnRegistry.request{value: lpnRegistry.gasFee()}(
             address(lloons),
             bytes32(uint256(uint160(holder))),
             startBlock,

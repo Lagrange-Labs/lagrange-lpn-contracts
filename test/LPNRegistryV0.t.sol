@@ -9,7 +9,8 @@ import {
     QueryBeforeIndexed,
     QueryAfterCurrentBlock,
     QueryInvalidRange,
-    QueryGreaterThanMaxRange
+    QueryGreaterThanMaxRange,
+    InsufficientGasFee
 } from "../src/LPNRegistryV0.sol";
 import {NotAuthorized} from "../src/utils/OwnableWhitelist.sol";
 import {ILPNRegistry} from "../src/interfaces/ILPNRegistry.sol";
@@ -23,6 +24,7 @@ import {
     OP_STACK_L1_BLOCK_PREDEPLOY_ADDR
 } from "../src/utils/Constants.sol";
 import {IOptimismL1Block} from "../src/interfaces/IOptimismL1Block.sol";
+import {Ownable} from "solady/auth/Ownable.sol";
 
 contract MockLPNClient is ILPNClient {
     uint256 public lastRequestId;
@@ -93,7 +95,7 @@ contract LPNRegistryV0Test is Test {
         hoax(owner);
         registry.toggleWhitelist(otherStorageContract);
 
-        gasFee = registry.GAS_FEE();
+        gasFee = registry.gasFee();
         vm.deal(address(client), 10 ether);
     }
 
@@ -328,6 +330,34 @@ contract LPNRegistryV0Test is Test {
         );
     }
 
+    function testRequestInsufficientGas() public {
+        bytes32 key = keccak256("key");
+        uint256 startBlock;
+        uint256 endBlock;
+
+        assertEq(registry.ETH_GAS_FEE(), 0.05 ether);
+        assertEq(registry.OP_GAS_FEE(), 0.00015 ether);
+
+        vm.expectRevert(InsufficientGasFee.selector);
+        vm.prank(address(client));
+        registry.request{value: 0}(
+            storageContract, key, startBlock, endBlock, offset
+        );
+
+        vm.expectRevert(InsufficientGasFee.selector);
+        vm.prank(address(client));
+        registry.request{value: 0.049 ether}(
+            storageContract, key, startBlock, endBlock, offset
+        );
+
+        vm.chainId(BASE_MAINNET);
+        vm.expectRevert(InsufficientGasFee.selector);
+        vm.prank(address(client));
+        registry.request{value: 0.00014 ether}(
+            storageContract, key, startBlock, endBlock, offset
+        );
+    }
+
     function testRespond() public {
         uint256 startBlock = 19662380;
         uint256 endBlock = 19662380;
@@ -420,6 +450,33 @@ contract LPNRegistryV0Test is Test {
             assertEq(client.lastResult(i), expectedResults[i]);
         }
         assertEq(clientAddress, address(0));
+    }
+
+    function testWithdrawFees() public {
+        uint256 registryBalance = 1 ether;
+        vm.deal(address(registry), registryBalance);
+
+        uint256 balanceBefore = owner.balance;
+        hoax(owner);
+        registry.withdrawFees();
+        uint256 balanceAfter = owner.balance;
+
+        assertEq(address(registry).balance, 0);
+        assertEq(balanceBefore + registryBalance, balanceAfter);
+    }
+
+    function testWithdrawFeesOnlyOwner() public {
+        uint256 registryBalance = 1 ether;
+        vm.deal(address(registry), registryBalance);
+
+        uint256 balanceBefore = notOwner.balance;
+        hoax(notOwner, 0);
+        vm.expectRevert(Ownable.Unauthorized.selector);
+        registry.withdrawFees();
+        uint256 balanceAfter = notOwner.balance;
+
+        assertEq(address(registry).balance, registryBalance);
+        assertEq(balanceBefore, balanceAfter);
     }
 
     function readProof(string memory proofFile)
