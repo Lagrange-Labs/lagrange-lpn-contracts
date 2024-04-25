@@ -46,7 +46,8 @@ contract LPNRegistryV0 is ILPNRegistry, OwnableWhitelist, Initializable {
     uint256 public constant MAX_QUERY_RANGE = 1000;
 
     /// @notice A constant gas fee paid for each request to reimburse the relayer when it delivers the response
-    uint256 public constant GAS_FEE = 0.05 ether;
+    uint256 public constant ETH_GAS_FEE = 0.05 ether;
+    uint256 public constant OP_GAS_FEE = 0.00015 ether;
 
     /// @notice A counter that assigns unique ids for client requests.
     uint256 public requestId;
@@ -96,6 +97,13 @@ contract LPNRegistryV0 is ILPNRegistry, OwnableWhitelist, Initializable {
         _;
     }
 
+    modifier requireGasFee() {
+        if (msg.value < gasFee()) {
+            revert InsufficientGasFee();
+        }
+        _;
+    }
+
     function initialize(address owner) external initializer {
         OwnableWhitelist._initialize(owner);
     }
@@ -124,15 +132,12 @@ contract LPNRegistryV0 is ILPNRegistry, OwnableWhitelist, Initializable {
     )
         external
         payable
+        requireGasFee
         validateQueryRange(storageContract, startBlock, endBlock)
         returns (uint256)
     {
         unchecked {
             requestId++;
-        }
-
-        if (msg.value < GAS_FEE) {
-            revert InsufficientGasFee();
         }
 
         uint256 proofBlock = 0;
@@ -157,7 +162,7 @@ contract LPNRegistryV0 is ILPNRegistry, OwnableWhitelist, Initializable {
             startBlock,
             endBlock,
             offset,
-            GAS_FEE,
+            msg.value,
             proofBlock
         );
         return requestId;
@@ -195,5 +200,13 @@ contract LPNRegistryV0 is ILPNRegistry, OwnableWhitelist, Initializable {
     function withdrawFees() external onlyOwner returns (bool) {
         (bool sent,) = msg.sender.call{value: address(this).balance}("");
         return sent;
+    }
+
+    function gasFee() public view returns (uint256) {
+        if (isEthereum()) {
+            return ETH_GAS_FEE;
+        }
+
+        return OP_GAS_FEE;
     }
 }
