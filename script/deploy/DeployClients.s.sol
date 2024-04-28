@@ -16,6 +16,7 @@ import {
     LAGRANGE_LOONS_LENGTH_SLOT,
     isMainnet,
     isTestnet,
+    isEthereum,
     isLocal
 } from "../../src/utils/Constants.sol";
 import {stdJson} from "forge-std/StdJson.sol";
@@ -31,11 +32,12 @@ contract DeployClients is BaseScript {
     LPNRegistryV0 registry;
     Deployment deployment;
 
+    /// @notice Deploys LPNQueryV0 and LagrangeLoonsNFT (only on Sepolia); whitelists and registers storageContract on L1
     function run() external broadcaster {
         registry = LPNRegistryV0(getDeployedRegistry());
         deployment = deploy();
 
-        if (!registry.whitelist(deployment.storageContract)) {
+        if (isEthereum() && !registry.whitelist(deployment.storageContract)) {
             registry.toggleWhitelist(deployment.storageContract);
         }
 
@@ -50,9 +52,13 @@ contract DeployClients is BaseScript {
             lengthSlot = LAGRANGE_LOONS_LENGTH_SLOT;
         }
 
-        registry.register(deployment.storageContract, mappingSlot, lengthSlot);
+        if (isEthereum()) {
+            registry.register(
+                deployment.storageContract, mappingSlot, lengthSlot
+            );
+        }
 
-        if (isTestnet() || isLocal()) {
+        if (isEthereum() && (isTestnet() || isLocal())) {
             generateTestnetData();
         }
 
@@ -61,34 +67,37 @@ contract DeployClients is BaseScript {
         writeToJson();
     }
 
+    /// @notice Deploys LPNQueryV0 on all chains; Deploys LagrangeLoonsNFT on Sepolia
+    /// @return Deployment addresses of deployed contracts; address(0) if storageContract is skipped
     function deploy() public returns (Deployment memory) {
-        if (isTestnet() || isLocal()) {
-            LagrangeLoonsNFT lloons = new LagrangeLoonsNFT();
-            print("LagrangeLoonsNFT", address(lloons));
+        address queryClient = address(new LPNQueryV0(registry));
+        print("LPNQueryV0", queryClient);
 
-            AirdropNFTCrosschain client =
-                new AirdropNFTCrosschain(registry, lloons);
-
-            print("AirdropNFTCrosschain", address(client));
-
+        if (isMainnet()) {
             return Deployment({
-                storageContract: address(lloons),
-                queryClient: address(client)
+                storageContract: getDeployedStorageContract(),
+                queryClient: queryClient
             });
         }
 
-        if (isMainnet()) {
-            address client = address(new LPNQueryV0(registry));
-            print("LPNQueryV0", client);
+        if (isTestnet() || isLocal()) {
+            LagrangeLoonsNFT lloons;
+
+            if (isEthereum()) {
+                lloons = new LagrangeLoonsNFT();
+                print("LagrangeLoonsNFT", address(lloons));
+            }
+
             return Deployment({
-                storageContract: PUDGEY_PENGUINS,
-                queryClient: client
+                storageContract: address(lloons),
+                queryClient: queryClient
             });
         }
 
         revert("Unregistered Chain");
     }
 
+    /// @notice Mints and transfers NFTs
     function generateTestnetData() private {
         LagrangeLoonsNFT lloons = LagrangeLoonsNFT(deployment.storageContract);
 
@@ -98,6 +107,7 @@ contract DeployClients is BaseScript {
         lloons.transferFrom(deployer, deployment.queryClient, 0);
     }
 
+    /// @notice Writes deployed contract addresses to script/output/<chain>/deployments.json
     function writeToJson() private {
         vm.writeJson(
             vm.toString(deployment.storageContract),
