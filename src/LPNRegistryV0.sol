@@ -203,4 +203,9 @@ contract LPNRegistryV0 is ILPNRegistry, OwnableWhitelist, Initializable {
 
         return OP_GAS_FEE;
     }
+
+    /// @notice Useful for backwards compatibility of prior contract version on Eth Mainnet
+    function GAS_FEE() public view returns (uint256) {
+        return gasFee();
+    }
 }
