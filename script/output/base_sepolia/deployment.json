@@ -1,0 +1,12 @@
+{
+  "addresses": {
+    "queryClient": "0x09C52d2dCdA5724823f5b3bEe93E989B218004Ac",
+    "registryImpl": "0x9F559E71eE949e72592797df266f17c7568D0458",
+    "registryProxy": "0x3a7DC946dF9b62C2be46eb28Fb4764a8bbdE523d",
+    "storageContract": "0x0000000000000000000000000000000000000000"
+  },
+  "chainInfo": {
+    "chainId": 84532,
+    "deploymentBlock": 9241365
+  }
+}
