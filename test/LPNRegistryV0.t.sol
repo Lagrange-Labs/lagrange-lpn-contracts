@@ -299,13 +299,20 @@ contract LPNRegistryV0Test is Test {
     function testRequestOPValidateQueryRange() public {
         vm.chainId(BASE_MAINNET);
         bytes32 key = keccak256("key");
-        vm.roll(12345);
+        uint256 l1Block = 12345;
+
+        vm.mockCall(
+            OP_STACK_L1_BLOCK_PREDEPLOY_ADDR,
+            abi.encodeWithSelector(IOptimismL1Block.number.selector),
+            abi.encode(l1Block)
+        );
+        // vm.roll(12345);
         uint256 startBlock;
         uint256 endBlock;
 
         // Test QueryAfterCurrentBlock error
-        startBlock = block.number;
-        endBlock = block.number + 1;
+        startBlock = l1Block;
+        endBlock = l1Block + 1;
         vm.expectRevert(QueryAfterCurrentBlock.selector);
         vm.prank(address(client));
         registry.request{value: gasFee}(
@@ -320,7 +327,11 @@ contract LPNRegistryV0Test is Test {
             storageContract, key, startBlock, endBlock, offset
         );
 
-        vm.roll(block.number + (registry.MAX_QUERY_RANGE() + 1));
+        vm.mockCall(
+            OP_STACK_L1_BLOCK_PREDEPLOY_ADDR,
+            abi.encodeWithSelector(IOptimismL1Block.number.selector),
+            abi.encode(l1Block + (registry.MAX_QUERY_RANGE() + 1))
+        );
         // Test QueryGreaterThanMaxRange error
         endBlock = startBlock + (registry.MAX_QUERY_RANGE() + 1);
         vm.expectRevert(QueryGreaterThanMaxRange.selector);

@@ -85,7 +85,7 @@ contract LPNRegistryV0 is ILPNRegistry, OwnableWhitelist, Initializable {
             }
         }
 
-        if (endBlock > block.number) {
+        if (endBlock > L1BlockNumber()) {
             revert QueryAfterCurrentBlock();
         }
         if (startBlock > endBlock) {
