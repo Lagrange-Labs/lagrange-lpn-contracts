@@ -454,13 +454,26 @@ contract LPNRegistryV0Test is Test {
         emit NewResponse(requestId, address(client), expectedResults);
         registry.respond(requestId, proof, 0);
 
-        (,, address clientAddress,,,) = registry.queries(requestId);
-
         assertEq(client.lastRequestId(), requestId);
         for (uint256 i = 0; i < expectedResults.length; i++) {
             assertEq(client.lastResult(i), expectedResults[i]);
         }
+
+        (
+            address contractAddress,
+            address userAddressKey,
+            address clientAddress,
+            uint256 minBlockNumber,
+            uint256 maxBlockNumber,
+            bytes32 blockHash
+        ) = registry.queries(requestId);
+
+        assertEq(contractAddress, address(0));
+        assertEq(userAddressKey, address(0));
         assertEq(clientAddress, address(0));
+        assertEq(minBlockNumber, 0);
+        assertEq(maxBlockNumber, 0);
+        assertEq(blockHash, bytes32(0));
     }
 
     function testWithdrawFees() public {

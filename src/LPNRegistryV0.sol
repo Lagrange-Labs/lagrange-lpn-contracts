@@ -141,8 +141,10 @@ contract LPNRegistryV0 is ILPNRegistry, OwnableWhitelist, Initializable {
         }
 
         uint256 proofBlock = 0;
-        if (isOPStack()) {
+        bytes32 blockHash = 0;
+        if (!isEthereum()) {
             proofBlock = L1BlockNumber();
+            blockHash = L1BlockHash();
         }
 
         queries[requestId] = Groth16VerifierExtensions.Query({
@@ -150,7 +152,7 @@ contract LPNRegistryV0 is ILPNRegistry, OwnableWhitelist, Initializable {
             userAddress: address(uint160(uint256(key))),
             minBlockNumber: startBlock,
             maxBlockNumber: endBlock,
-            blockHash: L1BlockHash(proofBlock),
+            blockHash: blockHash,
             clientAddress: msg.sender
         });
 
@@ -174,15 +176,7 @@ contract LPNRegistryV0 is ILPNRegistry, OwnableWhitelist, Initializable {
         uint256 blockNumber
     ) external {
         Groth16VerifierExtensions.Query memory query = queries[requestId_];
-
-        queries[requestId_] = Groth16VerifierExtensions.Query({
-            contractAddress: address(0),
-            userAddress: address(0),
-            minBlockNumber: 0,
-            maxBlockNumber: 0,
-            blockHash: 0,
-            clientAddress: address(0)
-        });
+        delete queries[requestId_];
 
         if (isEthereum()) {
             query.blockHash = blockhash(blockNumber);

@@ -9,9 +9,9 @@ import {
 } from "./Constants.sol";
 
 /// @notice The latest L1 blockhash.
-function L1BlockHash(uint256 blockNumber) returns (bytes32) {
+function L1BlockHash() returns (bytes32) {
     if (isEthereum()) {
-        return blockhash(blockNumber);
+        return blockhash(block.number);
     }
 
     if (isOPStack()) {
