@@ -17,6 +17,7 @@ contract DeployLPNRegistryTest is Test {
         ERC1967Factory(ERC1967FactoryConstants.ADDRESS);
 
     bytes32 salt;
+    address owner = address(deployScript);
 
     function setUp() public {
         vm.etch(
@@ -26,55 +27,52 @@ contract DeployLPNRegistryTest is Test {
     }
 
     function testDeploy() public {
-        deployment = deployScript.deploy(salt);
+        deployment = deployScript.deploy(salt, owner);
 
-        assertEq(deployment.registryProxy.owner(), deployScript.deployer());
+        assertEq(deployment.registryProxy.owner(), owner);
         assert(address(deployment.registryProxy) != address(0));
     }
 
     function testUpgrade() public {
-        deployment = deployScript.deploy(salt);
+        deployment = deployScript.deploy(salt, owner);
         address oldImpl = deployment.registryImpl;
+
+        proxyFactory.adminOf(address(deployment.registryProxy));
 
         address newImpl =
             deployScript.upgrade(address(deployment.registryProxy));
 
         assert(oldImpl != newImpl);
-        assertEq(
-            deployment.registryProxy.owner(), address(deployScript.deployer())
-        );
+        assertEq(deployment.registryProxy.owner(), owner);
     }
 
     function testProxyOwnership() public {
-        deployment = deployScript.deploy(salt);
+        deployment = deployScript.deploy(salt, owner);
 
-        assertEq(
-            proxyFactory.adminOf(address(deployment.registryProxy)),
-            address(deployScript.deployer())
-        );
+        assertEq(proxyFactory.adminOf(address(deployment.registryProxy)), owner);
     }
 
     function testProxyInitialization() public {
-        deployment = deployScript.deploy(salt);
+        deployment = deployScript.deploy(salt, owner);
 
-        assertEq(deployment.registryProxy.owner(), deployScript.deployer());
+        assertEq(deployment.registryProxy.owner(), owner);
     }
 
     function testDeterministicDeployment() public {
-        deployScript.deploy(salt);
+        deployScript.deploy(salt, owner);
 
         vm.expectRevert(ERC1967Factory.DeploymentFailed.selector);
-        deployScript.deploy(salt);
+        deployScript.deploy(salt, owner);
     }
 
     function testDeployWithDifferentSalt() public {
-        deployment = deployScript.deploy(salt);
+        deployment = deployScript.deploy(salt, owner);
 
         bytes32 newSalt =
             bytes32(abi.encodePacked(address(deployScript), "LPN_V1"));
 
         DeployLPNRegistry.Deployment memory newDeployment =
-            deployScript.deploy(newSalt);
+            deployScript.deploy(newSalt, owner);
 
         assert(deployment.registryProxy != newDeployment.registryProxy);
     }
