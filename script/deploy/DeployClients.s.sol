@@ -100,11 +100,16 @@ contract DeployClients is BaseScript {
     /// @notice Mints and transfers NFTs
     function generateTestnetData() private {
         LagrangeLoonsNFT lloons = LagrangeLoonsNFT(deployment.storageContract);
+        if (!lloons.isApprovedForAll(deployer, deployment.queryClient)) {
+            lloons.setApprovalForAll(deployment.queryClient, true);
+        }
 
-        lloons.mint();
-        lloons.approve(deployment.queryClient, 0);
-        lloons.mint();
-        lloons.transferFrom(deployer, deployment.queryClient, 0);
+        for (uint256 i = 0; i < 20; i++) {
+            lloons.mint();
+            if (i % 2 == 0) {
+                lloons.transferFrom(deployer, deployment.queryClient, i);
+            }
+        }
     }
 
     /// @notice Writes deployed contract addresses to script/output/<chain>/deployments.json

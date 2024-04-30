@@ -1,12 +1,12 @@
 {
   "addresses": {
-    "queryClient": "0x0D2FEc862B7c8F942c4d2b938386b1c0866FCdC1",
-    "registryImpl": "0x6d76935b50aF41Dd0D4354F4a00b4F894734DeB7",
-    "registryProxy": "0x788393b12b9D55FE5d4A1a0C6c5911f6120AA6d2",
-    "storageContract": "0x850479Bf808BD6FaC364B4c4b4AC682125bD0b58"
+    "queryClient": "0xFc56dfEF07e023786CD1F2b344706ed2E4f59897",
+    "registryImpl": "0x7cD2d7B82122649071E0C4535079F148523Cdd64",
+    "registryProxy": "0x375Ca20Be835390717125A14E36e8259CA2660D3",
+    "storageContract": "0x80217af7a0ec01f55E2f403418A5941d40863A51"
   },
   "chainInfo": {
     "chainId": 11155111,
-    "deploymentBlock": 5790968
+    "deploymentBlock": 5795670
   }
 }
