@@ -33,9 +33,9 @@ abstract contract BaseScript is Script {
         } else if (block.chainid == BASE_MAINNET) {
             salt = bytes32(abi.encodePacked(deployer, "V0_EUCLID_0"));
         } else if (block.chainid == ETH_SEPOLIA) {
-            salt = bytes32(abi.encodePacked(deployer, "V0_EUCLID_3"));
+            salt = bytes32(abi.encodePacked(deployer, "V0_EUCLID_4"));
         } else if (block.chainid == BASE_SEPOLIA) {
-            salt = bytes32(abi.encodePacked(deployer, "V0_EUCLID_3"));
+            salt = bytes32(abi.encodePacked(deployer, "V0_EUCLID_4"));
         }
     }
 
