@@ -33,9 +33,9 @@ abstract contract BaseScript is Script {
         } else if (block.chainid == BASE_MAINNET) {
             salt = bytes32(abi.encodePacked(deployer, "V0_EUCLID_0"));
         } else if (block.chainid == ETH_SEPOLIA) {
-            salt = bytes32(abi.encodePacked(deployer, "V0_EUCLID_1"));
+            salt = bytes32(abi.encodePacked(deployer, "V0_EUCLID_4"));
         } else if (block.chainid == BASE_SEPOLIA) {
-            salt = bytes32(abi.encodePacked(deployer, "V0_EUCLID_0"));
+            salt = bytes32(abi.encodePacked(deployer, "V0_EUCLID_4"));
         }
     }
 
@@ -50,6 +50,20 @@ abstract contract BaseScript is Script {
     function getDeployedRegistry() internal returns (address) {
         string memory json = vm.readFile(outputPath());
         return json.readAddress(".addresses.registryProxy");
+    }
+
+    function getDeployedStorageContract() internal returns (address) {
+        string memory json = vm.readFile(outputPath());
+        return json.readAddress(".addresses.storageContract");
+    }
+
+    function getDeployedStorageContract(string memory chainName)
+        internal
+        view
+        returns (address)
+    {
+        string memory json = vm.readFile(outputPath(chainName));
+        return json.readAddress(".addresses.storageContract");
     }
 
     function getDeployedQueryClient() internal returns (address) {
@@ -69,12 +83,38 @@ abstract contract BaseScript is Script {
     }
 
     function outputDir() internal returns (string memory) {
+        setChain(
+            "base_sepolia",
+            Chain(
+                "Base Sepolia",
+                84532,
+                "base_sepolia",
+                "https://sepolia.base.org"
+            )
+        );
+
         string memory chainName = getChain(block.chainid).chainAlias;
+        return outputDir(chainName);
+    }
+
+    function outputDir(string memory chainName)
+        internal
+        pure
+        returns (string memory)
+    {
         return string.concat("./script/output/", chainName);
     }
 
     function outputPath() internal returns (string memory) {
         return string.concat(outputDir(), "/deployment.json");
+    }
+
+    function outputPath(string memory chainName)
+        internal
+        pure
+        returns (string memory)
+    {
+        return string.concat(outputDir(chainName), "/deployment.json");
     }
 
     function mkdir(string memory dirPath) internal {

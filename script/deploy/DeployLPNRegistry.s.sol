@@ -27,7 +27,7 @@ contract DeployLPNRegistry is BaseScript {
         ERC1967Factory(ERC1967FactoryConstants.ADDRESS);
 
     function run() external broadcaster returns (Deployment memory) {
-        deployment = deploy(salt);
+        deployment = deploy(salt, deployer);
 
         assertions();
         writeToJson();
@@ -35,7 +35,10 @@ contract DeployLPNRegistry is BaseScript {
         return deployment;
     }
 
-    function deploy(bytes32 salt_) public returns (Deployment memory) {
+    function deploy(bytes32 salt_, address owner)
+        public
+        returns (Deployment memory)
+    {
         // Deploy a new implementation
         address registryImpl = address(new LPNRegistryV0());
         print("LPNRegistryV0 (implementation)", address(registryImpl));
@@ -51,9 +54,9 @@ contract DeployLPNRegistry is BaseScript {
         // The deployer is the owner of the proxy and is authorized to add whitelisted clients to the registry
         address registryProxy = proxyFactory.deployDeterministicAndCall(
             registryImpl,
-            deployer,
+            owner,
             salt_,
-            abi.encodeWithSelector(LPNRegistryV0.initialize.selector, deployer)
+            abi.encodeWithSelector(LPNRegistryV0.initialize.selector, owner)
         );
         print("LPNRegistryV0 (proxy)", address(registryProxy));
 
@@ -63,7 +66,7 @@ contract DeployLPNRegistry is BaseScript {
         });
     }
 
-    function upgrade(address proxy) public broadcaster returns (address) {
+    function upgrade(address proxy) public returns (address) {
         // Deploy a new implementation
         address registryImpl = address(new LPNRegistryV0());
         print("LPNRegistryV0 (implementation)", address(registryImpl));

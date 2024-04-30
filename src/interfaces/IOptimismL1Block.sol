@@ -8,8 +8,8 @@ pragma solidity ^0.8.13;
 ///         The L1Block predeploy gives users access to information about the last known L1 block.
 interface IOptimismL1Block {
     /// @notice The latest L1 blockhash.
-    function hash() external returns (bytes32);
+    function hash() external view returns (bytes32);
 
     /// @notice The latest L1 block number known by the L2 system.
-    function number() external returns (uint64);
+    function number() external view returns (uint64);
 }
