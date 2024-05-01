@@ -15,14 +15,19 @@ contract Query is BaseScript {
     LPNRegistryV0 registry = LPNRegistryV0(getDeployedRegistry());
     LPNQueryV0 queryClient = LPNQueryV0(getDeployedQueryClient());
 
+    address constant BLUR = 0x29469395eAf6f95920E59F858042f0e28D98a20B;
+
     function run() external broadcaster {
         address holder = deployer;
+        if (isMainnet()) {
+            holder = BLUR;
+        }
         query(holder);
     }
 
     function query(address holder) private {
         uint256 endBlock = L1BlockNumber();
-        uint256 startBlock = endBlock - 1;
+        uint256 startBlock = endBlock - 100;
         uint8 offset = 5;
         address storageContract = getDeployedStorageContract();
 

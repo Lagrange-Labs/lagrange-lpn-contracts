@@ -6,7 +6,8 @@ import {
     ETH_MAINNET,
     ETH_SEPOLIA,
     BASE_MAINNET,
-    BASE_SEPOLIA
+    BASE_SEPOLIA,
+    isMainnet
 } from "../src/utils/Constants.sol";
 import {stdJson} from "forge-std/stdJson.sol";
 
@@ -20,13 +21,18 @@ abstract contract BaseScript is Script {
     bytes32 public salt;
 
     modifier broadcaster() {
-        vm.startBroadcast(deployer);
+        vm.startBroadcast();
         _;
         vm.stopBroadcast();
     }
 
     constructor() {
-        deployer = vm.rememberKey(vm.envUint("PRIVATE_KEY"));
+        // (, deployer,) = vm.readCallers(); // TODO: read sender from env
+        if (isMainnet()) {
+            deployer = getDeployerAddress();
+        } else {
+            deployer = vm.rememberKey(vm.envUint("PRIVATE_KEY"));
+        }
 
         if (block.chainid == ETH_MAINNET) {
             salt = bytes32(abi.encodePacked(deployer, "V0_EUCLID_0"));
@@ -43,8 +49,8 @@ abstract contract BaseScript is Script {
         deployer = _deployer;
     }
 
-    function getAddress() internal view returns (address) {
-        return vm.envAddress("address");
+    function getDeployerAddress() internal view returns (address) {
+        return vm.envAddress("DEPLOYER_ADDR");
     }
 
     function getDeployedRegistry() internal returns (address) {
