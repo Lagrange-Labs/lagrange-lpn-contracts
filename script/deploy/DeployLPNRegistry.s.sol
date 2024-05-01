@@ -27,10 +27,15 @@ contract DeployLPNRegistry is BaseScript {
         ERC1967Factory(ERC1967FactoryConstants.ADDRESS);
 
     function run() external broadcaster returns (Deployment memory) {
-        deployment = deploy(salt, deployer);
+        if (getDeployedRegistry() == address(0)) {
+            deployment = deploy(salt, deployer);
+            writeToJson();
+        } else {
+            upgrade(getDeployedRegistry());
+            // TODO: Write updated implementation contract to json file
+        }
 
         assertions();
-        writeToJson();
 
         return deployment;
     }
