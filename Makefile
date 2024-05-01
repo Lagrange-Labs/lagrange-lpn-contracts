@@ -54,6 +54,7 @@ base_mainnet_deploy_clients :; ${DEPLOY_CLIENTS_CMD} base ${DEPLOY_FLAGS} ${MAIN
 # Run Queries
 testnet_query :; ${QUERY_CMD} sepolia ${DEPLOY_FLAGS}
 base_testnet_query :; ${QUERY_CMD} baseSepolia ${DEPLOY_FLAGS}
+mainnet_query :; ${QUERY_CMD} mainnet ${DEPLOY_FLAGS} ${MAINNET_DEPLOYER}
 base_mainnet_query :; ${QUERY_CMD} base ${DEPLOY_FLAGS} ${MAINNET_DEPLOYER}
 
 # Withdraw fees
