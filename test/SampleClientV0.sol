@@ -1,14 +1,16 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-import {LPNClientV0} from "../LPNClientV0.sol";
-import {ILPNRegistry} from "../../interfaces/ILPNRegistry.sol";
+import {LPNClientV0} from "../src/client/LPNClientV0.sol";
+import {ILPNRegistry} from "../../src/interfaces/ILPNRegistry.sol";
 
 contract SampleClientV0 is LPNClientV0 {
     uint256 numHolders; // storage slot 1 (storage slot 0 is inherited)
     mapping(address holder => uint256 balance) balances; // storage slot 2
 
     mapping(uint256 requestId => address holder) requests;
+
+    event Test(address holder, uint256[] results);
 
     constructor(ILPNRegistry lpnRegistry) LPNClientV0(lpnRegistry) {}
 
@@ -44,10 +46,11 @@ contract SampleClientV0 is LPNClientV0 {
 
     function processCallback(uint256 requestId, uint256[] calldata results)
         internal
-        view
         override
     {
-        address holder = requests[requestId];
         // Process result
+        address holder = requests[requestId];
+        delete requests[requestId];
+        emit Test(holder, results);
     }
 }
