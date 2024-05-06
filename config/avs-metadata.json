@@ -1,0 +1,7 @@
+{
+  "name": "Lagrange zkMapReduce AVS",
+  "website": "https://lagrange.dev/",
+  "description": "An AVS to compute zk proofs for SQL queries of blockchain data",
+  "logo": "https://holesky-operator-metadata.s3.amazonaws.com/eigenlayer.png",
+  "twitter": "https://twitter.com/lagrangedev"
+}
