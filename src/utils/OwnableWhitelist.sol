@@ -27,4 +27,20 @@ abstract contract OwnableWhitelist is Ownable {
     function toggleWhitelist(address client) external onlyOwner {
         whitelist[client] = !whitelist[client];
     }
+
+    /// @notice add a batch of addresses to the whitelist.
+    /// @param addrs an array of addresses to add.
+    function addToWhitelist(address[] calldata addrs) external onlyOwner {
+        for (uint256 i; i < addrs.length; i++) {
+            whitelist[addrs[i]] = true;
+        }
+    }
+
+    /// @notice Remove a batch of addresses from the whitelist.
+    /// @param addrs an array of addresses to remove.
+    function removeFromWhitelist(address[] calldata addrs) external onlyOwner {
+        for (uint256 i; i < addrs.length; i++) {
+            delete whitelist[addrs[i]];
+        }
+    }
 }
