@@ -33,7 +33,7 @@ contract ZKMRServiceManager is IServiceManager, Ownable, Initializable {
         IAVSDirectory avsDirectory_,
         IZKMRStakeRegistry stakeRegistry_,
         address owner_
-    ) public initializer {
+    ) external initializer {
         _avsDirectory = avsDirectory_;
         stakeRegistry = stakeRegistry_;
 
@@ -41,8 +41,7 @@ contract ZKMRServiceManager is IServiceManager, Ownable, Initializable {
     }
 
     function updateAVSMetadataURI(string memory _metadataURI)
-        public
-        virtual
+        external
         onlyOwner
     {
         _avsDirectory.updateAVSMetadataURI(_metadataURI);
@@ -78,8 +77,12 @@ contract ZKMRServiceManager is IServiceManager, Ownable, Initializable {
         return _getRestakeableStrategies();
     }
 
+    function avsDirectory() external view returns (address) {
+        return address(_avsDirectory);
+    }
+
     function _getRestakeableStrategies()
-        internal
+        private
         view
         returns (address[] memory)
     {
@@ -90,9 +93,5 @@ contract ZKMRServiceManager is IServiceManager, Ownable, Initializable {
             restakedStrategies[i] = address(quorum.strategies[i].strategy);
         }
         return restakedStrategies;
-    }
-
-    function avsDirectory() external view returns (address) {
-        return address(_avsDirectory);
     }
 }

@@ -55,13 +55,13 @@ contract ZKMRStakeRegistry is
     /// @param quorum_ The quorum struct containing the details of the quorum thresholds.
     /// @param owner_ The owner of the contract.
     function initialize(
-        IServiceManager serviceManager_,
-        IDelegationManager delegationManager_,
+        address serviceManager_,
+        address delegationManager_,
         Quorum memory quorum_,
         address owner_
     ) external initializer {
-        serviceManager = serviceManager_;
-        delegationManager = delegationManager_;
+        serviceManager = IServiceManager(serviceManager_);
+        delegationManager = IDelegationManager(delegationManager_);
         _updateQuorumConfig(quorum_);
         OwnableWhitelist._initialize(owner_);
     }
@@ -70,7 +70,7 @@ contract ZKMRStakeRegistry is
         G1Point calldata publicKey,
         ISignatureUtils.SignatureWithSaltAndExpiry memory operatorSignature
     ) external onlyWhitelist(msg.sender) {
-        if (isRegistered(msg.sender)) {
+        if (_isRegistered(msg.sender)) {
             revert OperatorAlreadyRegistered();
         }
         totalOperators++;
@@ -80,7 +80,7 @@ contract ZKMRStakeRegistry is
     }
 
     function deregisterOperator() external {
-        if (!isRegistered(msg.sender)) {
+        if (!_isRegistered(msg.sender)) {
             revert OperatorNotRegistered();
         }
         totalOperators--;
@@ -90,7 +90,7 @@ contract ZKMRStakeRegistry is
     }
 
     function updateOperatorKey(G1Point calldata publicKey) external {
-        if (!isRegistered(msg.sender)) {
+        if (!_isRegistered(msg.sender)) {
             revert OperatorNotRegistered();
         }
         operators[msg.sender] = publicKey;
@@ -111,12 +111,34 @@ contract ZKMRStakeRegistry is
         return _quorum;
     }
 
-    function isRegistered(address operator) public view returns (bool) {
-        return operators[operator].x != 0;
+    function isRegistered(address operator) external view returns (bool) {
+        return _isRegistered(operator);
     }
 
     function getOperatorShares(address operator)
-        public
+        external
+        view
+        returns (uint256)
+    {
+        return _getOperatorShares(operator);
+    }
+
+    function getOperatorWeight(address operator)
+        external
+        view
+        returns (uint256)
+    {
+        uint256 weight = _getOperatorShares(operator) / BPS;
+
+        if (weight >= minimumWeight) {
+            return weight;
+        } else {
+            return 0;
+        }
+    }
+
+    function _getOperatorShares(address operator)
+        private
         view
         returns (uint256)
     {
@@ -138,18 +160,8 @@ contract ZKMRStakeRegistry is
         return totalShares;
     }
 
-    function getOperatorWeight(address operator)
-        external
-        view
-        returns (uint256)
-    {
-        uint256 weight = getOperatorShares(operator) / BPS;
-
-        if (weight >= minimumWeight) {
-            return weight;
-        } else {
-            return 0;
-        }
+    function _isRegistered(address operator) private view returns (bool) {
+        return operators[operator].x != 0;
     }
 
     /// @notice Updates the quorum configuration
