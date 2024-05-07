@@ -1,0 +1,65 @@
+{
+  "ownerMultisig": "0xB9D7C1Ced67302967ce9553057589632bD99a998",
+  "eigenlayer": {
+    "mainnet": {
+      "avsDirectory": "0x135dda560e946695d6f155dacafc6f1f25c1f5af",
+      "delegationManager": "0x39053D51B77DC0d36036Fc1fCc8Cb819df8Ef37A"
+    },
+    "holesky": {
+      "avsDirectory": "0x055733000064333CaDDbC92763c58BF0192fFeBf",
+      "delegationManager": "0xA44151489861Fe9e3055d95adC98FbD462B948e7"
+    }
+  },
+  "strategies": [
+    {
+      "name": "cbETH",
+      "address": "0x54945180dB7943c0ed0FEE7EdaB2Bd24620256bc",
+      "multiplier": 1
+    },
+    {
+      "name": "stETH",
+      "address": "0x93c4b944D05dfe6df7645A86cd2206016c51564D",
+      "multiplier": 1
+    },
+    {
+      "name": "rETH",
+      "address": "0x1BeE69b7dFFfA4E2d53C2a2Df135C388AD25dCD2",
+      "multiplier": 1
+    },
+    {
+      "name": "ETHx",
+      "address": "0x9d7eD45EE2E8FC5482fa2428f15C971e6369011d",
+      "multiplier": 1
+    },
+    {
+      "name": "ankrETH",
+      "address": "0x13760F50a9d7377e4F20CB8CF9e4c26586c658ff",
+      "multiplier": 1
+    },
+    {
+      "name": "swETH",
+      "address": "0x0Fe4F44beE93503346A3Ac9EE5A26b130a5796d6",
+      "multiplier": 1
+    },
+    {
+      "name": "wBETH",
+      "address": "0x7CA911E83dabf90C90dD3De5411a10F1A6112184",
+      "multiplier": 1
+    },
+    {
+      "name": "sfrxETH",
+      "address": "0x8CA7A5d6f3acd3A7A8bC468a8CD0FB14B6BD28b6",
+      "multiplier": 1
+    },
+    {
+      "name": "mETH",
+      "address": "0x298aFB19A105D59E74658C4C334Ff360BadE6dd2",
+      "multiplier": 1
+    },
+    {
+      "name": "Beacon ETH",
+      "address": "0xbeaC0eeEeeeeEEeEeEEEEeeEEeEeeeEeeEEBEaC0",
+      "multiplier": 1
+    }
+  ]
+}
