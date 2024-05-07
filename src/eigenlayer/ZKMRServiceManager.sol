@@ -7,11 +7,10 @@ import {IAVSDirectory} from
     "eigenlayer-contracts/src/contracts/interfaces/IAVSDirectory.sol";
 import {Initializable} from
     "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import {OwnableWhitelist} from "../utils/OwnableWhitelist.sol";
+import {NotAuthorized} from "../utils/OwnableWhitelist.sol";
 import {IZKMRStakeRegistry, Quorum} from "./interfaces/IZKMRStakeRegistry.sol";
 import {Ownable} from "solady/auth/Ownable.sol";
-import {IServiceManager} from
-    "eigenlayer-middleware/src/interfaces/IServiceManager.sol";
+import {IServiceManager} from "./interfaces/IServiceManager.sol";
 
 /// @title zkMapReduce AVS ServiceManager
 /// @author Lagrange Labs

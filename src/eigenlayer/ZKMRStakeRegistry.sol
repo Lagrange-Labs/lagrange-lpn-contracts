@@ -8,8 +8,7 @@ import {IDelegationManager} from
     "eigenlayer-contracts/src/contracts/interfaces/IDelegationManager.sol";
 import {ISignatureUtils} from
     "eigenlayer-contracts/src/contracts/interfaces/ISignatureUtils.sol";
-import {IServiceManager} from
-    "eigenlayer-middleware/src/interfaces/IServiceManager.sol";
+import {IServiceManager} from "./interfaces/IServiceManager.sol";
 import {Initializable} from
     "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {
