@@ -6,46 +6,57 @@ import {IStrategy} from
 import {ISignatureUtils} from
     "eigenlayer-contracts/src/contracts/interfaces/ISignatureUtils.sol";
 
+/// @notice An Eigenlayer strategy and weight multiplier
+/// @dev A strategy is a contract that represent an underlying staked asset (ERC20)
 struct StrategyParams {
-    IStrategy strategy; // The strategy contract reference
-    uint96 multiplier; // The multiplier applied to the strategy
+    IStrategy strategy;
+    uint96 multiplier;
 }
 
+/// @notice A `quorum` of Eigenlayer strategies and weight multipliers
+/// @dev An array of strategy parameters define the quorum
 struct Quorum {
-    StrategyParams[] strategies; // An array of strategy parameters to define the quorum
+    StrategyParams[] strategies;
 }
 
+/// @notice A point on an elliptic curve
+/// @dev Used to represent an ECDSA public key
 struct G1Point {
     uint256 x;
     uint256 y;
 }
 
 interface IZKMRStakeRegistry {
-    /// @notice Emitted when the system registers an operator
-    /// @param _operator The address of the registered operator
-    /// @param _avs The address of the associated AVS
-    /// @param _publicKey The ECDSA public key used only for the zkmr AVS
+    /// @notice Emitted when the operator registers
+    /// @param operator The address of the registered operator
+    /// @param avs The address of the associated AVS
+    /// @param publicKey The ECDSA public key used only for the zkmr AVS
     event OperatorRegistered(
-        address indexed _operator, address indexed _avs, G1Point _publicKey
+        address indexed operator, address indexed avs, G1Point publicKey
     );
 
     /// @notice Emitted when the system deregisters an operator
-    /// @param _operator The address of the deregistered operator
-    /// @param _avs The address of the associated AVS
-    event OperatorDeregistered(address indexed _operator, address indexed _avs);
+    /// @param operator The address of the deregistered operator
+    /// @param avs The address of the associated AVS
+    event OperatorDeregistered(address indexed operator, address indexed avs);
+
+    /// @notice Emitted when the operator updates their key
+    /// @param operator The address of the updated operator
+    /// @param avs The address of the associated AVS
+    /// @param publicKey The ECDSA public key used only for the zkmr AVS
+    event OperatorUpdated(
+        address indexed operator, address indexed avs, G1Point publicKey
+    );
 
     /// @notice Emitted when the system updates the quorum
-    /// @param _old The previous quorum configuration
-    /// @param _new The new quorum configuration
-    event QuorumUpdated(Quorum _old, Quorum _new);
+    /// @param oldQuorum The previous quorum configuration
+    /// @param newQuorum The new quorum configuration
+    event QuorumUpdated(Quorum oldQuorum, Quorum newQuorum);
 
     /// @notice Emitted when the weight to join the operator set updates
-    /// @param _old The previous minimum weight
-    /// @param _new The new minimumWeight
-    event MinimumWeightUpdated(uint256 _old, uint256 _new);
-
-    /// @notice Indicates encountering an invalid signature.
-    error InvalidSignature();
+    /// @param oldWeight The previous minimum weight
+    /// @param newWeight The new minimumWeight
+    event MinimumWeightUpdated(uint256 oldWeight, uint256 newWeight);
 
     /// @notice Indicates the quorum is invalid
     error InvalidQuorum();
@@ -63,11 +74,13 @@ interface IZKMRStakeRegistry {
     /// @return Quorum - The current quorum of strategies and weights
     function quorum() external view returns (Quorum memory);
 
-    /**
-     * @notice Updates the quorum configuration
-     * @dev Only callable by the contract owner.
-     * @param _quorum The new quorum configuration, including strategies and their new weights
-     */
+    /// @notice Checks registration status based on whether public key is set.
+    /// @param operator The address of the operator.
+    function isRegistered(address operator) external view returns (bool);
+
+    /// @notice Updates the quorum configuration
+    /// @dev Only callable by the contract owner.
+    /// @param _quorum The new quorum configuration, including strategies and their new weights
     function updateQuorumConfig(Quorum memory _quorum) external;
 
     /// @notice Registers a new operator using a provided signature
@@ -81,16 +94,24 @@ interface IZKMRStakeRegistry {
     /// @notice Deregisters an existing operator
     function deregisterOperator() external;
 
+    /// @notice Calculates the current shares of an operator based on their delegated stake in the strategies considered in the quorum
+    /// @param operator The address of the operator.
+    /// @return uint256 - The current shares of the operator.
+    function getOperatorShares(address operator)
+        external
+        view
+        returns (uint256);
+
     /// @notice Calculates the current weight of an operator based on their delegated stake in the strategies considered in the quorum
-    /// @param _operator The address of the operator.
+    /// @param operator The address of the operator.
     /// @return uint256 - The current weight of the operator; returns 0 if below the threshold.
-    function getOperatorWeight(address _operator)
+    function getOperatorWeight(address operator)
         external
         view
         returns (uint256);
 
     /// @notice Updates the weight an operator must have to join the operator set
     /// @dev Access controlled to the contract owner
-    /// @param _newMinimumWeight The new weight an operator must have to join the operator set
-    function updateMinimumWeight(uint256 _newMinimumWeight) external;
+    /// @param newMinimumWeight The new weight an operator must have to join the operator set
+    function updateMinimumWeight(uint256 newMinimumWeight) external;
 }

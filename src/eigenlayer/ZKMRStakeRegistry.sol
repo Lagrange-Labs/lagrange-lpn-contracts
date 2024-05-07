@@ -71,7 +71,7 @@ contract ZKMRStakeRegistry is
         G1Point calldata publicKey,
         ISignatureUtils.SignatureWithSaltAndExpiry memory operatorSignature
     ) external onlyWhitelist(msg.sender) {
-        if (_isRegistered(msg.sender)) {
+        if (isRegistered(msg.sender)) {
             revert OperatorAlreadyRegistered();
         }
         totalOperators++;
@@ -81,7 +81,7 @@ contract ZKMRStakeRegistry is
     }
 
     function deregisterOperator() external {
-        if (!_isRegistered(msg.sender)) {
+        if (!isRegistered(msg.sender)) {
             revert OperatorNotRegistered();
         }
         totalOperators--;
@@ -90,40 +90,61 @@ contract ZKMRStakeRegistry is
         emit OperatorDeregistered(msg.sender, address(serviceManager));
     }
 
+    function updateOperatorKey(G1Point calldata publicKey) external {
+        if (!isRegistered(msg.sender)) {
+            revert OperatorNotRegistered();
+        }
+        operators[msg.sender] = publicKey;
+        emit OperatorUpdated(msg.sender, address(serviceManager), publicKey);
+    }
+
     function updateQuorumConfig(Quorum memory quorum_) external onlyOwner {
         _updateQuorumConfig(quorum_);
     }
 
-    function updateMinimumWeight(uint256 _newMinimumWeight)
-        external
-        onlyOwner
-    {
+    function updateMinimumWeight(uint256 newMinimumWeight) external onlyOwner {
         uint256 oldMinimumWeight = minimumWeight;
-        minimumWeight = _newMinimumWeight;
-        emit MinimumWeightUpdated(oldMinimumWeight, _newMinimumWeight);
+        minimumWeight = newMinimumWeight;
+        emit MinimumWeightUpdated(oldMinimumWeight, newMinimumWeight);
     }
 
     function quorum() external view returns (Quorum memory) {
         return _quorum;
     }
 
-    function getOperatorWeight(address _operator)
+    function isRegistered(address operator) public view returns (bool) {
+        return operators[operator].x != 0;
+    }
+
+    function getOperatorShares(address operator)
+        public
+        view
+        returns (uint256)
+    {
+        uint256 totalShares;
+        StrategyParams[] memory strategyParams = _quorum.strategies;
+        IStrategy[] memory strategies = new IStrategy[](strategyParams.length);
+
+        for (uint256 i; i < strategyParams.length; i++) {
+            strategies[i] = strategyParams[i].strategy;
+        }
+
+        uint256[] memory shares =
+            delegationManager.getOperatorShares(operator, strategies);
+
+        for (uint256 i; i < strategyParams.length; i++) {
+            totalShares += shares[i] * strategyParams[i].multiplier;
+        }
+
+        return totalShares;
+    }
+
+    function getOperatorWeight(address operator)
         external
         view
         returns (uint256)
     {
-        StrategyParams[] memory strategyParams = _quorum.strategies;
-        uint256 weight;
-        IStrategy[] memory strategies = new IStrategy[](strategyParams.length);
-        for (uint256 i; i < strategyParams.length; i++) {
-            strategies[i] = strategyParams[i].strategy;
-        }
-        uint256[] memory shares =
-            delegationManager.getOperatorShares(_operator, strategies);
-        for (uint256 i; i < strategyParams.length; i++) {
-            weight += shares[i] * strategyParams[i].multiplier;
-        }
-        weight = weight / BPS;
+        uint256 weight = getOperatorShares(operator) / BPS;
 
         if (weight >= minimumWeight) {
             return weight;
@@ -133,7 +154,7 @@ contract ZKMRStakeRegistry is
     }
 
     /// @notice Updates the quorum configuration
-    /// @dev Replaces the current quorum configuration with `_newQuorum` if valid.
+    /// @dev Replaces the current quorum configuration with `newQuorum` if valid.
     /// Reverts with `InvalidQuorum` if the new quorum configuration is not valid.
     /// Emits `QuorumUpdated` event with the old and new quorum configurations.
     /// @param newQuorum The new quorum configuration to set.
@@ -174,10 +195,5 @@ contract ZKMRStakeRegistry is
         } else {
             return true;
         }
-    }
-
-    /// @notice Checks registration status based on whether public key is set.
-    function _isRegistered(address operator) private view returns (bool) {
-        return operators[operator].x != 0;
     }
 }

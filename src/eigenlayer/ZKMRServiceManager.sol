@@ -24,10 +24,9 @@ contract ZKMRServiceManager is IServiceManager, Ownable, Initializable {
 
     /// @notice when applied to a function, only allows the ZKMRStakeRegistry to call it
     modifier onlyStakeRegistry() {
-        require(
-            msg.sender == address(stakeRegistry),
-            "ServiceManagerBase.onlyRegistryCoordinator: caller is not the registry coordinator"
-        );
+        if (msg.sender != address(stakeRegistry)) {
+            revert NotAuthorized();
+        }
         _;
     }
 
