@@ -7,6 +7,7 @@ import {LPNQueryV0} from "../../src/client/LPNQueryV0.sol";
 import {
     PUDGEY_PENGUINS,
     L1_BASE_BRIDGE,
+    L1_FRAXTAL_BRIDGE,
     L1_FRAXTAL_HOLESKY_BRIDGE,
     isMainnet
 } from "../../src/utils/Constants.sol";
@@ -15,6 +16,7 @@ contract Bridge is BaseScript {
     function run() external broadcaster {
         address bridgeAddr =
             isMainnet() ? L1_BASE_BRIDGE : L1_FRAXTAL_HOLESKY_BRIDGE;
+        // isMainnet() ? L1_FRAXTAL_BRIDGE : L1_FRAXTAL_HOLESKY_BRIDGE;
 
         IL1StandardBridge opStackBridge = IL1StandardBridge(bridgeAddr);
 
