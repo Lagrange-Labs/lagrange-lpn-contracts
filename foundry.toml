@@ -14,15 +14,20 @@ line_length = 80
 
 [rpc_endpoints]
 local = "http://localhost:8545"
+holesky = "https://rpc.holesky.ethpandaops.io"
 sepolia = "${SEPOLIA_RPC_URL}"
-baseSepolia = "${BASE_SEPOLIA_RPC_URL}"
+base_sepolia = "${BASE_SEPOLIA_RPC_URL}"
+fraxtal_testnet = "https://rpc.testnet.frax.com"
 
 mainnet = "${MAINNET_RPC_URL}"
 base = "${BASE_RPC_URL}"
+fraxtal = "https://rpc.frax.com"
 
 [etherscan]
 sepolia = { key = "${MAINNET_ETHERSCAN_API_KEY}" }
-baseSepolia = { key = "${BASESCAN_API_KEY}" }
+base_sepolia = { key = "${BASESCAN_API_KEY}" }
+fraxtal_testnet = { key = "${FRAXSCAN_API_KEY}" }
 
 mainnet = { key = "${MAINNET_ETHERSCAN_API_KEY}" }
 base = { key = "${BASESCAN_API_KEY}" }
+fraxtal = { key = "${FRAXSCAN_API_KEY}" }
