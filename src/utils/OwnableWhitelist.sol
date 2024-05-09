@@ -9,6 +9,9 @@ error NotAuthorized();
 /// @title OwnableWhitelist
 /// @notice A contract for managing whitelisted addresses.
 abstract contract OwnableWhitelist is Ownable {
+    event Whitelisted(address addr, bool value);
+    event BatchWhitelisted(address[] addrs, bool value);
+
     /// @notice Mapping to track whitelisted addresses.
     mapping(address => bool) public whitelist;
 
@@ -25,7 +28,10 @@ abstract contract OwnableWhitelist is Ownable {
     }
 
     function toggleWhitelist(address client) external onlyOwner {
-        whitelist[client] = !whitelist[client];
+        bool newState = !whitelist[client];
+        whitelist[client] = newState;
+
+        emit Whitelisted(client, newState);
     }
 
     /// @notice add a batch of addresses to the whitelist.
@@ -34,6 +40,7 @@ abstract contract OwnableWhitelist is Ownable {
         for (uint256 i; i < addrs.length; i++) {
             whitelist[addrs[i]] = true;
         }
+        emit BatchWhitelisted(addrs, true);
     }
 
     /// @notice Remove a batch of addresses from the whitelist.
@@ -42,5 +49,6 @@ abstract contract OwnableWhitelist is Ownable {
         for (uint256 i; i < addrs.length; i++) {
             delete whitelist[addrs[i]];
         }
+        emit BatchWhitelisted(addrs, false);
     }
 }
