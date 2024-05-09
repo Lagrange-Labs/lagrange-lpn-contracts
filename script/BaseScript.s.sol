@@ -41,6 +41,10 @@ abstract contract BaseScript is Script {
         } else {
             salt = bytes32(abi.encodePacked(deployer, "V0_EUCLID_4"));
         }
+
+        if (!vm.exists(outputPath())) {
+            initJson();
+        }
     }
 
     function setDeployer(address _deployer) public {
@@ -117,5 +121,26 @@ abstract contract BaseScript is Script {
         mkdirInputs[1] = "-p";
         mkdirInputs[2] = dirPath;
         vm.ffi(mkdirInputs);
+    }
+
+    function initJson() private {
+        mkdir(outputDir());
+
+        string memory json = "deploymentArtifact";
+
+        string memory addresses = "addresses";
+        addresses.serialize("storageContract", address(0));
+        addresses.serialize("queryClient", address(0));
+        addresses.serialize("registryImpl", address(0));
+        addresses = addresses.serialize("registryProxy", address(0));
+
+        string memory chainInfo = "chainInfo";
+        chainInfo.serialize("chainId", uint256(0));
+        chainInfo = chainInfo.serialize("deploymentBlock", uint256(0));
+
+        json.serialize("addresses", addresses);
+        json = json.serialize("chainInfo", chainInfo);
+
+        json.write(outputPath());
     }
 }

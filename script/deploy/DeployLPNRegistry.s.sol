@@ -31,8 +31,8 @@ contract DeployLPNRegistry is BaseScript {
             deployment = deploy(salt, deployer);
             writeToJson();
         } else {
-            upgrade(getDeployedRegistry());
-            // TODO: Write updated implementation contract to json file
+            address updatedRegistryImpl = upgrade(getDeployedRegistry());
+            writeToJson(updatedRegistryImpl);
         }
 
         assertions();
@@ -104,5 +104,13 @@ contract DeployLPNRegistry is BaseScript {
         json = json.serialize("chainInfo", chainInfo);
 
         json.write(outputPath());
+    }
+
+    function writeToJson(address updatedRegistryImpl) private {
+        vm.writeJson(
+            vm.toString(updatedRegistryImpl),
+            outputPath(),
+            ".addresses.registryImpl"
+        );
     }
 }
