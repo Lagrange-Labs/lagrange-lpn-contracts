@@ -9,8 +9,8 @@ import {
 } from "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import {L1BlockNumber} from "../../utils/L1Block.sol";
 
-/// @notice Refer to docs page https://lagrange-labs.gitbook.io/lagrange-v2-1/zk-coprocessor/testnet-euclid-developer-docs/implement-an-nft-mint-whitelist-on-base-with-pudgy-penguins
-contract BasedPenguins is LPNClientV0, ERC721Enumerable {
+/// @notice Refer to docs page https://lagrange-labs.gitbook.io/lagrange-v2-1/zk-coprocessor/testnet-euclid-developer-docs/example-nft-mint-whitelist-on-l2-with-pudgy-penguins
+contract LayeredPenguins is LPNClientV0, ERC721Enumerable {
     address public constant PUDGY_PENGUINS =
         0xBd3531dA5CF5857e7CfAA92426877b022e612cf8;
     string public constant PUDGY_METADATA_URI =
@@ -25,7 +25,7 @@ contract BasedPenguins is LPNClientV0, ERC721Enumerable {
     mapping(uint256 requestId => MintRequest request) public mintRequests;
 
     constructor(ILPNRegistry lpnRegistry_)
-        ERC721("Based Penguins", "BPDGY")
+        ERC721("Layered Penguins", "LPDGY")
         LPNClientV0(lpnRegistry_)
     {}
 
