@@ -79,6 +79,34 @@ abstract contract BaseScript is Script {
         return json.readAddress(".addresses.queryClient");
     }
 
+    function getDeployedStakeRegistry() internal returns (address) {
+        string memory json = vm.readFile(outputPath());
+        return json.readAddress(".addresses.stakeRegistryProxy");
+    }
+
+    function getDeployedServiceManager() internal returns (address) {
+        string memory json = vm.readFile(outputPath());
+        return json.readAddress(".addresses.serviceManagerProxy");
+    }
+
+    function getAvsDirectory() internal view returns (address) {
+        string memory json = vm.readFile(avsConfigPath());
+        if (isMainnet()) {
+            return json.readAddress(".eigenlayer.mainnet.avsDirectory");
+        }
+
+        return json.readAddress(".eigenlayer.holesky.avsDirectory");
+    }
+
+    function getDelegationManager() internal view returns (address) {
+        string memory json = vm.readFile(avsConfigPath());
+        if (isMainnet()) {
+            return json.readAddress(".eigenlayer.mainnet.delegationManager");
+        }
+
+        return json.readAddress(".eigenlayer.holesky.delegationManager");
+    }
+
     function print(string memory key, string memory value) internal pure {
         console2.log(string(abi.encodePacked(key, "@", value)));
     }
@@ -115,6 +143,10 @@ abstract contract BaseScript is Script {
         return string.concat(outputDir(chainName), "/deployment.json");
     }
 
+    function avsConfigPath() internal pure returns (string memory) {
+        return "./config/avs.json";
+    }
+
     function mkdir(string memory dirPath) internal {
         string[] memory mkdirInputs = new string[](3);
         mkdirInputs[0] = "mkdir";
@@ -129,6 +161,11 @@ abstract contract BaseScript is Script {
         string memory json = "deploymentArtifact";
 
         string memory addresses = "addresses";
+        addresses.serialize("stakeRegistryProxy", address(0));
+        addresses.serialize("stakeRegistryImpl", address(0));
+        addresses.serialize("serviceManagerProxy", address(0));
+        addresses.serialize("serviceManagerImpl", address(0));
+
         addresses.serialize("storageContract", address(0));
         addresses.serialize("queryClient", address(0));
         addresses.serialize("registryImpl", address(0));
