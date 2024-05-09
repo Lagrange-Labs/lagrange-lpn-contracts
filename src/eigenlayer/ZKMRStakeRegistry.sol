@@ -15,7 +15,7 @@ import {
     IZKMRStakeRegistry,
     Quorum,
     StrategyParams,
-    G1Point
+    PublicKey
 } from "./interfaces/IZKMRStakeRegistry.sol";
 
 /// @title zkMapReduce AVS Stake Registry
@@ -41,7 +41,7 @@ contract ZKMRStakeRegistry is
     IServiceManager public serviceManager;
 
     /// @notice Maps an operator to their zkmr ECDSA public key
-    mapping(address operator => G1Point publicKey) public operators;
+    mapping(address operator => PublicKey publicKey) public operators;
 
     /// @notice Stores the current quorum configuration
     Quorum private _quorum;
@@ -84,7 +84,7 @@ contract ZKMRStakeRegistry is
     }
 
     function registerOperator(
-        G1Point calldata publicKey,
+        PublicKey calldata publicKey,
         ISignatureUtils.SignatureWithSaltAndExpiry memory operatorSignature
     ) external onlyWhitelist(msg.sender) {
         if (_isRegistered(msg.sender)) {
@@ -106,7 +106,7 @@ contract ZKMRStakeRegistry is
         emit OperatorDeregistered(msg.sender, address(serviceManager));
     }
 
-    function updateOperatorKey(G1Point calldata publicKey) external {
+    function updateOperatorKey(PublicKey calldata publicKey) external {
         if (!_isRegistered(msg.sender)) {
             revert OperatorNotRegistered();
         }

@@ -21,7 +21,7 @@ struct Quorum {
 
 /// @notice A point on an elliptic curve
 /// @dev Used to represent an ECDSA public key
-struct G1Point {
+struct PublicKey {
     uint256 x;
     uint256 y;
 }
@@ -32,7 +32,7 @@ interface IZKMRStakeRegistry {
     /// @param avs The address of the associated AVS
     /// @param publicKey The ECDSA public key used only for the zkmr AVS
     event OperatorRegistered(
-        address indexed operator, address indexed avs, G1Point publicKey
+        address indexed operator, address indexed avs, PublicKey publicKey
     );
 
     /// @notice Emitted when the operator deregisters themself
@@ -45,7 +45,7 @@ interface IZKMRStakeRegistry {
     /// @param avs The address of the associated AVS
     /// @param publicKey The ECDSA public key used only for the zkmr AVS
     event OperatorUpdated(
-        address indexed operator, address indexed avs, G1Point publicKey
+        address indexed operator, address indexed avs, PublicKey publicKey
     );
 
     /// @notice Emitted when the administrator deregisters an operator
@@ -95,7 +95,7 @@ interface IZKMRStakeRegistry {
     /// @param publicKey The ECDSA public key used only for the zkmr AVS
     /// @param operatorSignature Contains the operator's signature, salt, and expiry
     function registerOperator(
-        G1Point calldata publicKey,
+        PublicKey calldata publicKey,
         ISignatureUtils.SignatureWithSaltAndExpiry memory operatorSignature
     ) external;
 

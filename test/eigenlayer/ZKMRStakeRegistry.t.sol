@@ -17,7 +17,7 @@ import {
     Quorum,
     StrategyParams,
     IZKMRStakeRegistry,
-    G1Point
+    PublicKey
 } from "../../src/eigenlayer/interfaces/IZKMRStakeRegistry.sol";
 
 contract MockServiceManager {
@@ -68,7 +68,7 @@ contract ZKMRStakeRegistrySetup is Test {
 
 contract ZKMRStakeRegistryTest is ZKMRStakeRegistrySetup {
     ZKMRStakeRegistry public registry;
-    G1Point public publicKey = G1Point({x: 1, y: 1});
+    PublicKey public publicKey = PublicKey({x: 1, y: 1});
 
     function setUp() public virtual override {
         super.setUp();
@@ -177,7 +177,7 @@ contract ZKMRStakeRegistryTest is ZKMRStakeRegistrySetup {
     }
 
     function testUpdateOperatorKey() public {
-        G1Point memory newKey = G1Point({x: 2, y: 2});
+        PublicKey memory newKey = PublicKey({x: 2, y: 2});
 
         hoax(operator1);
         vm.expectEmit(true, true, true, true);
@@ -193,7 +193,7 @@ contract ZKMRStakeRegistryTest is ZKMRStakeRegistrySetup {
     }
 
     function testUpdateOperatorKey_RevertsWithNotRegistered() public {
-        G1Point memory newKey = G1Point({x: 2, y: 2});
+        PublicKey memory newKey = PublicKey({x: 2, y: 2});
 
         vm.prank(notOperator);
         vm.expectRevert(IZKMRStakeRegistry.OperatorNotRegistered.selector);
