@@ -35,7 +35,7 @@ interface IZKMRStakeRegistry {
         address indexed operator, address indexed avs, G1Point publicKey
     );
 
-    /// @notice Emitted when the system deregisters an operator
+    /// @notice Emitted when the operator deregisters themself
     /// @param operator The address of the deregistered operator
     /// @param avs The address of the associated AVS
     event OperatorDeregistered(address indexed operator, address indexed avs);
@@ -48,6 +48,11 @@ interface IZKMRStakeRegistry {
         address indexed operator, address indexed avs, G1Point publicKey
     );
 
+    /// @notice Emitted when the administrator deregisters an operator
+    /// @param operator The address of the deregistered operator
+    /// @param avs The address of the associated AVS
+    event OperatorEvicted(address indexed operator, address indexed avs);
+
     /// @notice Emitted when the system updates the quorum
     /// @param oldQuorum The previous quorum configuration
     /// @param newQuorum The new quorum configuration
@@ -57,6 +62,9 @@ interface IZKMRStakeRegistry {
     /// @param oldWeight The previous minimum weight
     /// @param newWeight The new minimumWeight
     event MinimumWeightUpdated(uint256 oldWeight, uint256 newWeight);
+
+    /// @notice Thrown when setting the service manager address after it has already been set
+    error ServiceManagerAlreadySet();
 
     /// @notice Indicates the quorum is invalid
     error InvalidQuorum();

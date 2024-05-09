@@ -50,20 +50,37 @@ contract ZKMRStakeRegistry is
     uint256[50] private __gap;
 
     /// @notice Initializes the contract with the given parameters.
-    /// @param serviceManager_ The zkmr service manager.
     /// @param delegationManager_ The eigenlayer delegation manager.
     /// @param quorum_ The quorum struct containing the details of the quorum thresholds.
     /// @param owner_ The owner of the contract.
     function initialize(
-        address serviceManager_,
         address delegationManager_,
         Quorum memory quorum_,
         address owner_
     ) external initializer {
-        serviceManager = IServiceManager(serviceManager_);
         delegationManager = IDelegationManager(delegationManager_);
         _updateQuorumConfig(quorum_);
         OwnableWhitelist._initialize(owner_);
+    }
+
+    /// @notice Sets the service manager address.
+    /// @param serviceManager_ The zkmr service manager.
+    function setServiceManager(address serviceManager_) external onlyOwner {
+        if (address(serviceManager) != address(0)) {
+            revert ServiceManagerAlreadySet();
+        }
+
+        serviceManager = IServiceManager(serviceManager_);
+    }
+
+    function evictOperator(address operator) external onlyOwner {
+        if (!_isRegistered(operator)) {
+            revert OperatorNotRegistered();
+        }
+        totalOperators--;
+        delete operators[operator];
+        serviceManager.deregisterOperatorFromAVS(operator);
+        emit OperatorEvicted(operator, address(serviceManager));
     }
 
     function registerOperator(

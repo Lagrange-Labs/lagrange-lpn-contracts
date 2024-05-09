@@ -80,12 +80,10 @@ contract ZKMRStakeRegistryTest is ZKMRStakeRegistrySetup {
         });
 
         registry = new ZKMRStakeRegistry();
-        registry.initialize(
-            address(mockServiceManager),
-            address(mockDelegationManager),
-            quorum,
-            owner
-        );
+        registry.initialize(address(mockDelegationManager), quorum, owner);
+
+        startHoax(owner);
+        registry.setServiceManager(address(mockServiceManager));
 
         ISignatureUtils.SignatureWithSaltAndExpiry memory operatorSignature;
         address[] memory operators = new address[](2);
