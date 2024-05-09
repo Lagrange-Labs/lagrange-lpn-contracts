@@ -68,6 +68,7 @@ fraxtal_mainnet_query :; ${QUERY_CMD} fraxtal ${DEPLOY_FLAGS} ${MAINNET_DEPLOYER
 
 # Withdraw fees
 mainnet_withdraw_fees :; ${WITHDRAW_FEES_CMD} mainnet ${LOCAL_DEPLOY_FLAGS} ${MAINNET_DEPLOYER}
+fraxtal_withdraw_fees :; ${WITHDRAW_FEES_CMD} fraxtal ${LOCAL_DEPLOY_FLAGS} ${MAINNET_DEPLOYER}
 
 # Bridge
 mainnet_bridge_base    :; ${BRIDGE_CMD} mainnet ${LOCAL_DEPLOY_FLAGS} --account v0_relayer --sender 0x373a4796Eb758a416366F561206E0472B508eCd1 --priority-gas-price 0.01gwei
