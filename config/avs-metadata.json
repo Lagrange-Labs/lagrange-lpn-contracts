@@ -1,7 +1,7 @@
 {
-  "name": "Lagrange zkMapReduce",
-  "website": "https://www.lagrange.dev/",
-  "description": "Massively parallel zk proofs for verifiable SQL queries of blockchain data",
-  "logo": "https://raw.githubusercontent.com/Lagrange-Labs/AVS-config/main/config/lagrange-logo.png",
-  "twitter": "https://twitter.com/lagrangedev"
+	"name": "Lagrange ZK Coprocessor",
+	"website": "https://www.lagrange.dev/",
+	"description": "Hyper parallel zk proofs for verifiable SQL queries of blockchain data",
+	"logo": "https://raw.githubusercontent.com/Lagrange-Labs/AVS-config/main/config/lagrange-logo.png",
+	"twitter": "https://twitter.com/lagrangedev"
 }
