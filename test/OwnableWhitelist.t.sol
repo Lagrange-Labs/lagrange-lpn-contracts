@@ -28,7 +28,7 @@ contract OwnableWhitelistTest is Test {
         whitelist.initialize(owner);
     }
 
-    function testInitialization() public {
+    function testInitialization() public view {
         assertEq(whitelist.owner(), owner);
     }
 
@@ -36,9 +36,13 @@ contract OwnableWhitelistTest is Test {
         assertEq(whitelist.whitelist(client1), false);
 
         startHoax(owner);
+        vm.expectEmit(true, true, true, true);
+        emit OwnableWhitelist.Whitelisted(client1, true);
         whitelist.toggleWhitelist(client1);
         assertEq(whitelist.whitelist(client1), true);
 
+        vm.expectEmit(true, true, true, true);
+        emit OwnableWhitelist.Whitelisted(client1, false);
         whitelist.toggleWhitelist(client1);
         assertEq(whitelist.whitelist(client1), false);
     }
@@ -58,5 +62,58 @@ contract OwnableWhitelistTest is Test {
         whitelist.toggleWhitelist(client1);
         vm.prank(client1);
         whitelist.onlyWhitelistedFunction();
+    }
+
+    function testAddToWhitelist() public {
+        assertEq(whitelist.whitelist(client1), false);
+        assertEq(whitelist.whitelist(client2), false);
+        address[] memory clients = new address[](2);
+        clients[0] = client1;
+        clients[1] = client2;
+
+        hoax(owner);
+        vm.expectEmit(true, true, true, true);
+        emit OwnableWhitelist.BatchWhitelisted(clients, true);
+
+        whitelist.addToWhitelist(clients);
+
+        assertEq(whitelist.whitelist(client1), true);
+        assertEq(whitelist.whitelist(client2), true);
+    }
+
+    function testAddToWhitelist_RevertIfNotOwner() public {
+        address[] memory clients = new address[](2);
+        clients[0] = client1;
+        clients[1] = client2;
+
+        vm.expectRevert(Ownable.Unauthorized.selector);
+        whitelist.addToWhitelist(clients);
+    }
+
+    function testRemoveFromWhitelist() public {
+        address[] memory clients = new address[](2);
+        clients[0] = client1;
+        clients[1] = client2;
+
+        hoax(owner);
+        whitelist.addToWhitelist(clients);
+
+        hoax(owner);
+        vm.expectEmit(true, true, true, true);
+        emit OwnableWhitelist.BatchWhitelisted(clients, false);
+
+        whitelist.removeFromWhitelist(clients);
+
+        assertEq(whitelist.whitelist(client1), false);
+        assertEq(whitelist.whitelist(client2), false);
+    }
+
+    function testRemoveFromWhitelist_RevertIfNotOwner() public {
+        address[] memory clients = new address[](2);
+        clients[0] = client1;
+        clients[1] = client2;
+
+        vm.expectRevert(Ownable.Unauthorized.selector);
+        whitelist.removeFromWhitelist(clients);
     }
 }
