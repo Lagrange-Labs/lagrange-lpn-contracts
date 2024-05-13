@@ -158,6 +158,23 @@ contract ZKMRStakeRegistryTest is ZKMRStakeRegistrySetup {
         registry.registerOperator(publicKey, signature);
     }
 
+    function testRegisterOperator_RevertsWithInvalidPublicKey() public {
+        ISignatureUtils.SignatureWithSaltAndExpiry memory signature;
+
+        hoax(owner);
+        registry.toggleWhitelist(notOperator);
+
+        startHoax(notOperator);
+        vm.expectRevert(IZKMRStakeRegistry.InvalidPublicKey.selector);
+        registry.registerOperator(PublicKey({x: 0, y: 1}), signature);
+
+        vm.expectRevert(IZKMRStakeRegistry.InvalidPublicKey.selector);
+        registry.registerOperator(PublicKey({x: 1, y: 0}), signature);
+
+        vm.expectRevert(IZKMRStakeRegistry.InvalidPublicKey.selector);
+        registry.registerOperator(PublicKey({x: 0, y: 0}), signature);
+    }
+
     function testDeregisterOperator() public {
         uint256 totalOperatorsBefore = registry.totalOperators();
 
@@ -198,6 +215,18 @@ contract ZKMRStakeRegistryTest is ZKMRStakeRegistrySetup {
         vm.prank(notOperator);
         vm.expectRevert(IZKMRStakeRegistry.OperatorNotRegistered.selector);
         registry.updateOperatorKey(newKey);
+    }
+
+    function testUpdateOperator_RevertsWithInvalidPublicKey() public {
+        startHoax(operator1);
+        vm.expectRevert(IZKMRStakeRegistry.InvalidPublicKey.selector);
+        registry.updateOperatorKey(PublicKey({x: 1, y: 0}));
+
+        vm.expectRevert(IZKMRStakeRegistry.InvalidPublicKey.selector);
+        registry.updateOperatorKey(PublicKey({x: 0, y: 1}));
+
+        vm.expectRevert(IZKMRStakeRegistry.InvalidPublicKey.selector);
+        registry.updateOperatorKey(PublicKey({x: 0, y: 0}));
     }
 
     function testUpdateQuorumConfig() public {
