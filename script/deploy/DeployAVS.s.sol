@@ -19,6 +19,7 @@ import {
     isLocal
 } from "../../src/utils/Constants.sol";
 import {stdJson} from "forge-std/StdJson.sol";
+import {LibSort} from "solady/utils/LibSort.sol";
 
 contract DeployAVS is BaseScript {
     using stdJson for string;
@@ -39,14 +40,14 @@ contract DeployAVS is BaseScript {
         ERC1967Factory(ERC1967FactoryConstants.ADDRESS);
 
     struct StrategyConfig {
-        uint96 multiplier;
         address addr;
+        uint96 multiplier;
         string name;
     }
 
     function run() external broadcaster returns (Deployment memory) {
         if (getDeployedStakeRegistry() == address(0)) {
-            deployment = deploy(salt, deployer);
+            deployment = deploy(deployer);
 
             deployment.serviceManagerProxy.updateAVSMetadataURI(
                 "https://raw.githubusercontent.com/lagrange-labs/lagrange-lpn-contracts/main/config/avs-metadata.json"
@@ -66,10 +67,8 @@ contract DeployAVS is BaseScript {
         return deployment;
     }
 
-    function deploy(bytes32 salt_, address owner)
-        public
-        returns (Deployment memory)
-    {
+    function deploy(address owner) public returns (Deployment memory) {
+        // print("quorum", vm.toString(getQuorum().strategies[0].multiplier));
         // Deploy a new implementation
         address stakeRegistryImpl = address(new ZKMRStakeRegistry());
         print("ZKMRStakeRegistry (implementation)", address(stakeRegistryImpl));
@@ -91,7 +90,7 @@ contract DeployAVS is BaseScript {
         address stakeRegistryProxy = proxyFactory.deployDeterministicAndCall(
             stakeRegistryImpl,
             owner,
-            salt_,
+            newSalt("V0_EUCLID_SR_0"),
             abi.encodeWithSelector(
                 ZKMRStakeRegistry.initialize.selector,
                 delegationManager,
@@ -104,7 +103,7 @@ contract DeployAVS is BaseScript {
         address serviceManagerProxy = proxyFactory.deployDeterministicAndCall(
             serviceManagerImpl,
             owner,
-            salt_,
+            newSalt("V0_EUCLID_SM_0"),
             abi.encodeWithSelector(
                 ZKMRServiceManager.initialize.selector,
                 avsDirectory,
@@ -149,18 +148,46 @@ contract DeployAVS is BaseScript {
     function getQuorum() private view returns (Quorum memory) {
         string memory json = vm.readFile(avsConfigPath());
         StrategyConfig[] memory strategies;
-        bytes memory strategiesRaw = stdJson.parseRaw(json, ".strategies");
+        bytes memory strategiesRaw = json.parseRaw(".strategies");
         strategies = abi.decode(strategiesRaw, (StrategyConfig[]));
 
-        StrategyParams[] memory strategyParams;
+        StrategyParams[] memory strategyParams =
+            new StrategyParams[](strategies.length);
+
         for (uint256 i = 0; i < strategies.length; i++) {
             strategyParams[i] = StrategyParams({
                 strategy: IStrategy(strategies[i].addr),
-                multiplier: strategies[i].multiplier
+                multiplier: uint96(strategies[i].multiplier)
             });
         }
 
-        return Quorum({strategies: strategyParams});
+        return Quorum({strategies: sortStrategies(strategyParams)});
+    }
+
+    function sortStrategies(StrategyParams[] memory strategyParams)
+        private
+        pure
+        returns (StrategyParams[] memory)
+    {
+        address[] memory addresses = new address[](strategyParams.length);
+        for (uint256 i = 0; i < strategyParams.length; i++) {
+            addresses[i] = address(strategyParams[i].strategy);
+        }
+
+        LibSort.sort(addresses);
+
+        StrategyParams[] memory sortedStrategyParams =
+            new StrategyParams[](strategyParams.length);
+
+        for (uint256 i = 0; i < strategyParams.length; i++) {
+            for (uint256 j = 0; j < strategyParams.length; j++) {
+                if (addresses[i] == address(strategyParams[j].strategy)) {
+                    sortedStrategyParams[i] = strategyParams[j];
+                    break;
+                }
+            }
+        }
+        return sortedStrategyParams;
     }
 
     function writeToJson() private {
