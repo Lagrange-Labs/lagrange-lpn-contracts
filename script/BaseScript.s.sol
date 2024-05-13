@@ -9,7 +9,8 @@ import {
     BASE_SEPOLIA,
     FRAXTAL_MAINNET,
     FRAXTAL_HOLESKY,
-    isMainnet
+    isMainnet,
+    isTestnet
 } from "../src/utils/Constants.sol";
 import {stdJson} from "forge-std/stdJson.sol";
 
@@ -19,8 +20,9 @@ abstract contract BaseScript is Script {
     /// @dev The address of the contract deployer.
     address public deployer;
 
-    // @dev The salt used for deterministic deployment addresses with CREATE2
-    bytes32 public salt;
+    // @dev The salt used for deterministic deployment addresses for LPNRegistryV0
+    bytes32 public salt =
+        isMainnet() ? newSalt("V0_EUCLID_0") : newSalt("V0_EUCLID_4");
 
     modifier broadcaster() {
         vm.startBroadcast();
@@ -36,15 +38,20 @@ abstract contract BaseScript is Script {
             deployer = vm.rememberKey(vm.envUint("PRIVATE_KEY"));
         }
 
-        if (isMainnet()) {
-            salt = bytes32(abi.encodePacked(deployer, "V0_EUCLID_0"));
-        } else {
-            salt = bytes32(abi.encodePacked(deployer, "V0_EUCLID_4"));
-        }
+        print("deployer", deployer);
 
         if (!vm.exists(outputPath())) {
             initJson();
         }
+    }
+
+    // @dev The salt used for deterministic deployment addresses
+    function newSalt(string memory discriminator)
+        public
+        view
+        returns (bytes32)
+    {
+        return bytes32(abi.encodePacked(deployer, discriminator));
     }
 
     function setDeployer(address _deployer) public {
@@ -95,7 +102,11 @@ abstract contract BaseScript is Script {
             return json.readAddress(".eigenlayer.mainnet.avsDirectory");
         }
 
-        return json.readAddress(".eigenlayer.holesky.avsDirectory");
+        if (isTestnet()) {
+            return json.readAddress(".eigenlayer.holesky.avsDirectory");
+        }
+
+        return json.readAddress(".eigenlayer.local.avsDirectory");
     }
 
     function getDelegationManager() internal view returns (address) {
@@ -104,7 +115,11 @@ abstract contract BaseScript is Script {
             return json.readAddress(".eigenlayer.mainnet.delegationManager");
         }
 
-        return json.readAddress(".eigenlayer.holesky.delegationManager");
+        if (isTestnet()) {
+            return json.readAddress(".eigenlayer.holesky.delegationManager");
+        }
+
+        return json.readAddress(".eigenlayer.local.delegationManager");
     }
 
     function print(string memory key, string memory value) internal pure {
