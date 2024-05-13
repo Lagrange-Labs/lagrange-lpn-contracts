@@ -66,6 +66,9 @@ interface IZKMRStakeRegistry {
     /// @notice Thrown when setting the service manager address after it has already been set
     error ServiceManagerAlreadySet();
 
+    /// @notice Thrown when operator specifies an invalid public key on registration and key rotation
+    error InvalidPublicKey();
+
     /// @notice Indicates the quorum is invalid
     error InvalidQuorum();
 

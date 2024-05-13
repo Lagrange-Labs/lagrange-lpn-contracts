@@ -49,7 +49,7 @@ contract ZKMRServiceManager is IServiceManager, Ownable, Initializable {
 
     function registerOperatorToAVS(
         address operator,
-        ISignatureUtils.SignatureWithSaltAndExpiry memory operatorSignature
+        ISignatureUtils.SignatureWithSaltAndExpiry calldata operatorSignature
     ) external onlyStakeRegistry {
         _avsDirectory.registerOperatorToAVS(operator, operatorSignature);
     }

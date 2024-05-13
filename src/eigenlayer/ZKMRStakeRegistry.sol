@@ -49,6 +49,20 @@ contract ZKMRStakeRegistry is
     /// @dev Reserves storage slots for future upgrades
     uint256[50] private __gap;
 
+    modifier ensureValidPublicKey(PublicKey calldata publicKey) {
+        if (publicKey.x == 0 || publicKey.y == 0) {
+            revert InvalidPublicKey();
+        }
+        _;
+    }
+
+    modifier onlyRegistered(address operator) {
+        if (!_isRegistered(operator)) {
+            revert OperatorNotRegistered();
+        }
+        _;
+    }
+
     /// @notice Initializes the contract with the given parameters.
     /// @param delegationManager_ The eigenlayer delegation manager.
     /// @param quorum_ The quorum struct containing the details of the quorum thresholds.
@@ -73,10 +87,11 @@ contract ZKMRStakeRegistry is
         serviceManager = IServiceManager(serviceManager_);
     }
 
-    function evictOperator(address operator) external onlyOwner {
-        if (!_isRegistered(operator)) {
-            revert OperatorNotRegistered();
-        }
+    function evictOperator(address operator)
+        external
+        onlyOwner
+        onlyRegistered(operator)
+    {
         totalOperators--;
         delete operators[operator];
         serviceManager.deregisterOperatorFromAVS(operator);
@@ -85,8 +100,8 @@ contract ZKMRStakeRegistry is
 
     function registerOperator(
         PublicKey calldata publicKey,
-        ISignatureUtils.SignatureWithSaltAndExpiry memory operatorSignature
-    ) external onlyWhitelist(msg.sender) {
+        ISignatureUtils.SignatureWithSaltAndExpiry calldata operatorSignature
+    ) external onlyWhitelist(msg.sender) ensureValidPublicKey(publicKey) {
         if (_isRegistered(msg.sender)) {
             revert OperatorAlreadyRegistered();
         }
@@ -96,20 +111,18 @@ contract ZKMRStakeRegistry is
         emit OperatorRegistered(msg.sender, address(serviceManager), publicKey);
     }
 
-    function deregisterOperator() external {
-        if (!_isRegistered(msg.sender)) {
-            revert OperatorNotRegistered();
-        }
+    function deregisterOperator() external onlyRegistered(msg.sender) {
         totalOperators--;
         delete operators[msg.sender];
         serviceManager.deregisterOperatorFromAVS(msg.sender);
         emit OperatorDeregistered(msg.sender, address(serviceManager));
     }
 
-    function updateOperatorKey(PublicKey calldata publicKey) external {
-        if (!_isRegistered(msg.sender)) {
-            revert OperatorNotRegistered();
-        }
+    function updateOperatorKey(PublicKey calldata publicKey)
+        external
+        ensureValidPublicKey(publicKey)
+        onlyRegistered(msg.sender)
+    {
         operators[msg.sender] = publicKey;
         emit OperatorUpdated(msg.sender, address(serviceManager), publicKey);
     }
