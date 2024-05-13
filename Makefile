@@ -2,8 +2,8 @@
 # (-include to ignore error if it does not exist)
 -include .env
 
-# VERBOSITY=-vvvv
-VERBOSITY=
+VERBOSITY=-vvvv
+# VERBOSITY=
 LOCAL_DEPLOY_FLAGS=--broadcast ${VERBOSITY} --ffi --slow
 DEPLOY_FLAGS=--verify ${LOCAL_DEPLOY_FLAGS}
 MAINNET_DEPLOYER=--account v0_owner --sender ${DEPLOYER_ADDR}
@@ -30,6 +30,7 @@ fmt      :; forge fmt
 
 # -- Integration Test ---
 setup_integration_test : local_deploy_erc1967_proxy_factory local_deploy_registry local_deploy_clients
+setup_avs_integration_test : local_deploy_erc1967_proxy_factory local_deploy_avs
 
 local_deploy_erc1967_proxy_factory        :; ${DEPLOY_PROXY_FACTORY_CMD} local ${LOCAL_DEPLOY_FLAGS} --json
 base_testnet_deploy_erc1967_proxy_factory :; ${DEPLOY_PROXY_FACTORY_CMD} base_sepolia ${DEPLOY_FLAGS}
@@ -60,7 +61,7 @@ fraxtal_testnet_deploy_clients :; ${DEPLOY_CLIENTS_CMD} fraxtal_testnet ${DEPLOY
 fraxtal_mainnet_deploy_clients :; ${DEPLOY_CLIENTS_CMD} fraxtal ${DEPLOY_FLAGS} ${MAINNET_DEPLOYER}
 
 # Deploy Eigenlayer AVS
-local_deploy_avs   :; ${DEPLOY_AVS_CMD} local ${LOCAL_DEPLOY_FLAGS} --json
+local_deploy_avs   :; ${DEPLOY_AVS_CMD} local ${LOCAL_DEPLOY_FLAGS}
 testnet_deploy_avs :; ${DEPLOY_AVS_CMD} holesky ${DEPLOY_FLAGS} --priority-gas-price 0.1gwei
 
 # Run Queries
