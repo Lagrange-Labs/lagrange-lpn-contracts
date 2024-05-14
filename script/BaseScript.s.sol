@@ -12,7 +12,7 @@ import {
     isMainnet,
     isTestnet
 } from "../src/utils/Constants.sol";
-import {stdJson} from "forge-std/stdJson.sol";
+import {stdJson} from "forge-std/StdJson.sol";
 
 abstract contract BaseScript is Script {
     using stdJson for string;
