@@ -53,6 +53,13 @@ contract DeployAVS is BaseScript {
                 "https://raw.githubusercontent.com/lagrange-labs/lagrange-lpn-contracts/main/config/avs-metadata.json"
             );
 
+            if (isLocal()) {
+                string memory key = "WHITELISTED_OPERATORS";
+                string memory delimiter = ",";
+                address[] memory operators = vm.envAddress(key, delimiter);
+                deployment.stakeRegistryProxy.addToWhitelist(operators);
+            }
+
             writeToJson();
         } else {
             address updatedStakeRegistryImpl =
