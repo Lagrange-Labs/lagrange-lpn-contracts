@@ -15,6 +15,7 @@ DEPLOY_AVS_CMD=forge script DeployAVS --rpc-url
 QUERY_CMD=forge script Query --rpc-url
 WITHDRAW_FEES_CMD=forge script WithdrawFees --rpc-url
 BRIDGE_CMD=forge script Bridge --rpc-url
+STAKE_CMD=forge script Stake --rpc-url
 
 # deps
 install :; forge install
@@ -33,6 +34,7 @@ setup_integration_test : local_deploy_erc1967_proxy_factory local_deploy_registr
 setup_avs_integration_test : local_deploy_erc1967_proxy_factory local_deploy_avs
 
 local_deploy_erc1967_proxy_factory        :; ${DEPLOY_PROXY_FACTORY_CMD} local ${LOCAL_DEPLOY_FLAGS} --json
+holesky_testnet_deploy_erc1967_proxy_factory :; ${DEPLOY_PROXY_FACTORY_CMD} holesky ${DEPLOY_FLAGS}
 base_testnet_deploy_erc1967_proxy_factory :; ${DEPLOY_PROXY_FACTORY_CMD} base_sepolia ${DEPLOY_FLAGS}
 fraxtal_testnet_deploy_erc1967_proxy_factory :; ${DEPLOY_PROXY_FACTORY_CMD} fraxtal_testnet ${DEPLOY_FLAGS}
 fraxtal_mainnet_deploy_erc1967_proxy_factory :; ${DEPLOY_PROXY_FACTORY_CMD} fraxtal ${DEPLOY_FLAGS} ${MAINNET_DEPLOYER}
@@ -79,5 +81,10 @@ fraxtal_withdraw_fees :; ${WITHDRAW_FEES_CMD} fraxtal ${LOCAL_DEPLOY_FLAGS} ${MA
 # Bridge
 mainnet_bridge_base    :; ${BRIDGE_CMD} mainnet ${LOCAL_DEPLOY_FLAGS} --account v0_relayer --sender 0x373a4796Eb758a416366F561206E0472B508eCd1 --priority-gas-price 0.01gwei
 holesky_bridge_fraxtal :; ${BRIDGE_CMD} holesky ${LOCAL_DEPLOY_FLAGS} --priority-gas-price 0.01gwei -vvvv
+
+base_mainnet_deployment : base_mainnet_deploy_registry base_mainnet_deploy_clients
+
+# Stake
+holesky_stake :; ${STAKE_CMD} holesky ${LOCAL_DEPLOY_FLAGS} --priority-gas-price 0.01gwei -vvvv --skip-simulation
 
 base_mainnet_deployment : base_mainnet_deploy_registry base_mainnet_deploy_clients

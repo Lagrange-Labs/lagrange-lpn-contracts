@@ -1,69 +1,98 @@
 {
-  "ownerMultisig": "0xB9D7C1Ced67302967ce9553057589632bD99a998",
-  "eigenlayer": {
-    "mainnet": {
-      "avsDirectory": "0x135dda560e946695d6f155dacafc6f1f25c1f5af",
-      "delegationManager": "0x39053D51B77DC0d36036Fc1fCc8Cb819df8Ef37A"
-    },
-    "holesky": {
-      "avsDirectory": "0x055733000064333CaDDbC92763c58BF0192fFeBf",
-      "delegationManager": "0xA44151489861Fe9e3055d95adC98FbD462B948e7"
-    },
-    "local": {
-      "avsDirectory": "0x135dda560e946695d6f155dacafc6f1f25c1f5af",
-      "delegationManager": "0x39053D51B77DC0d36036Fc1fCc8Cb819df8Ef37A"
-    }
-  },
-  "strategies": [
-    {
-      "name": "cbETH",
-      "addr": "0x54945180dB7943c0ed0FEE7EdaB2Bd24620256bc",
-      "multiplier": 1000
-    },
-    {
-      "name": "stETH",
-      "addr": "0x93c4b944D05dfe6df7645A86cd2206016c51564D",
-      "multiplier": 1000
-    },
-    {
-      "name": "rETH",
-      "addr": "0x1BeE69b7dFFfA4E2d53C2a2Df135C388AD25dCD2",
-      "multiplier": 1000
-    },
-    {
-      "name": "ETHx",
-      "addr": "0x9d7eD45EE2E8FC5482fa2428f15C971e6369011d",
-      "multiplier": 1000
-    },
-    {
-      "name": "ankrETH",
-      "addr": "0x13760F50a9d7377e4F20CB8CF9e4c26586c658ff",
-      "multiplier": 1000
-    },
-    {
-      "name": "swETH",
-      "addr": "0x0Fe4F44beE93503346A3Ac9EE5A26b130a5796d6",
-      "multiplier": 1000
-    },
-    {
-      "name": "wBETH",
-      "addr": "0x7CA911E83dabf90C90dD3De5411a10F1A6112184",
-      "multiplier": 1000
-    },
-    {
-      "name": "sfrxETH",
-      "addr": "0x8CA7A5d6f3acd3A7A8bC468a8CD0FB14B6BD28b6",
-      "multiplier": 1000
-    },
-    {
-      "name": "mETH",
-      "addr": "0x298aFB19A105D59E74658C4C334Ff360BadE6dd2",
-      "multiplier": 1000
-    },
-    {
-      "name": "Beacon ETH",
-      "addr": "0xbeaC0eeEeeeeEEeEeEEEEeeEEeEeeeEeeEEBEaC0",
-      "multiplier": 1000
-    }
-  ]
+	"ownerMultisig": "0xB9D7C1Ced67302967ce9553057589632bD99a998",
+	"eigenlayer": {
+		"mainnet": {
+			"avsDirectory": "0x135dda560e946695d6f155dacafc6f1f25c1f5af",
+			"delegationManager": "0x39053D51B77DC0d36036Fc1fCc8Cb819df8Ef37A"
+		},
+		"holesky": {
+			"avsDirectory": "0x055733000064333CaDDbC92763c58BF0192fFeBf",
+			"delegationManager": "0xA44151489861Fe9e3055d95adC98FbD462B948e7"
+		},
+		"local": {
+			"avsDirectory": "0x135dda560e946695d6f155dacafc6f1f25c1f5af",
+			"delegationManager": "0x39053D51B77DC0d36036Fc1fCc8Cb819df8Ef37A"
+		}
+	},
+	"strategies": {
+		"mainnet": [
+			{
+				"name": "cbETH",
+				"addr": "0x54945180dB7943c0ed0FEE7EdaB2Bd24620256bc",
+				"multiplier": 1000
+			},
+			{
+				"name": "stETH",
+				"addr": "0x93c4b944D05dfe6df7645A86cd2206016c51564D",
+				"multiplier": 1000
+			},
+			{
+				"name": "rETH",
+				"addr": "0x1BeE69b7dFFfA4E2d53C2a2Df135C388AD25dCD2",
+				"multiplier": 1000
+			},
+			{
+				"name": "ETHx",
+				"addr": "0x9d7eD45EE2E8FC5482fa2428f15C971e6369011d",
+				"multiplier": 1000
+			},
+			{
+				"name": "ankrETH",
+				"addr": "0x13760F50a9d7377e4F20CB8CF9e4c26586c658ff",
+				"multiplier": 1000
+			},
+			{
+				"name": "swETH",
+				"addr": "0x0Fe4F44beE93503346A3Ac9EE5A26b130a5796d6",
+				"multiplier": 1000
+			},
+			{
+				"name": "wBETH",
+				"addr": "0x7CA911E83dabf90C90dD3De5411a10F1A6112184",
+				"multiplier": 1000
+			},
+			{
+				"name": "sfrxETH",
+				"addr": "0x8CA7A5d6f3acd3A7A8bC468a8CD0FB14B6BD28b6",
+				"multiplier": 1000
+			},
+			{
+				"name": "mETH",
+				"addr": "0x298aFB19A105D59E74658C4C334Ff360BadE6dd2",
+				"multiplier": 1000
+			},
+			{
+				"name": "Beacon ETH",
+				"addr": "0xbeaC0eeEeeeeEEeEeEEEEeeEEeEeeeEeeEEBEaC0",
+				"multiplier": 1000
+			}
+		],
+		"holesky": [
+			{
+				"name": "stETH",
+				"addr": "0x3F1c547b21f65e10480dE3ad8E19fAAC46C95034",
+				"multiplier": 2000
+			},
+			{
+				"name": "ETHx",
+				"addr": "0x7F09ceb3874F5E35Cd2135F56fd4329b88c5d119",
+				"multiplier": 2000
+			},
+			{
+				"name": "WETH",
+				"addr": "0x94373a4919B3240D86eA41593D5eBa789FEF3848",
+				"multiplier": 2000
+			},
+			{
+				"name": "sfrxETH",
+				"addr": "0xa63f56985F9C7F3bc9fFc5685535649e0C1a55f3",
+				"multiplier": 2000
+			},
+			{
+				"name": "mETH",
+				"addr": "0xbe16244EAe9837219147384c8A7560BA14946262",
+				"multiplier": 2000
+			}
+		]
+	}
 }

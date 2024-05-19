@@ -8,6 +8,7 @@ uint256 constant ANVIL = 31337;
 
 uint256 constant ETH_MAINNET = 1;
 uint256 constant ETH_SEPOLIA = 11155111;
+uint256 constant ETH_HOLESKY = 17000;
 
 uint256 constant BASE_MAINNET = 8453;
 uint256 constant BASE_SEPOLIA = 84532;
@@ -48,7 +49,8 @@ function isLocal() view returns (bool) {
 }
 
 function isTestnet() view returns (bool) {
-    uint256[3] memory testnets = [ETH_SEPOLIA, BASE_SEPOLIA, FRAXTAL_HOLESKY];
+    uint256[4] memory testnets =
+        [ETH_SEPOLIA, ETH_HOLESKY, BASE_SEPOLIA, FRAXTAL_HOLESKY];
     return chainMatches(testnets);
 }
 
@@ -58,6 +60,13 @@ function isMainnet() view returns (bool) {
 }
 
 function chainMatches(uint256[3] memory chains) view returns (bool) {
+    for (uint256 i = 0; i < chains.length; i++) {
+        if (chains[i] == block.chainid) return true;
+    }
+    return false;
+}
+
+function chainMatches(uint256[4] memory chains) view returns (bool) {
     for (uint256 i = 0; i < chains.length; i++) {
         if (chains[i] == block.chainid) return true;
     }
