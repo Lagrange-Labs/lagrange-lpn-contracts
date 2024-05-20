@@ -152,10 +152,15 @@ contract DeployAVS is BaseScript {
         return serviceManagerImpl;
     }
 
-    function getQuorum() private view returns (Quorum memory) {
+    function getQuorum() private returns (Quorum memory) {
         string memory json = vm.readFile(avsConfigPath());
         StrategyConfig[] memory strategies;
-        bytes memory strategiesRaw = json.parseRaw(".strategies");
+
+        string memory chainName = getChain(block.chainid).chainAlias;
+        string memory strategiesKey =
+            string(abi.encodePacked(".strategies.", chainName));
+
+        bytes memory strategiesRaw = json.parseRaw(strategiesKey);
         strategies = abi.decode(strategiesRaw, (StrategyConfig[]));
 
         StrategyParams[] memory strategyParams =
