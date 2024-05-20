@@ -19,17 +19,21 @@ holesky = "https://rpc.holesky.ethpandaops.io"
 sepolia = "${SEPOLIA_RPC_URL}"
 base_sepolia = "${BASE_SEPOLIA_RPC_URL}"
 fraxtal_testnet = "https://rpc.testnet.frax.com"
+mantle_sepolia = "https://rpc.sepolia.mantle.xyz"
 
 mainnet = "${MAINNET_RPC_URL}"
 base = "${BASE_RPC_URL}"
 fraxtal = "https://rpc.frax.com"
+mantle = "https://rpc.mantle.xyz"
 
 [etherscan]
 sepolia = { key = "${MAINNET_ETHERSCAN_API_KEY}" }
 holesky = { key = "${MAINNET_ETHERSCAN_API_KEY}" }
 base_sepolia = { key = "${BASESCAN_API_KEY}" }
 fraxtal_testnet = { key = "${FRAXSCAN_API_KEY}" }
+mantle_sepolia = { key = "${MANTLESCAN_API_KEY}" }
 
 mainnet = { key = "${MAINNET_ETHERSCAN_API_KEY}" }
 base = { key = "${BASESCAN_API_KEY}" }
 fraxtal = { key = "${FRAXSCAN_API_KEY}" }
+mantle = { key = "${MANTLESCAN_API_KEY}" }
