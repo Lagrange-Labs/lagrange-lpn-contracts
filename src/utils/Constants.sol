@@ -33,7 +33,8 @@ uint256 constant LAGRANGE_LOONS_MAPPING_SLOT = 2;
 uint256 constant LAGRANGE_LOONS_LENGTH_SLOT = 8;
 
 function isEthereum() view returns (bool) {
-    return block.chainid == ETH_MAINNET || block.chainid == ETH_SEPOLIA;
+    return block.chainid == ETH_MAINNET || block.chainid == ETH_SEPOLIA
+        || block.chainid == ETH_HOLESKY;
 }
 
 function isOPStack() view returns (bool) {
