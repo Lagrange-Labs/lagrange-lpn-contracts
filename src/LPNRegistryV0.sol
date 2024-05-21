@@ -7,12 +7,8 @@ import {OwnableWhitelist} from "./utils/OwnableWhitelist.sol";
 import {Initializable} from
     "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {Groth16VerifierExtensions} from "./Groth16VerifierExtensions.sol";
-import {
-    isEthereum,
-    isOPStack,
-    L1BlockHash,
-    L1BlockNumber
-} from "./utils/L1Block.sol";
+import {L1BlockHash, L1BlockNumber} from "./utils/L1Block.sol";
+import {isEthereum, isOPStack, isMantle} from "./utils/Constants.sol";
 
 /// @notice Error thrown when attempting to register a storage contract more than once.
 error ContractAlreadyRegistered();
@@ -48,6 +44,8 @@ contract LPNRegistryV0 is ILPNRegistry, OwnableWhitelist, Initializable {
     /// @notice A constant gas fee paid for each request to reimburse the relayer when it delivers the response
     uint256 public constant ETH_GAS_FEE = 0.05 ether;
     uint256 public constant OP_GAS_FEE = 0.00015 ether;
+    /// @dev Mantle uses a custom gas token
+    uint256 public constant MANTLE_GAS_FEE = 0.5 ether;
 
     /// @notice A counter that assigns unique ids for client requests.
     uint256 public requestId;
@@ -201,7 +199,11 @@ contract LPNRegistryV0 is ILPNRegistry, OwnableWhitelist, Initializable {
             return ETH_GAS_FEE;
         }
 
-        return OP_GAS_FEE;
+        if (isOPStack() && !isMantle()) {
+            return OP_GAS_FEE;
+        }
+
+        return MANTLE_GAS_FEE;
     }
 
     /// @notice Useful for backwards compatibility of prior contract version on Eth Mainnet

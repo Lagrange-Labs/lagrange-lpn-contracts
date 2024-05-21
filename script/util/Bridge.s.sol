@@ -9,6 +9,8 @@ import {
     L1_BASE_BRIDGE,
     L1_FRAXTAL_BRIDGE,
     L1_FRAXTAL_HOLESKY_BRIDGE,
+    L1_MANTLE_SEPOLIA_BRIDGE,
+    L1_MANTLE_BRIDGE,
     isMainnet
 } from "../../src/utils/Constants.sol";
 

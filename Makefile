@@ -38,6 +38,7 @@ holesky_testnet_deploy_erc1967_proxy_factory :; ${DEPLOY_PROXY_FACTORY_CMD} hole
 base_testnet_deploy_erc1967_proxy_factory :; ${DEPLOY_PROXY_FACTORY_CMD} base_sepolia ${DEPLOY_FLAGS}
 fraxtal_testnet_deploy_erc1967_proxy_factory :; ${DEPLOY_PROXY_FACTORY_CMD} fraxtal_testnet ${DEPLOY_FLAGS}
 fraxtal_mainnet_deploy_erc1967_proxy_factory :; ${DEPLOY_PROXY_FACTORY_CMD} fraxtal ${DEPLOY_FLAGS} ${MAINNET_DEPLOYER}
+mantle_mainnet_deploy_erc1967_proxy_factory :; ${DEPLOY_PROXY_FACTORY_CMD} mantle ${DEPLOY_FLAGS} ${MAINNET_DEPLOYER} --with-gas-price 20000000 -g 4000000
 
 # -- Testnet Base Integration Test --
 testnet_integration_test : testnet_deploy_registry base_testnet_deploy_registry testnet_deploy_clients base_testnet_deploy_clients base_testnet_query
@@ -53,6 +54,8 @@ base_testnet_deploy_registry    :; ${DEPLOY_REGISTRY_CMD} base_sepolia ${DEPLOY_
 base_mainnet_deploy_registry    :; ${DEPLOY_REGISTRY_CMD} base ${DEPLOY_FLAGS} ${MAINNET_DEPLOYER}
 fraxtal_testnet_deploy_registry :; ${DEPLOY_REGISTRY_CMD} fraxtal_testnet ${DEPLOY_FLAGS}
 fraxtal_mainnet_deploy_registry :; ${DEPLOY_REGISTRY_CMD} fraxtal ${DEPLOY_FLAGS} ${MAINNET_DEPLOYER}
+mantle_testnet_deploy_registry  :; ${DEPLOY_REGISTRY_CMD} mantle_sepolia ${DEPLOY_FLAGS} --with-gas-price 20000000 -g 4000000
+mantle_mainnet_deploy_registry  :; ${DEPLOY_REGISTRY_CMD} mantle ${DEPLOY_FLAGS} ${MAINNET_DEPLOYER} --with-gas-price 20000000 -g 4000000
 
 # Deploy clients
 local_deploy_clients        :; ${DEPLOY_CLIENTS_CMD} local ${LOCAL_DEPLOY_FLAGS}
@@ -63,6 +66,8 @@ base_testnet_deploy_clients :; ${DEPLOY_CLIENTS_CMD} base_sepolia ${DEPLOY_FLAGS
 base_mainnet_deploy_clients :; ${DEPLOY_CLIENTS_CMD} base ${DEPLOY_FLAGS} ${MAINNET_DEPLOYER}
 fraxtal_testnet_deploy_clients :; ${DEPLOY_CLIENTS_CMD} fraxtal_testnet ${DEPLOY_FLAGS}
 fraxtal_mainnet_deploy_clients :; ${DEPLOY_CLIENTS_CMD} fraxtal ${DEPLOY_FLAGS} ${MAINNET_DEPLOYER}
+mantle_testnet_deploy_clients :; ${DEPLOY_CLIENTS_CMD} mantle_sepolia ${DEPLOY_FLAGS} --with-gas-price 20000000 -g 4000000
+mantle_mainnet_deploy_clients :; ${DEPLOY_CLIENTS_CMD} mantle ${DEPLOY_FLAGS} ${MAINNET_DEPLOYER} --with-gas-price 20000000 -g 4000000
 
 # Deploy Eigenlayer AVS
 local_deploy_avs   :; ${DEPLOY_AVS_CMD} local ${LOCAL_DEPLOY_FLAGS}
@@ -75,9 +80,11 @@ fraxtal_testnet_query :; ${QUERY_CMD} fraxtal_testnet ${DEPLOY_FLAGS}
 mainnet_query :; ${QUERY_CMD} mainnet ${DEPLOY_FLAGS} ${MAINNET_DEPLOYER}
 base_mainnet_query :; ${QUERY_CMD} base ${DEPLOY_FLAGS} ${MAINNET_DEPLOYER}
 fraxtal_mainnet_query :; ${QUERY_CMD} fraxtal ${DEPLOY_FLAGS} ${MAINNET_DEPLOYER}
+mantle_mainnet_query :; ${QUERY_CMD} mantle ${DEPLOY_FLAGS} ${MAINNET_DEPLOYER} --with-gas-price 20000000 -g 4000000
 
 # Withdraw fees
 mainnet_withdraw_fees :; ${WITHDRAW_FEES_CMD} mainnet ${LOCAL_DEPLOY_FLAGS} ${MAINNET_DEPLOYER}
+base_withdraw_fees    :; ${WITHDRAW_FEES_CMD} base ${LOCAL_DEPLOY_FLAGS} ${MAINNET_DEPLOYER}
 fraxtal_withdraw_fees :; ${WITHDRAW_FEES_CMD} fraxtal ${LOCAL_DEPLOY_FLAGS} ${MAINNET_DEPLOYER}
 
 # Bridge

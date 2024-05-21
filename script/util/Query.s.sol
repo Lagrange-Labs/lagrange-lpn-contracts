@@ -12,13 +12,16 @@ import {
 import {L1BlockNumber} from "../../src/utils/L1Block.sol";
 
 contract Query is BaseScript {
-    LPNRegistryV0 registry = LPNRegistryV0(getDeployedRegistry());
-    LPNQueryV0 queryClient = LPNQueryV0(getDeployedQueryClient());
+    LPNRegistryV0 registry;
+    LPNQueryV0 queryClient;
 
     address constant BLUR = 0x29469395eAf6f95920E59F858042f0e28D98a20B;
 
     function run() external broadcaster {
         address holder = deployer;
+        registry = LPNRegistryV0(getDeployedRegistry());
+        queryClient = LPNQueryV0(getDeployedQueryClient());
+
         if (isMainnet()) {
             holder = BLUR;
         }

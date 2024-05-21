@@ -1,14 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-import {Script, console2} from "forge-std/Script.sol";
+import {Script, console2, StdChains} from "forge-std/Script.sol";
 import {
-    ETH_MAINNET,
-    ETH_SEPOLIA,
-    BASE_MAINNET,
-    BASE_SEPOLIA,
-    FRAXTAL_MAINNET,
-    FRAXTAL_HOLESKY,
+    MANTLE_MAINNET,
+    MANTLE_SEPOLIA,
     isMainnet,
     isTestnet
 } from "../src/utils/Constants.sol";
@@ -18,7 +14,9 @@ abstract contract BaseScript is Script {
     using stdJson for string;
 
     /// @dev The address of the contract deployer.
-    address public deployer;
+    address public deployer = isMainnet()
+        ? getDeployerAddress()
+        : vm.rememberKey(vm.envUint("PRIVATE_KEY"));
 
     // @dev The salt used for deterministic deployment addresses for LPNRegistryV0
     bytes32 public salt =
@@ -31,6 +29,18 @@ abstract contract BaseScript is Script {
     }
 
     constructor() {
+        setChain(
+            "mantle",
+            ChainData("Mantle", MANTLE_MAINNET, "https://rpc.mantle.xyz")
+        );
+        setChain(
+            "mantle_sepolia",
+            ChainData(
+                "Mantle Sepolia",
+                MANTLE_SEPOLIA,
+                "https://rpc.sepolia.mantle.xyz"
+            )
+        );
         // (, deployer,) = vm.readCallers(); // TODO: read sender from env
         if (isMainnet()) {
             deployer = getDeployerAddress();
