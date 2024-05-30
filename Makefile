@@ -75,6 +75,7 @@ testnet_deploy_avs :; ${DEPLOY_AVS_CMD} holesky ${DEPLOY_FLAGS} --priority-gas-p
 
 # Run Queries
 testnet_query :; ${QUERY_CMD} sepolia ${DEPLOY_FLAGS}
+holesky_query :; ${QUERY_CMD} holesky ${DEPLOY_FLAGS}
 base_testnet_query :; ${QUERY_CMD} base_sepolia ${DEPLOY_FLAGS}
 fraxtal_testnet_query :; ${QUERY_CMD} fraxtal_testnet ${DEPLOY_FLAGS}
 mainnet_query :; ${QUERY_CMD} mainnet ${DEPLOY_FLAGS} ${MAINNET_DEPLOYER}
