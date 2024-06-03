@@ -11,7 +11,6 @@ MAINNET_DEPLOYER=--account v0_owner --sender ${DEPLOYER_ADDR}
 DEPLOY_PROXY_FACTORY_CMD=forge script DeployERC1967ProxyFactory --rpc-url
 DEPLOY_REGISTRY_CMD=forge script DeployLPNRegistry --rpc-url
 DEPLOY_CLIENTS_CMD=forge script DeployClients --rpc-url
-DEPLOY_AVS_CMD=forge script DeployAVS --rpc-url
 QUERY_CMD=forge script Query --rpc-url
 WITHDRAW_FEES_CMD=forge script WithdrawFees --rpc-url
 BRIDGE_CMD=forge script Bridge --rpc-url
@@ -31,7 +30,6 @@ fmt      :; forge fmt
 
 # -- Integration Test ---
 setup_integration_test : local_deploy_erc1967_proxy_factory local_deploy_registry local_deploy_clients
-setup_avs_integration_test : local_deploy_erc1967_proxy_factory local_deploy_avs
 
 local_deploy_erc1967_proxy_factory        :; ${DEPLOY_PROXY_FACTORY_CMD} local ${LOCAL_DEPLOY_FLAGS} --json
 holesky_testnet_deploy_erc1967_proxy_factory :; ${DEPLOY_PROXY_FACTORY_CMD} holesky ${DEPLOY_FLAGS}
@@ -68,10 +66,6 @@ fraxtal_testnet_deploy_clients :; ${DEPLOY_CLIENTS_CMD} fraxtal_testnet ${DEPLOY
 fraxtal_mainnet_deploy_clients :; ${DEPLOY_CLIENTS_CMD} fraxtal ${DEPLOY_FLAGS} ${MAINNET_DEPLOYER}
 mantle_testnet_deploy_clients :; ${DEPLOY_CLIENTS_CMD} mantle_sepolia ${DEPLOY_FLAGS} --with-gas-price 20000000 -g 4000000
 mantle_mainnet_deploy_clients :; ${DEPLOY_CLIENTS_CMD} mantle ${DEPLOY_FLAGS} ${MAINNET_DEPLOYER} --with-gas-price 20000000 -g 4000000
-
-# Deploy Eigenlayer AVS
-local_deploy_avs   :; ${DEPLOY_AVS_CMD} local ${LOCAL_DEPLOY_FLAGS}
-testnet_deploy_avs :; ${DEPLOY_AVS_CMD} holesky ${DEPLOY_FLAGS} --priority-gas-price 0.1gwei
 
 # Run Queries
 testnet_query :; ${QUERY_CMD} sepolia ${DEPLOY_FLAGS}
