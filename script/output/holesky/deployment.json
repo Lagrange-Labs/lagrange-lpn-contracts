@@ -1,12 +1,8 @@
 {
   "addresses": {
     "queryClient": "0x0D8F2217F0D194926AFF15aA9Dc978b920E37F45",
-    "registryImpl": "0x042B7626ebFf4cAa5bb8D44C26029C260158DAC9",
+    "registryImpl": "0xE77f61B3853486Bf3098F72dE8A543e211C88510",
     "registryProxy": "0x4f73289BFffEF7Eed9f284B1E76328beB52c6e37",
-    "serviceManagerImpl": "0xF221F7faDf301EC9fC1780D5c85F7137D9d11015",
-    "serviceManagerProxy": "0xf98D5De1014110C65c51b85Ea55f73863215CC10",
-    "stakeRegistryImpl": "0xBeAd7Fe75B567Ac0fc12526225451eb3F964d834",
-    "stakeRegistryProxy": "0xf724cDC7C40fd6B59590C624E8F0E5E3843b4BE4",
     "storageContract": "0x09C52d2dCdA5724823f5b3bEe93E989B218004Ac"
   },
   "chainInfo": {
