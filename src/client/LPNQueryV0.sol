@@ -2,7 +2,12 @@
 pragma solidity ^0.8.13;
 
 import {LPNClientV0} from "./LPNClientV0.sol";
-import {ILPNRegistry} from "../interfaces/ILPNRegistry.sol";
+import {
+    ILPNRegistry,
+    LEGACY_QUERY_IDENTIFIER,
+    NFT_QUERY_IDENTIFIER,
+    ERC20_QUERY_IDENTIFIER
+} from "../interfaces/ILPNRegistry.sol";
 
 /**
  * @title LPNQueryV0
@@ -59,7 +64,7 @@ contract LPNQueryV0 is LPNClientV0 {
      * @param endBlock The ending block number for the query range.
      * @param offset The offset for pagination of results.
      */
-    function query(
+    function queryLegacy(
         address storageContract,
         address holder,
         uint256 startBlock,
@@ -68,10 +73,56 @@ contract LPNQueryV0 is LPNClientV0 {
     ) external payable {
         uint256 requestId = lpnRegistry.request{value: msg.value}(
             storageContract,
-            bytes32(uint256(uint160(holder))),
+            bytes32(abi.encode(holder)),
             startBlock,
             endBlock,
             offset
+        );
+
+        requests[requestId] =
+            RequestMetadata({sender: msg.sender, holder: holder});
+
+        emit Query(msg.sender, storageContract);
+    }
+
+    function queryNFT(
+        address storageContract,
+        address holder,
+        uint256 startBlock,
+        uint256 endBlock,
+        uint8 offset
+    ) external payable {
+        ILPNRegistry.NFTQueryParams memory p = ILPNRegistry.NFTQueryParams({
+            identifier: NFT_QUERY_IDENTIFIER,
+            userAddress: holder,
+            offset: offset
+        });
+
+        uint256 requestId = lpnRegistry.request{value: msg.value}(
+            storageContract, bytes32(abi.encode(p)), startBlock, endBlock, 0
+        );
+
+        requests[requestId] =
+            RequestMetadata({sender: msg.sender, holder: holder});
+
+        emit Query(msg.sender, storageContract);
+    }
+
+    function queryERC20(
+        address storageContract,
+        address holder,
+        uint256 startBlock,
+        uint256 endBlock,
+        uint8 rewardsRate
+    ) external payable {
+        ILPNRegistry.ERC20QueryParams memory p = ILPNRegistry.ERC20QueryParams({
+            identifier: ERC20_QUERY_IDENTIFIER,
+            userAddress: holder,
+            rewardsRate: rewardsRate
+        });
+
+        uint256 requestId = lpnRegistry.request{value: msg.value}(
+            storageContract, bytes32(abi.encode(p)), startBlock, endBlock, 0
         );
 
         requests[requestId] =

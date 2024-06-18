@@ -40,7 +40,7 @@ contract Query is BaseScript {
                 : getDeployedStorageContract("sepolia");
         }
 
-        queryClient.query{value: registry.gasFee()}(
+        queryClient.queryLegacy{value: registry.gasFee()}(
             storageContract, holder, startBlock, endBlock, offset
         );
     }

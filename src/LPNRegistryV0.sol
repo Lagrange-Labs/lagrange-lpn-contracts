@@ -1,7 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-import {ILPNRegistry} from "./interfaces/ILPNRegistry.sol";
+import {
+    ILPNRegistry,
+    LEGACY_QUERY_IDENTIFIER,
+    NFT_QUERY_IDENTIFIER,
+    ERC20_QUERY_IDENTIFIER
+} from "./interfaces/ILPNRegistry.sol";
 import {ILPNClient} from "./interfaces/ILPNClient.sol";
 import {OwnableWhitelist} from "./utils/OwnableWhitelist.sol";
 import {Initializable} from
@@ -34,6 +39,9 @@ error QueryInvalidRange();
 
 /// @notice Error thrown when gas fee is not paid.
 error InsufficientGasFee();
+
+/// @notice Error thrown when specifying an unknown query identifier.
+error UnsupportedQueryType();
 
 /// @title LPNRegistryV0
 /// @notice A registry contract for managing LPN (Lagrange Proving Network) clients and requests.
@@ -123,7 +131,7 @@ contract LPNRegistryV0 is ILPNRegistry, OwnableWhitelist, Initializable {
 
     function request(
         address storageContract,
-        bytes32 key,
+        bytes32 params,
         uint256 startBlock,
         uint256 endBlock,
         uint256 offset
@@ -140,31 +148,37 @@ contract LPNRegistryV0 is ILPNRegistry, OwnableWhitelist, Initializable {
 
         uint256 proofBlock = 0;
         bytes32 blockHash = 0;
+
         if (!isEthereum()) {
             proofBlock = L1BlockNumber();
             blockHash = L1BlockHash();
         }
 
+        CombinedParams memory cp = parseParams(params, offset);
+
         queries[requestId] = Groth16VerifierExtensions.Query({
             contractAddress: storageContract,
-            userAddress: address(uint160(uint256(key))),
+            userAddress: cp.userAddress,
             minBlockNumber: startBlock,
             maxBlockNumber: endBlock,
             blockHash: blockHash,
-            clientAddress: msg.sender
+            clientAddress: msg.sender,
+            rewardsRate: cp.rewardsRate,
+            identifier: cp.identifier
         });
 
         emit NewRequest(
             requestId,
             storageContract,
             msg.sender,
-            key,
+            params,
             startBlock,
             endBlock,
-            offset,
+            cp.offset,
             msg.value,
             proofBlock
         );
+
         return requestId;
     }
 
@@ -209,5 +223,55 @@ contract LPNRegistryV0 is ILPNRegistry, OwnableWhitelist, Initializable {
     /// @notice Useful for backwards compatibility of prior contract version on Eth Mainnet
     function GAS_FEE() public view returns (uint256) {
         return gasFee();
+    }
+
+    /// @notice Parse structured values from 32 bytes of params
+    /// @param params 32-bytes of abi-encoded params values
+    /// @param legacyOffset the offset value to use for legacy nft queries
+    function parseParams(bytes32 params, uint256 legacyOffset)
+        private
+        pure
+        returns (CombinedParams memory)
+    {
+        CombinedParams memory cp = CombinedParams({
+            identifier: uint8(bytes1(params[0])),
+            userAddress: address(0),
+            rewardsRate: uint88(0),
+            offset: uint88(0)
+        });
+
+        /// @dev Legacy queries have `params == userAddress`, therefore leading byte is 00
+        ///      We also read the `offset` as a separate param in the calldata
+        if (cp.identifier == LEGACY_QUERY_IDENTIFIER) {
+            cp.identifier =
+                uint8(Groth16VerifierExtensions.QUERY_IDENTIFIER_NFT);
+
+            cp.userAddress = abi.decode(abi.encode(params), (address));
+            cp.offset = uint88(legacyOffset);
+
+            return cp;
+        }
+
+        if (cp.identifier == NFT_QUERY_IDENTIFIER) {
+            NFTQueryParams memory p =
+                abi.decode(abi.encode(params), (NFTQueryParams));
+
+            cp.userAddress = p.userAddress;
+            cp.offset = p.offset;
+
+            return cp;
+        }
+
+        if (cp.identifier == ERC20_QUERY_IDENTIFIER) {
+            ERC20QueryParams memory p =
+                abi.decode(abi.encode(params), (ERC20QueryParams));
+
+            cp.userAddress = p.userAddress;
+            cp.rewardsRate = p.rewardsRate;
+
+            return cp;
+        }
+
+        revert UnsupportedQueryType();
     }
 }

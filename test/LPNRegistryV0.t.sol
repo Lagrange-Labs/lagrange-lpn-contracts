@@ -18,6 +18,7 @@ import {ILPNClient} from "../src/interfaces/ILPNClient.sol";
 import {Initializable} from
     "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {Groth16Verifier} from "../src/Groth16Verifier.sol";
+import {Groth16VerifierExtensions} from "../src/Groth16VerifierExtensions.sol";
 import {
     ETH_MAINNET,
     BASE_MAINNET,
@@ -63,7 +64,7 @@ contract LPNRegistryV0Test is Test {
         uint256 indexed requestId,
         address indexed storageContract,
         address indexed client,
-        bytes32 key,
+        bytes32 params,
         uint256 startBlock,
         uint256 endBlock,
         uint256 offset,
@@ -147,7 +148,7 @@ contract LPNRegistryV0Test is Test {
         bytes32 blockHash = 0;
         vm.roll(blockNumber);
         register(storageContract, 1, 2);
-        bytes32 key = keccak256("key");
+        bytes32 params = bytes32(abi.encode(makeAddr("addr-to-query")));
         uint256 startBlock = block.number;
         uint256 endBlock = startBlock;
 
@@ -156,7 +157,7 @@ contract LPNRegistryV0Test is Test {
             1,
             storageContract,
             address(client),
-            key,
+            params,
             startBlock,
             endBlock,
             offset,
@@ -166,26 +167,31 @@ contract LPNRegistryV0Test is Test {
 
         vm.prank(address(client));
         uint256 requestId = registry.request{value: gasFee}(
-            storageContract, key, startBlock, endBlock, offset
+            storageContract, params, startBlock, endBlock, offset
         );
 
         (
             address storageContract_,
-            address key_,
+            address userAddress_,
             address client_,
             uint256 startBlock_,
             uint256 endBlock_,
-            bytes32 blockhash_
+            bytes32 blockhash_,
+            uint256 rewardsRate_,
+            uint256 identifier_
         ) = registry.queries(requestId);
 
         assertEq(requestId, 1);
 
         assertEq(storageContract_, storageContract);
-        assertEq(key_, address(uint160(uint256(key))));
+        assertEq(userAddress_, address(uint160(uint256(params))));
         assertEq(client_, address(client));
         assertEq(startBlock_, startBlock);
         assertEq(endBlock_, endBlock);
         assertEq(blockhash_, blockHash);
+
+        assertEq(rewardsRate_, 0);
+        assertEq(identifier_, Groth16VerifierExtensions.QUERY_IDENTIFIER_NFT);
     }
 
     function testRequestOP() public {
@@ -194,7 +200,7 @@ contract LPNRegistryV0Test is Test {
         bytes32 l1BlockHash = bytes32("567");
         vm.chainId(BASE_MAINNET);
         vm.roll(l2Block);
-        bytes32 key = keccak256("key");
+        bytes32 params = bytes32(abi.encode(makeAddr("addr-to-query")));
         uint256 startBlock = l1Block;
         uint256 endBlock = startBlock;
 
@@ -203,7 +209,7 @@ contract LPNRegistryV0Test is Test {
             1,
             storageContract,
             address(client),
-            key,
+            params,
             startBlock,
             endBlock,
             offset,
@@ -223,26 +229,31 @@ contract LPNRegistryV0Test is Test {
         );
         vm.prank(address(client));
         uint256 requestId = registry.request{value: gasFee}(
-            storageContract, key, startBlock, endBlock, offset
+            storageContract, params, startBlock, endBlock, offset
         );
 
         (
             address storageContract_,
-            address key_,
+            address userAddress_,
             address client_,
             uint256 startBlock_,
             uint256 endBlock_,
-            bytes32 blockhash_
+            bytes32 blockhash_,
+            uint256 rewardsRate_,
+            uint256 identifier_
         ) = registry.queries(requestId);
 
         assertEq(requestId, 1);
 
         assertEq(storageContract_, storageContract);
-        assertEq(key_, address(uint160(uint256(key))));
+        assertEq(userAddress_, address(uint160(uint256(params))));
         assertEq(client_, address(client));
         assertEq(startBlock_, startBlock);
         assertEq(endBlock_, endBlock);
         assertEq(blockhash_, l1BlockHash);
+
+        assertEq(rewardsRate_, 0);
+        assertEq(identifier_, Groth16VerifierExtensions.QUERY_IDENTIFIER_NFT);
     }
 
     function testRequestValidateQueryRange() public {
@@ -347,7 +358,7 @@ contract LPNRegistryV0Test is Test {
         uint256 endBlock;
 
         assertEq(registry.ETH_GAS_FEE(), 0.05 ether);
-        assertEq(registry.OP_GAS_FEE(), 0.00015 ether);
+        assertEq(registry.OP_GAS_FEE(), 0.00045 ether);
 
         vm.expectRevert(InsufficientGasFee.selector);
         vm.prank(address(client));
@@ -364,7 +375,7 @@ contract LPNRegistryV0Test is Test {
         vm.chainId(BASE_MAINNET);
         vm.expectRevert(InsufficientGasFee.selector);
         vm.prank(address(client));
-        registry.request{value: 0.00014 ether}(
+        registry.request{value: 0.00044 ether}(
             storageContract, key, startBlock, endBlock, offset
         );
     }
@@ -465,7 +476,9 @@ contract LPNRegistryV0Test is Test {
             address clientAddress,
             uint256 minBlockNumber,
             uint256 maxBlockNumber,
-            bytes32 blockHash
+            bytes32 blockHash,
+            uint256 rewardsRate,
+            uint256 identifier
         ) = registry.queries(requestId);
 
         assertEq(contractAddress, address(0));
@@ -474,6 +487,9 @@ contract LPNRegistryV0Test is Test {
         assertEq(minBlockNumber, 0);
         assertEq(maxBlockNumber, 0);
         assertEq(blockHash, bytes32(0));
+
+        assertEq(rewardsRate, 0);
+        assertEq(identifier, 0);
     }
 
     function testWithdrawFees() public {
