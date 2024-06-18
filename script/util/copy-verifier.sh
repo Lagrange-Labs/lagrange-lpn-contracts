@@ -1,8 +1,10 @@
 #! /bin/bash
 
-GIT_REPO_PATH=../mapreduce-plonky2
+# GIT_REPO_PATH=../mapreduce-plonky2
+GIT_REPO_PATH=../Euclid-database
 CODE_DIR_PATH=groth16-framework/test_data
-BRANCH=main
+# BRANCH=main
+BRANCH=erc20-groth16
 VERIFIER_FILE=./src/Groth16Verifier.sol
 VERIFIER_EXTENSIONS_FILE=./src/Groth16VerifierExtensions.sol
 
@@ -13,7 +15,7 @@ cd $GIT_REPO_PATH && \
     cd -
 
 cp "${GIT_REPO_PATH}/${CODE_DIR_PATH}/verifier.sol" $VERIFIER_FILE
-cp "${GIT_REPO_PATH}/${CODE_DIR_PATH}/query2.sol" $VERIFIER_EXTENSIONS_FILE
+cp "${GIT_REPO_PATH}/${CODE_DIR_PATH}/Groth16VerifierExtensions.sol" $VERIFIER_EXTENSIONS_FILE
 
 # Use as library instead of contract
 sed -i '' 's/contract Verifier/library Groth16Verifier/' $VERIFIER_FILE
