@@ -1,7 +1,7 @@
 {
   "addresses": {
     "queryClient": "0x9EfeaC259c4D22Dd79305897563c5d30782C972b",
-    "registryImpl": "0xf258e7cc5Ef23A1e6BF9b28a5D4846C12D31B1db",
+    "registryImpl": "0xF8D534dC22132d2363aa0fC009fb33779Fc93462",
     "registryProxy": "0x2584665Beff871534118aAbAE781BC267Af142f9",
     "storageContract": "0x0000000000000000000000000000000000000000"
   },

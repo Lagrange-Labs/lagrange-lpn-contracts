@@ -53,7 +53,7 @@ base_mainnet_deploy_registry    :; ${DEPLOY_REGISTRY_CMD} base ${DEPLOY_FLAGS} $
 fraxtal_testnet_deploy_registry :; ${DEPLOY_REGISTRY_CMD} fraxtal_testnet ${DEPLOY_FLAGS}
 fraxtal_mainnet_deploy_registry :; ${DEPLOY_REGISTRY_CMD} fraxtal ${DEPLOY_FLAGS} ${MAINNET_DEPLOYER}
 mantle_testnet_deploy_registry  :; ${DEPLOY_REGISTRY_CMD} mantle_sepolia ${DEPLOY_FLAGS} --with-gas-price 20000000 -g 4000000
-mantle_mainnet_deploy_registry  :; ${DEPLOY_REGISTRY_CMD} mantle ${DEPLOY_FLAGS} ${MAINNET_DEPLOYER} --with-gas-price 20000000 -g 4000000
+mantle_mainnet_deploy_registry  :; ${DEPLOY_REGISTRY_CMD} mantle ${DEPLOY_FLAGS} ${MAINNET_DEPLOYER} --legacy -g 1000000
 
 # Deploy clients
 local_deploy_clients        :; ${DEPLOY_CLIENTS_CMD} local ${LOCAL_DEPLOY_FLAGS}
