@@ -4,8 +4,10 @@ pragma solidity ^0.8.0;
 import {Groth16VerifierExtensions} from "../Groth16VerifierExtensions.sol";
 
 uint8 constant LEGACY_QUERY_IDENTIFIER = 0;
+
 uint8 constant NFT_QUERY_IDENTIFIER =
     uint8(Groth16VerifierExtensions.QUERY_IDENTIFIER_NFT);
+
 uint8 constant ERC20_QUERY_IDENTIFIER =
     uint8(Groth16VerifierExtensions.QUERY_IDENTIFIER_ERC20);
 
@@ -82,7 +84,7 @@ interface ILPNRegistry {
         uint8 identifier;
         address userAddress;
         uint88 rewardsRate;
-        uint88 offset;
+        uint256 offset;
     }
 
     /// @notice The gas fee paid for on request to reimburse the response transaction.

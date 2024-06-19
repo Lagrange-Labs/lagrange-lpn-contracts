@@ -159,8 +159,8 @@ contract LPNRegistryV0 is ILPNRegistry, OwnableWhitelist, Initializable {
         queries[requestId] = Groth16VerifierExtensions.Query({
             contractAddress: storageContract,
             userAddress: cp.userAddress,
-            minBlockNumber: startBlock,
-            maxBlockNumber: endBlock,
+            minBlockNumber: uint96(startBlock),
+            maxBlockNumber: uint96(endBlock),
             blockHash: blockHash,
             clientAddress: msg.sender,
             rewardsRate: cp.rewardsRate,

@@ -172,13 +172,13 @@ contract LPNRegistryV0Test is Test {
 
         (
             address storageContract_,
+            uint96 startBlock_,
             address userAddress_,
+            uint96 endBlock_,
             address client_,
-            uint256 startBlock_,
-            uint256 endBlock_,
-            bytes32 blockhash_,
-            uint256 rewardsRate_,
-            uint256 identifier_
+            uint88 rewardsRate_,
+            uint8 identifier_,
+            bytes32 blockhash_
         ) = registry.queries(requestId);
 
         assertEq(requestId, 1);
@@ -234,13 +234,13 @@ contract LPNRegistryV0Test is Test {
 
         (
             address storageContract_,
+            uint96 startBlock_,
             address userAddress_,
+            uint96 endBlock_,
             address client_,
-            uint256 startBlock_,
-            uint256 endBlock_,
-            bytes32 blockhash_,
-            uint256 rewardsRate_,
-            uint256 identifier_
+            uint88 rewardsRate_,
+            uint8 identifier_,
+            bytes32 blockhash_
         ) = registry.queries(requestId);
 
         assertEq(requestId, 1);
@@ -472,13 +472,13 @@ contract LPNRegistryV0Test is Test {
 
         (
             address contractAddress,
+            uint96 minBlockNumber,
             address userAddressKey,
+            uint96 maxBlockNumber,
             address clientAddress,
-            uint256 minBlockNumber,
-            uint256 maxBlockNumber,
-            bytes32 blockHash,
-            uint256 rewardsRate,
-            uint256 identifier
+            uint88 rewardsRate,
+            uint8 identifier,
+            bytes32 blockHash
         ) = registry.queries(requestId);
 
         assertEq(contractAddress, address(0));
