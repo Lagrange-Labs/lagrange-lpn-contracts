@@ -1,10 +1,8 @@
 #! /bin/bash
 
-# GIT_REPO_PATH=../mapreduce-plonky2
 GIT_REPO_PATH=../Euclid-database
 CODE_DIR_PATH=groth16-framework/test_data
-# BRANCH=main
-BRANCH=erc20-groth16
+BRANCH=main
 VERIFIER_FILE=./src/Groth16Verifier.sol
 VERIFIER_EXTENSIONS_FILE=./src/Groth16VerifierExtensions.sol
 
