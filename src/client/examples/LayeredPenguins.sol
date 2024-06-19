@@ -8,9 +8,12 @@ import {
     ERC721
 } from "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import {L1BlockNumber} from "../../utils/L1Block.sol";
+import {QueryParams} from "../../utils/QueryParams.sol";
 
 /// @notice Refer to docs page https://lagrange-labs.gitbook.io/lagrange-v2-1/zk-coprocessor/testnet-euclid-developer-docs/example-nft-mint-whitelist-on-l2-with-pudgy-penguins
 contract LayeredPenguins is LPNClientV0, ERC721Enumerable {
+    using QueryParams for QueryParams.NFTQueryParams;
+
     address public constant PUDGY_PENGUINS =
         0xBd3531dA5CF5857e7CfAA92426877b022e612cf8;
     string public constant PUDGY_METADATA_URI =
@@ -41,10 +44,9 @@ contract LayeredPenguins is LPNClientV0, ERC721Enumerable {
     function queryPudgyPenguins() private returns (uint256) {
         return lpnRegistry.request{value: lpnRegistry.gasFee()}(
             PUDGY_PENGUINS,
-            bytes32(uint256(uint160(msg.sender))),
+            QueryParams.newNFTQueryParams(msg.sender, 0).toBytes32(),
             L1BlockNumber(),
-            L1BlockNumber(),
-            0
+            L1BlockNumber()
         );
     }
 

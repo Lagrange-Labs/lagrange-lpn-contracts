@@ -2,18 +2,17 @@
 pragma solidity ^0.8.13;
 
 import {LPNClientV0} from "./LPNClientV0.sol";
-import {
-    ILPNRegistry,
-    LEGACY_QUERY_IDENTIFIER,
-    NFT_QUERY_IDENTIFIER,
-    ERC20_QUERY_IDENTIFIER
-} from "../interfaces/ILPNRegistry.sol";
+import {ILPNRegistry} from "../interfaces/ILPNRegistry.sol";
+import {QueryParams} from "../utils/QueryParams.sol";
 
 /**
  * @title LPNQueryV0
  * @dev A contract for querying NFT ownership using the Lagrange Euclid testnet.
  */
 contract LPNQueryV0 is LPNClientV0 {
+    using QueryParams for QueryParams.NFTQueryParams;
+    using QueryParams for QueryParams.ERC20QueryParams;
+
     /**
      * @dev Struct to store metadata about a query request.
      * @param sender The address that sent the query request.
@@ -64,42 +63,18 @@ contract LPNQueryV0 is LPNClientV0 {
      * @param endBlock The ending block number for the query range.
      * @param offset The offset for pagination of results.
      */
-    function queryLegacy(
-        address storageContract,
-        address holder,
-        uint256 startBlock,
-        uint256 endBlock,
-        uint8 offset
-    ) external payable {
-        uint256 requestId = lpnRegistry.request{value: msg.value}(
-            storageContract,
-            bytes32(abi.encode(holder)),
-            startBlock,
-            endBlock,
-            offset
-        );
-
-        requests[requestId] =
-            RequestMetadata({sender: msg.sender, holder: holder});
-
-        emit Query(msg.sender, storageContract);
-    }
-
     function queryNFT(
         address storageContract,
         address holder,
         uint256 startBlock,
         uint256 endBlock,
-        uint8 offset
+        uint88 offset
     ) external payable {
-        ILPNRegistry.NFTQueryParams memory p = ILPNRegistry.NFTQueryParams({
-            identifier: NFT_QUERY_IDENTIFIER,
-            userAddress: holder,
-            offset: offset
-        });
-
         uint256 requestId = lpnRegistry.request{value: msg.value}(
-            storageContract, bytes32(abi.encode(p)), startBlock, endBlock, 0
+            storageContract,
+            QueryParams.newNFTQueryParams(holder, offset).toBytes32(),
+            startBlock,
+            endBlock
         );
 
         requests[requestId] =
@@ -108,21 +83,26 @@ contract LPNQueryV0 is LPNClientV0 {
         emit Query(msg.sender, storageContract);
     }
 
+    /**
+     * @dev Function to query the proportionate erc20 balance of a specific token holder over a range of blocks.
+     * @param storageContract The address of the NFT contract to query.
+     * @param holder The address of the NFT holder to query.
+     * @param startBlock The starting block number for the query range.
+     * @param endBlock The ending block number for the query range.
+     * @param rewardsRate The multiplier to apply for e.g. calculating rewards.
+     */
     function queryERC20(
         address storageContract,
         address holder,
         uint256 startBlock,
         uint256 endBlock,
-        uint8 rewardsRate
+        uint88 rewardsRate
     ) external payable {
-        ILPNRegistry.ERC20QueryParams memory p = ILPNRegistry.ERC20QueryParams({
-            identifier: ERC20_QUERY_IDENTIFIER,
-            userAddress: holder,
-            rewardsRate: rewardsRate
-        });
-
         uint256 requestId = lpnRegistry.request{value: msg.value}(
-            storageContract, bytes32(abi.encode(p)), startBlock, endBlock, 0
+            storageContract,
+            QueryParams.newERC20QueryParams(holder, rewardsRate).toBytes32(),
+            startBlock,
+            endBlock
         );
 
         requests[requestId] =

@@ -1,16 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {Groth16VerifierExtensions} from "../Groth16VerifierExtensions.sol";
-
-uint8 constant LEGACY_QUERY_IDENTIFIER = 0;
-
-uint8 constant NFT_QUERY_IDENTIFIER =
-    uint8(Groth16VerifierExtensions.QUERY_IDENTIFIER_NFT);
-
-uint8 constant ERC20_QUERY_IDENTIFIER =
-    uint8(Groth16VerifierExtensions.QUERY_IDENTIFIER_ERC20);
-
 /// @title ILPNRegistry
 /// @notice Interface for the LPNRegistryV0 contract.
 interface ILPNRegistry {
@@ -55,38 +45,6 @@ interface ILPNRegistry {
         uint256 indexed requestId, address indexed client, uint256[] results
     );
 
-    /// @notice Calldata parameters for an NFT Query
-    /// @param identifier The identifier for the query type
-    /// @param userAddress The address of the user associated with the query
-    /// @param offset The offset value for pagination or data fetching
-    struct NFTQueryParams {
-        uint8 identifier;
-        address userAddress;
-        uint88 offset;
-    }
-
-    /// @notice Calldata parameters for an ERC20 Query
-    /// @param identifier The identifier for the query type
-    /// @param userAddress The address of the user associated with the query
-    /// @param rewardsRate The rewards rate for the ERC20 token
-    struct ERC20QueryParams {
-        uint8 identifier;
-        address userAddress;
-        uint88 rewardsRate;
-    }
-
-    /// @notice Combined structure of all possible query parameters
-    /// @param identifier The identifier for the query type
-    /// @param userAddress The address of the user associated with the query
-    /// @param rewardsRate The rewards rate for the ERC20 token
-    /// @param offset The offset value for pagination or data fetching
-    struct CombinedParams {
-        uint8 identifier;
-        address userAddress;
-        uint88 rewardsRate;
-        uint256 offset;
-    }
-
     /// @notice The gas fee paid for on request to reimburse the response transaction.
     function gasFee() external returns (uint256);
 
@@ -105,17 +63,12 @@ interface ILPNRegistry {
     /// @param params The query params associated with this query type.
     /// @param startBlock The starting block for the computation.
     /// @param endBlock The ending block for the computation.
-
-    /// @custom:deprecated `offset` is only supported and necessary for legacy queries; for new NFT queries, specify as `params.offset`
-    /// @param offset The ending block for the computation.
-
     /// @return The ID of the newly created request.
     function request(
         address storageContract,
         bytes32 params,
         uint256 startBlock,
-        uint256 endBlock,
-        uint256 offset
+        uint256 endBlock
     ) external payable returns (uint256);
 
     /// @notice Submits a response to a specific request.

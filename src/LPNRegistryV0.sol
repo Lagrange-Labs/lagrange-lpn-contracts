@@ -1,12 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-import {
-    ILPNRegistry,
-    LEGACY_QUERY_IDENTIFIER,
-    NFT_QUERY_IDENTIFIER,
-    ERC20_QUERY_IDENTIFIER
-} from "./interfaces/ILPNRegistry.sol";
+import {ILPNRegistry} from "./interfaces/ILPNRegistry.sol";
 import {ILPNClient} from "./interfaces/ILPNClient.sol";
 import {OwnableWhitelist} from "./utils/OwnableWhitelist.sol";
 import {Initializable} from
@@ -14,6 +9,7 @@ import {Initializable} from
 import {Groth16VerifierExtensions} from "./Groth16VerifierExtensions.sol";
 import {L1BlockHash, L1BlockNumber} from "./utils/L1Block.sol";
 import {isEthereum, isOPStack, isMantle} from "./utils/Constants.sol";
+import {QueryParams} from "./utils/QueryParams.sol";
 
 /// @notice Error thrown when attempting to register a storage contract more than once.
 error ContractAlreadyRegistered();
@@ -40,13 +36,13 @@ error QueryInvalidRange();
 /// @notice Error thrown when gas fee is not paid.
 error InsufficientGasFee();
 
-/// @notice Error thrown when specifying an unknown query identifier.
-error UnsupportedQueryType();
-
 /// @title LPNRegistryV0
 /// @notice A registry contract for managing LPN (Lagrange Proving Network) clients and requests.
 contract LPNRegistryV0 is ILPNRegistry, OwnableWhitelist, Initializable {
+    using QueryParams for QueryParams.NFTQueryParams;
+
     /// @notice The maximum number of blocks a query can be computed over
+
     uint256 public constant MAX_QUERY_RANGE = 1000;
 
     /// @notice A constant gas fee paid for each request to reimburse the relayer when it delivers the response
@@ -133,8 +129,7 @@ contract LPNRegistryV0 is ILPNRegistry, OwnableWhitelist, Initializable {
         address storageContract,
         bytes32 params,
         uint256 startBlock,
-        uint256 endBlock,
-        uint256 offset
+        uint256 endBlock
     )
         external
         payable
@@ -154,7 +149,8 @@ contract LPNRegistryV0 is ILPNRegistry, OwnableWhitelist, Initializable {
             blockHash = L1BlockHash();
         }
 
-        CombinedParams memory cp = parseParams(params, offset);
+        QueryParams.CombinedParams memory cp =
+            QueryParams.combinedFromBytes32(params);
 
         queries[requestId] = Groth16VerifierExtensions.Query({
             contractAddress: storageContract,
@@ -223,55 +219,5 @@ contract LPNRegistryV0 is ILPNRegistry, OwnableWhitelist, Initializable {
     /// @notice Useful for backwards compatibility of prior contract version on Eth Mainnet
     function GAS_FEE() public view returns (uint256) {
         return gasFee();
-    }
-
-    /// @notice Parse structured values from 32 bytes of params
-    /// @param params 32-bytes of abi-encoded params values
-    /// @param legacyOffset the offset value to use for legacy nft queries
-    function parseParams(bytes32 params, uint256 legacyOffset)
-        private
-        pure
-        returns (CombinedParams memory)
-    {
-        CombinedParams memory cp = CombinedParams({
-            identifier: uint8(bytes1(params[0])),
-            userAddress: address(0),
-            rewardsRate: uint88(0),
-            offset: uint88(0)
-        });
-
-        /// @dev Legacy queries have `params == userAddress`, therefore leading byte is 00
-        ///      We also read the `offset` as a separate param in the calldata
-        if (cp.identifier == LEGACY_QUERY_IDENTIFIER) {
-            cp.identifier =
-                uint8(Groth16VerifierExtensions.QUERY_IDENTIFIER_NFT);
-
-            cp.userAddress = abi.decode(abi.encode(params), (address));
-            cp.offset = uint88(legacyOffset);
-
-            return cp;
-        }
-
-        if (cp.identifier == NFT_QUERY_IDENTIFIER) {
-            NFTQueryParams memory p =
-                abi.decode(abi.encode(params), (NFTQueryParams));
-
-            cp.userAddress = p.userAddress;
-            cp.offset = p.offset;
-
-            return cp;
-        }
-
-        if (cp.identifier == ERC20_QUERY_IDENTIFIER) {
-            ERC20QueryParams memory p =
-                abi.decode(abi.encode(params), (ERC20QueryParams));
-
-            cp.userAddress = p.userAddress;
-            cp.rewardsRate = p.rewardsRate;
-
-            return cp;
-        }
-
-        revert UnsupportedQueryType();
     }
 }

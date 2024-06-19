@@ -26,6 +26,7 @@ import {
 } from "../src/utils/Constants.sol";
 import {IOptimismL1Block} from "../src/interfaces/IOptimismL1Block.sol";
 import {Ownable} from "solady/auth/Ownable.sol";
+import {QueryParams} from "../src/utils/QueryParams.sol";
 
 contract MockLPNClient is ILPNClient {
     uint256 public lastRequestId;
@@ -40,6 +41,8 @@ contract MockLPNClient is ILPNClient {
 }
 
 contract LPNRegistryV0Test is Test {
+    using QueryParams for QueryParams.NFTQueryParams;
+
     LPNRegistryV0 public registry;
     MockLPNClient client;
 
@@ -148,7 +151,10 @@ contract LPNRegistryV0Test is Test {
         bytes32 blockHash = 0;
         vm.roll(blockNumber);
         register(storageContract, 1, 2);
-        bytes32 params = bytes32(abi.encode(makeAddr("addr-to-query")));
+        address userAddress = makeAddr("some-user");
+        bytes32 params = QueryParams.newNFTQueryParams(
+            userAddress, uint88(offset)
+        ).toBytes32();
         uint256 startBlock = block.number;
         uint256 endBlock = startBlock;
 
@@ -167,7 +173,7 @@ contract LPNRegistryV0Test is Test {
 
         vm.prank(address(client));
         uint256 requestId = registry.request{value: gasFee}(
-            storageContract, params, startBlock, endBlock, offset
+            storageContract, params, startBlock, endBlock
         );
 
         (
@@ -200,7 +206,12 @@ contract LPNRegistryV0Test is Test {
         bytes32 l1BlockHash = bytes32("567");
         vm.chainId(BASE_MAINNET);
         vm.roll(l2Block);
-        bytes32 params = bytes32(abi.encode(makeAddr("addr-to-query")));
+        address userAddress = makeAddr("some-user");
+
+        bytes32 params = QueryParams.newNFTQueryParams(
+            userAddress, uint88(offset)
+        ).toBytes32();
+
         uint256 startBlock = l1Block;
         uint256 endBlock = startBlock;
 
@@ -229,7 +240,7 @@ contract LPNRegistryV0Test is Test {
         );
         vm.prank(address(client));
         uint256 requestId = registry.request{value: gasFee}(
-            storageContract, params, startBlock, endBlock, offset
+            storageContract, params, startBlock, endBlock
         );
 
         (
@@ -257,7 +268,7 @@ contract LPNRegistryV0Test is Test {
     }
 
     function testRequestValidateQueryRange() public {
-        bytes32 key = keccak256("key");
+        address userAddress = makeAddr("some-user");
         uint256 startBlock;
         uint256 endBlock;
 
@@ -265,7 +276,11 @@ contract LPNRegistryV0Test is Test {
         vm.expectRevert(QueryUnregistered.selector);
         vm.prank(address(client));
         registry.request{value: gasFee}(
-            storageContract, key, startBlock, endBlock, offset
+            storageContract,
+            QueryParams.newNFTQueryParams(userAddress, uint88(offset)).toBytes32(
+            ),
+            startBlock,
+            endBlock
         );
 
         // Test QueryBeforeIndexed error
@@ -275,7 +290,11 @@ contract LPNRegistryV0Test is Test {
         vm.expectRevert(QueryBeforeIndexed.selector);
         vm.prank(address(client));
         registry.request{value: gasFee}(
-            storageContract, key, startBlock, endBlock, offset
+            storageContract,
+            QueryParams.newNFTQueryParams(userAddress, uint88(offset)).toBytes32(
+            ),
+            startBlock,
+            endBlock
         );
 
         // Test QueryAfterCurrentBlock error
@@ -284,7 +303,11 @@ contract LPNRegistryV0Test is Test {
         vm.expectRevert(QueryAfterCurrentBlock.selector);
         vm.prank(address(client));
         registry.request{value: gasFee}(
-            storageContract, key, startBlock, endBlock, offset
+            storageContract,
+            QueryParams.newNFTQueryParams(userAddress, uint88(offset)).toBytes32(
+            ),
+            startBlock,
+            endBlock
         );
 
         // Test QueryInvalidRange error
@@ -293,7 +316,11 @@ contract LPNRegistryV0Test is Test {
         vm.expectRevert(QueryInvalidRange.selector);
         vm.prank(address(client));
         registry.request{value: gasFee}(
-            storageContract, key, startBlock, endBlock, offset
+            storageContract,
+            QueryParams.newNFTQueryParams(userAddress, uint88(offset)).toBytes32(
+            ),
+            startBlock,
+            endBlock
         );
 
         vm.roll(block.number + (registry.MAX_QUERY_RANGE() + 1));
@@ -303,13 +330,17 @@ contract LPNRegistryV0Test is Test {
         vm.expectRevert(QueryGreaterThanMaxRange.selector);
         vm.prank(address(client));
         registry.request{value: gasFee}(
-            storageContract, key, startBlock, endBlock, offset
+            storageContract,
+            QueryParams.newNFTQueryParams(userAddress, uint88(offset)).toBytes32(
+            ),
+            startBlock,
+            endBlock
         );
     }
 
     function testRequestOPValidateQueryRange() public {
         vm.chainId(BASE_MAINNET);
-        bytes32 key = keccak256("key");
+        address userAddress = makeAddr("some-user");
         uint256 l1Block = 12345;
 
         vm.mockCall(
@@ -327,7 +358,11 @@ contract LPNRegistryV0Test is Test {
         vm.expectRevert(QueryAfterCurrentBlock.selector);
         vm.prank(address(client));
         registry.request{value: gasFee}(
-            storageContract, key, startBlock, endBlock, offset
+            storageContract,
+            QueryParams.newNFTQueryParams(userAddress, uint88(offset)).toBytes32(
+            ),
+            startBlock,
+            endBlock
         );
 
         // Test QueryInvalidRange error
@@ -335,7 +370,11 @@ contract LPNRegistryV0Test is Test {
         vm.expectRevert(QueryInvalidRange.selector);
         vm.prank(address(client));
         registry.request{value: gasFee}(
-            storageContract, key, startBlock, endBlock, offset
+            storageContract,
+            QueryParams.newNFTQueryParams(userAddress, uint88(offset)).toBytes32(
+            ),
+            startBlock,
+            endBlock
         );
 
         vm.mockCall(
@@ -348,12 +387,16 @@ contract LPNRegistryV0Test is Test {
         vm.expectRevert(QueryGreaterThanMaxRange.selector);
         vm.prank(address(client));
         registry.request{value: gasFee}(
-            storageContract, key, startBlock, endBlock, offset
+            storageContract,
+            QueryParams.newNFTQueryParams(userAddress, uint88(offset)).toBytes32(
+            ),
+            startBlock,
+            endBlock
         );
     }
 
     function testRequestInsufficientGas() public {
-        bytes32 key = keccak256("key");
+        address userAddress = makeAddr("some-user");
         uint256 startBlock;
         uint256 endBlock;
 
@@ -363,20 +406,32 @@ contract LPNRegistryV0Test is Test {
         vm.expectRevert(InsufficientGasFee.selector);
         vm.prank(address(client));
         registry.request{value: 0}(
-            storageContract, key, startBlock, endBlock, offset
+            storageContract,
+            QueryParams.newNFTQueryParams(userAddress, uint88(offset)).toBytes32(
+            ),
+            startBlock,
+            endBlock
         );
 
         vm.expectRevert(InsufficientGasFee.selector);
         vm.prank(address(client));
         registry.request{value: 0.049 ether}(
-            storageContract, key, startBlock, endBlock, offset
+            storageContract,
+            QueryParams.newNFTQueryParams(userAddress, uint88(offset)).toBytes32(
+            ),
+            startBlock,
+            endBlock
         );
 
         vm.chainId(BASE_MAINNET);
         vm.expectRevert(InsufficientGasFee.selector);
         vm.prank(address(client));
         registry.request{value: 0.00044 ether}(
-            storageContract, key, startBlock, endBlock, offset
+            storageContract,
+            QueryParams.newNFTQueryParams(userAddress, uint88(offset)).toBytes32(
+            ),
+            startBlock,
+            endBlock
         );
     }
 
@@ -385,7 +440,6 @@ contract LPNRegistryV0Test is Test {
         uint256 endBlock = 19662380;
         uint256 proofBlock = 19662458;
         address userAddress = 0x8B58f7C312406d7C6A5D01898f0C5aef31eE51a7;
-        bytes32 key = bytes32(uint256(uint160(userAddress)));
 
         uint8[1] memory nftIds = [0];
 
@@ -400,7 +454,11 @@ contract LPNRegistryV0Test is Test {
 
         vm.prank(address(client));
         uint256 requestId = registry.request{value: gasFee}(
-            otherStorageContract, key, startBlock, endBlock, offset
+            otherStorageContract,
+            QueryParams.newNFTQueryParams(userAddress, uint88(offset)).toBytes32(
+            ),
+            startBlock,
+            endBlock
         );
 
         bytes32[] memory proof = readProof("/test/full_proof.bin");
@@ -432,7 +490,6 @@ contract LPNRegistryV0Test is Test {
         bytes32 l1BlockHash =
             0x1753f6b036b3367cfacbdd088a1418ad57461c7e0d9929c79a7db2110e5480fd;
         address userAddress = 0x8B58f7C312406d7C6A5D01898f0C5aef31eE51a7;
-        bytes32 key = bytes32(uint256(uint160(userAddress)));
 
         uint16[5] memory nftIds = [8782, 8538, 2760, 4567, 4319];
 
@@ -456,7 +513,11 @@ contract LPNRegistryV0Test is Test {
 
         vm.prank(address(client));
         uint256 requestId = registry.request{value: gasFee}(
-            otherStorageContract, key, startBlock, endBlock, offset
+            otherStorageContract,
+            QueryParams.newNFTQueryParams(userAddress, uint88(offset)).toBytes32(
+            ),
+            startBlock,
+            endBlock
         );
 
         bytes32[] memory proof = readProof("/test/full_proof.bin");

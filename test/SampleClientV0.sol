@@ -3,8 +3,11 @@ pragma solidity ^0.8.13;
 
 import {LPNClientV0} from "../src/client/LPNClientV0.sol";
 import {ILPNRegistry} from "../src/interfaces/ILPNRegistry.sol";
+import {QueryParams} from "../src/utils/QueryParams.sol";
 
 contract SampleClientV0 is LPNClientV0 {
+    using QueryParams for QueryParams.NFTQueryParams;
+
     uint256 numHolders; // storage slot 1 (storage slot 0 is inherited)
     mapping(address holder => uint256 balance) balances; // storage slot 2
 
@@ -27,13 +30,12 @@ contract SampleClientV0 is LPNClientV0 {
     }
 
     function queryAverage(address holder) external {
-        uint256 offset = 0;
+        uint88 offset = 0;
         uint256 requestId = lpnRegistry.request{value: lpnRegistry.gasFee()}(
             address(this),
-            bytes32(uint256(uint160(holder))),
+            QueryParams.newNFTQueryParams(holder, offset).toBytes32(),
             block.number,
-            block.number,
-            offset
+            block.number
         );
 
         // We can store the requestID if we need to access other data in the callback
