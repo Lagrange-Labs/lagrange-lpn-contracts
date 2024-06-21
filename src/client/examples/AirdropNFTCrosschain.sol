@@ -9,8 +9,11 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Pausable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import {QueryParams} from "../../utils/QueryParams.sol";
 
 contract AirdropNFTCrosschain is LPNClientV0 {
+    using QueryParams for QueryParams.NFTQueryParams;
+
     // Fill these in with the values that match the deployed NFT contract you want to query:
     uint256 public constant OWNERS_STORAGE_SLOT = 2; /* Change Me */
     uint256 public constant OWNERS_SIZE_SLOT = 8; /* Change Me */
@@ -46,10 +49,9 @@ contract AirdropNFTCrosschain is LPNClientV0 {
     ) external payable {
         uint256 requestId = lpnRegistry.request{value: lpnRegistry.gasFee()}(
             address(lloons),
-            bytes32(uint256(uint160(holder))),
+            QueryParams.newNFTQueryParams(holder, uint88(offset)).toBytes32(),
             startBlock,
-            endBlock,
-            offset
+            endBlock
         );
 
         // We can store the requestID if we need to access other data in the callback

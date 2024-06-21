@@ -9,6 +9,7 @@ import {Initializable} from
 import {Groth16VerifierExtensions} from "./Groth16VerifierExtensions.sol";
 import {L1BlockHash, L1BlockNumber} from "./utils/L1Block.sol";
 import {isEthereum, isOPStack, isMantle} from "./utils/Constants.sol";
+import {QueryParams} from "./utils/QueryParams.sol";
 
 /// @notice Error thrown when attempting to register a storage contract more than once.
 error ContractAlreadyRegistered();
@@ -38,7 +39,10 @@ error InsufficientGasFee();
 /// @title LPNRegistryV0
 /// @notice A registry contract for managing LPN (Lagrange Proving Network) clients and requests.
 contract LPNRegistryV0 is ILPNRegistry, OwnableWhitelist, Initializable {
+    using QueryParams for QueryParams.NFTQueryParams;
+
     /// @notice The maximum number of blocks a query can be computed over
+
     uint256 public constant MAX_QUERY_RANGE = 1000;
 
     /// @notice A constant gas fee paid for each request to reimburse the relayer when it delivers the response
@@ -123,10 +127,9 @@ contract LPNRegistryV0 is ILPNRegistry, OwnableWhitelist, Initializable {
 
     function request(
         address storageContract,
-        bytes32 key,
+        bytes32 params,
         uint256 startBlock,
-        uint256 endBlock,
-        uint256 offset
+        uint256 endBlock
     )
         external
         payable
@@ -140,31 +143,38 @@ contract LPNRegistryV0 is ILPNRegistry, OwnableWhitelist, Initializable {
 
         uint256 proofBlock = 0;
         bytes32 blockHash = 0;
+
         if (!isEthereum()) {
             proofBlock = L1BlockNumber();
             blockHash = L1BlockHash();
         }
 
+        QueryParams.CombinedParams memory cp =
+            QueryParams.combinedFromBytes32(params);
+
         queries[requestId] = Groth16VerifierExtensions.Query({
             contractAddress: storageContract,
-            userAddress: address(uint160(uint256(key))),
-            minBlockNumber: startBlock,
-            maxBlockNumber: endBlock,
+            userAddress: cp.userAddress,
+            minBlockNumber: uint96(startBlock),
+            maxBlockNumber: uint96(endBlock),
             blockHash: blockHash,
-            clientAddress: msg.sender
+            clientAddress: msg.sender,
+            rewardsRate: cp.rewardsRate,
+            identifier: cp.identifier
         });
 
         emit NewRequest(
             requestId,
             storageContract,
             msg.sender,
-            key,
+            params,
             startBlock,
             endBlock,
-            offset,
+            cp.offset,
             msg.value,
             proofBlock
         );
+
         return requestId;
     }
 

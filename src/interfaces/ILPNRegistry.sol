@@ -20,7 +20,7 @@ interface ILPNRegistry {
     /// @param requestId The ID of the request.
     /// @param storageContract The address of the smart contract with the storage associated with the request.
     /// @param client The address of the client who made this request.
-    /// @param key The key of the mapping for the value associated with the request.
+    /// @param params The query params associated with this query type.
     /// @param startBlock The starting block for the computation.
     /// @param endBlock The ending block for the computation.
     /// @param proofBlock The requested block for the proof to be computed against.
@@ -29,7 +29,7 @@ interface ILPNRegistry {
         uint256 indexed requestId,
         address indexed storageContract,
         address indexed client,
-        bytes32 key,
+        bytes32 params,
         uint256 startBlock,
         uint256 endBlock,
         uint256 offset,
@@ -60,16 +60,15 @@ interface ILPNRegistry {
 
     /// @notice Submits a new request to the registry.
     /// @param storageContract The address of the smart contract with the storage associated with the request.
-    /// @param key The key of the mapping for the value associated with the request.
+    /// @param params The query params associated with this query type.
     /// @param startBlock The starting block for the computation.
     /// @param endBlock The ending block for the computation.
     /// @return The ID of the newly created request.
     function request(
         address storageContract,
-        bytes32 key,
+        bytes32 params,
         uint256 startBlock,
-        uint256 endBlock,
-        uint256 offset
+        uint256 endBlock
     ) external payable returns (uint256);
 
     /// @notice Submits a response to a specific request.
