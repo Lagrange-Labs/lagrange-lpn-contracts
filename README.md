@@ -1,68 +1,119 @@
-## Foundry
+# Lagrange ZK Prover Network Contracts
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+This repository contains smart contracts for the Lagrange ZK Prover Network. These contracts are designed to manage queries, responses, and client interactions within the LPN ecosystem.
 
-Foundry consists of:
+You can read [additional documentation here](https://docs.lagrange.dev/zk-coprocessor/euclid-testnet/overview)
 
--   **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
--   **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
--   **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
--   **Chisel**: Fast, utilitarian, and verbose solidity REPL.
+You can see the [Lagrange ZK Prover Network AVS Contracts here](https://github.com/Lagrange-Labs/zkmr-avs-contracts)
 
-## Documentation
+## Commands and Scripts
 
-https://book.getfoundry.sh/
+### Environment Setup
+Be sure to include a `.env` file and export the environment variables shown in `.env.example`
 
-## Usage
+### Installation
+Install dependencies:
+```bash
+$ forge install
+$ forge update
+```
 
-### Build
-
-```shell
+### Build & Test
+```bash
 $ forge build
-```
-
-### Test
-
-```shell
 $ forge test
+$ forge test -vvv
 ```
 
-### Format
+### Deployment
+```bash
+# Local development
+$ make local_deploy_registry
+$ make local_deploy_clients
 
-```shell
-$ forge fmt
+# Deploy to Testnet
+$ make holesky_deploy_registry
+$ make holesky_deploy_clients
+
+# Deploy to Mainnet
+$ make mainnet_deploy_registry
+$ make mainnet_deploy_clients
 ```
 
-### Gas Snapshots
+### Queries
+```bash
+# Run queries on different networks
+$ make holesky_query
 
-```shell
-$ forge snapshot
+$ make mainnet_query
+$ make base_mainnet_query
+$ make fraxtal_mainnet_query
+$ make mantle_mainnet_query
 ```
 
-### Anvil
+## Key Features
 
-```shell
-$ anvil
+- Currently Supports ERC721Enumerable tokenId and ERC20 balance queries (with generalized SQL queries of any contract states coming soon!)
+- Implements a registry for managing storage contract indexing + query requests and callbacks
+- Supports deployment on multiple networks (anvil, holesky, mainnet, base, fraxtal, mantle)
+
+## Contract Interactions
+
+1. Storage contracts registered for indexing + proving with `LPNRegistryV0`
+2. Query requests + verification and callback with `LPNRegistryV0`
+2. Users can make queries by deploying a client contract that implements `LPNClientV0`. See `LPNQueryV0` for an example
+3. The ZK Proving Network indexes storage contracts and proves queries of historical state from these contracts
+4. Verified results are returned via the `processCallback` function implemented in the user's smart contract
+
+## Key Structs and Contracts
+
+### QueryParams
+Represents parameters for different types of queries (NFT and ERC20).
+
+```solidity
+struct NFTQueryParams {
+    uint8 identifier;
+    address userAddress;
+    uint88 offset;
+}
+
+struct ERC20QueryParams {
+    uint8 identifier;
+    address userAddress;
+    uint88 rewardsRate;
+}
 ```
 
-### Deploy
+### LPNRegistryV0
+Main contract for managing storage contract registration + query requests + query verification and results callback
 
-```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
+```solidity
+contract LPNRegistryV0 is ILPNRegistry, OwnableWhitelist, Initializable {
+    // Key functions
+    function register(address storageContract, uint256 mappingSlot, uint256 lengthSlot) external;
+    function request(address storageContract, bytes32 params, uint256 startBlock, uint256 endBlock) external payable returns (uint256);
+    function respond(uint256 requestId_, bytes32[] calldata data, uint256 blockNumber) external;
+}
 ```
 
-### Cast
+### LPNClientV0
+Abstract contract for LPN clients.
 
-```shell
-$ cast <subcommand>
+```solidity
+abstract contract LPNClientV0 is ILPNClient {
+    function lpnCallback(uint256 requestId, uint256[] calldata results) external;
+    function processCallback(uint256 requestId, uint256[] calldata results) internal virtual;
+}
 ```
 
-### Help
+### LPNQueryV0
+Example contract for querying NFT ownership and ERC20 balances using the Lagrange Proving Network.
 
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
+```solidity
+contract LPNQueryV0 is LPNClientV0 {
+    function queryNFT(address storageContract, address holder, uint256 startBlock, uint256 endBlock, uint88 offset) external payable;
+    function queryERC20(address storageContract, address holder, uint256 startBlock, uint256 endBlock, uint88 rewardsRate) external payable;
+}
 ```
 
 # Credit - [Gnark](https://github.com/Consensys/gnark)
