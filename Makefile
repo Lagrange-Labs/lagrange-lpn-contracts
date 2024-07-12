@@ -7,10 +7,10 @@ VERBOSITY=-vvvv
 LOCAL_DEPLOY_FLAGS=--broadcast ${VERBOSITY} --ffi --slow
 DEPLOY_FLAGS=--verify ${LOCAL_DEPLOY_FLAGS}
 MAINNET_DEPLOYER=--account v0_owner --sender ${DEPLOYER_ADDR}
-
 DEPLOY_PROXY_FACTORY_CMD=forge script DeployERC1967ProxyFactory --rpc-url
 DEPLOY_REGISTRY_CMD=forge script DeployLPNRegistry --rpc-url
 DEPLOY_CLIENTS_CMD=forge script DeployClients --rpc-url
+DEPLOY_ERC20_CMD=forge script DeployERC20 --rpc-url
 QUERY_CMD=forge script Query --rpc-url
 WITHDRAW_FEES_CMD=forge script WithdrawFees --rpc-url
 BRIDGE_CMD=forge script Bridge --rpc-url
@@ -58,7 +58,8 @@ mantle_mainnet_deploy_registry  :; ${DEPLOY_REGISTRY_CMD} mantle ${DEPLOY_FLAGS}
 # Deploy clients
 local_deploy_clients        :; ${DEPLOY_CLIENTS_CMD} local ${LOCAL_DEPLOY_FLAGS}
 testnet_deploy_clients      :; ${DEPLOY_CLIENTS_CMD} sepolia ${DEPLOY_FLAGS} --priority-gas-price 0.1gwei
-holesky_deploy_clients      :; ${DEPLOY_CLIENTS_CMD} holesky ${DEPLOY_FLAGS} --priority-gas-price 0.1gwei
+holesky_deploy_clients      :; ${DEPLOY_CLIENTS_CMD} holesky ${DEPLOY_FLAGS} --gas-estimate-multiplier 1000 # multiply estimate by 10
+holesky_deploy_test_erc20   :; ${DEPLOY_ERC20_CMD} holesky ${DEPLOY_FLAGS} --gas-estimate-multiplier 1000 --sender ${DEPLOYER_ADDR}
 mainnet_deploy_clients      :; ${DEPLOY_CLIENTS_CMD} mainnet ${DEPLOY_FLAGS} --priority-gas-price 0.5gwei --account v0_owner
 base_testnet_deploy_clients :; ${DEPLOY_CLIENTS_CMD} base_sepolia ${DEPLOY_FLAGS}
 base_mainnet_deploy_clients :; ${DEPLOY_CLIENTS_CMD} base ${DEPLOY_FLAGS} ${MAINNET_DEPLOYER}

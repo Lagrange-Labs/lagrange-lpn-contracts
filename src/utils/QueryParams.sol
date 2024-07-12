@@ -1,13 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-import {Groth16VerifierExtensions} from "../Groth16VerifierExtensions.sol";
-
-uint8 constant NFT_QUERY_IDENTIFIER =
-    uint8(Groth16VerifierExtensions.QUERY_IDENTIFIER_NFT);
-
-uint8 constant ERC20_QUERY_IDENTIFIER =
-    uint8(Groth16VerifierExtensions.QUERY_IDENTIFIER_ERC20);
+/// @dev from Groth16VerifierExtensions
+uint8 constant NFT_QUERY_IDENTIFIER = 67;
+uint8 constant ERC20_QUERY_IDENTIFIER = 88;
 
 /// @notice Error thrown when specifying params with an unknown query identifier.
 error UnsupportedParams();
