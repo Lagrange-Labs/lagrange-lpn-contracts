@@ -40,6 +40,8 @@ uint256 constant PUDGEY_PENGUINS_LENGTH_SLOT = 8;
 uint256 constant LAGRANGE_LOONS_MAPPING_SLOT = 2;
 uint256 constant LAGRANGE_LOONS_LENGTH_SLOT = 8;
 
+uint256 constant TEST_ERC20_MAPPING_SLOT = 4;
+
 function isEthereum() view returns (bool) {
     return block.chainid == ETH_MAINNET || block.chainid == ETH_SEPOLIA
         || block.chainid == ETH_HOLESKY;
