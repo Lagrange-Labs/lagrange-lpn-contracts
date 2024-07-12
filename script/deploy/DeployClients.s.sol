@@ -70,12 +70,14 @@ contract DeployClients is BaseScript {
     /// @notice Deploys LPNQueryV0 on all chains; Deploys LagrangeLoonsNFT on Sepolia
     /// @return Deployment addresses of deployed contracts; address(0) if storageContract is skipped
     function deploy() public returns (Deployment memory) {
-        address queryClient = address(new LPNQueryV0(registry));
+        // TODO: Use an upgradeable proxy next time the query client changes
+        address queryClient =
+            address(new LPNQueryV0{salt: "LPNQueryV0_1"}(registry));
         print("LPNQueryV0", queryClient);
 
         if (isMainnet()) {
             return Deployment({
-                storageContract: getDeployedStorageContract(),
+                storageContract: getDeployedStorageContract("erc721Enumerable"),
                 queryClient: queryClient
             });
         }
@@ -117,7 +119,7 @@ contract DeployClients is BaseScript {
         vm.writeJson(
             vm.toString(deployment.storageContract),
             outputPath(),
-            ".addresses.storageContract"
+            ".addresses.storageContract.erc721Enumerable"
         );
 
         vm.writeJson(

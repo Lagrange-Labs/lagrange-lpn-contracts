@@ -77,18 +77,28 @@ abstract contract BaseScript is Script {
         return json.readAddress(".addresses.registryProxy");
     }
 
-    function getDeployedStorageContract() internal returns (address) {
-        string memory json = vm.readFile(outputPath());
-        return json.readAddress(".addresses.storageContract");
-    }
-
-    function getDeployedStorageContract(string memory chainName)
+    function getDeployedStorageContract(string memory contractType)
         internal
-        view
         returns (address)
     {
+        string memory json = vm.readFile(outputPath());
+        return json.readAddress(
+            string(
+                abi.encodePacked(".addresses.storageContracts.", contractType)
+            )
+        );
+    }
+
+    function getDeployedStorageContract(
+        string memory contractType,
+        string memory chainName
+    ) internal view returns (address) {
         string memory json = vm.readFile(outputPath(chainName));
-        return json.readAddress(".addresses.storageContract");
+        return json.readAddress(
+            string(
+                abi.encodePacked(".addresses.storageContracts.", contractType)
+            )
+        );
     }
 
     function getDeployedQueryClient() internal returns (address) {
