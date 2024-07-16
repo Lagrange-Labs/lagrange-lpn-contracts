@@ -42,8 +42,7 @@ contract LPNRegistryV0 is ILPNRegistry, OwnableWhitelist, Initializable {
     using QueryParams for QueryParams.NFTQueryParams;
 
     /// @notice The maximum number of blocks a query can be computed over
-
-    uint256 public constant MAX_QUERY_RANGE = 1000;
+    uint256 public constant MAX_QUERY_RANGE = 50_000;
 
     /// @notice A constant gas fee paid for each request to reimburse the relayer when it delivers the response
     uint256 public constant ETH_GAS_FEE = 0.05 ether;
@@ -93,7 +92,7 @@ contract LPNRegistryV0 is ILPNRegistry, OwnableWhitelist, Initializable {
         if (startBlock > endBlock) {
             revert QueryInvalidRange();
         }
-        if (endBlock - startBlock > MAX_QUERY_RANGE) {
+        if (endBlock - startBlock + 1 > MAX_QUERY_RANGE) {
             revert QueryGreaterThanMaxRange();
         }
         _;
