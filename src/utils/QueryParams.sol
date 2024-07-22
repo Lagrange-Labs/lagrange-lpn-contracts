@@ -42,6 +42,15 @@ library QueryParams {
         uint256 offset;
     }
 
+    struct BridgedParams {
+        address storageContract;
+        bytes32 params;
+        uint256 startBlock;
+        uint256 endBlock;
+        bytes32 blockHash;
+        uint256 proofBlock;
+    }
+
     function newNFTQueryParams(address userAddress, uint88 offset)
         internal
         pure

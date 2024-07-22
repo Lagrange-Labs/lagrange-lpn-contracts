@@ -8,7 +8,9 @@ import {Initializable} from
     "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {Groth16VerifierExtensions} from "./Groth16VerifierExtensions.sol";
 import {L1BlockHash, L1BlockNumber} from "./utils/L1Block.sol";
-import {isEthereum, isOPStack, isMantle} from "./utils/Constants.sol";
+import {
+    isEthereum, isOPStack, isMantle, ETH_MAINNET
+} from "./utils/Constants.sol";
 import {QueryParams} from "./utils/QueryParams.sol";
 
 /// @notice Error thrown when attempting to register a storage contract more than once.
@@ -121,6 +123,47 @@ contract LPNRegistryV0 is ILPNRegistry, OwnableWhitelist, Initializable {
         indexStart[storageContract] = block.number;
         emit NewRegistration(
             storageContract, msg.sender, mappingSlot, lengthSlot
+        );
+    }
+
+    function onMessageReceived(
+        address originAddress,
+        uint32 originNetwork,
+        bytes memory data
+    ) external payable {
+        address bridgeContract = address(0);
+
+        if (originNetwork == ETH_MAINNET) {}
+
+        if (originAddress == bridgeContract) {}
+
+        QueryParams.BridgedParams memory bp =
+            abi.decode(data, (QueryParams.BridgedParams));
+
+        QueryParams.CombinedParams memory cp =
+            QueryParams.combinedFromBytes32(bp.params);
+
+        queries[requestId] = Groth16VerifierExtensions.Query({
+            contractAddress: bp.storageContract,
+            userAddress: cp.userAddress,
+            minBlockNumber: uint96(bp.startBlock),
+            maxBlockNumber: uint96(bp.endBlock),
+            blockHash: bp.blockHash,
+            clientAddress: msg.sender,
+            rewardsRate: cp.rewardsRate,
+            identifier: cp.identifier
+        });
+
+        emit NewRequest(
+            requestId,
+            bp.storageContract,
+            msg.sender,
+            bp.params,
+            bp.startBlock,
+            bp.endBlock,
+            cp.offset,
+            msg.value,
+            bp.proofBlock
         );
     }
 
