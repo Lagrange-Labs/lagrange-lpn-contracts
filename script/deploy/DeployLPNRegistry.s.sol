@@ -89,18 +89,24 @@ contract DeployLPNRegistry is BaseScript {
         string memory json = "deploymentArtifact";
 
         string memory addresses = "addresses";
-        addresses.serialize("storageContract", address(0));
         addresses.serialize("queryClient", address(0));
         addresses.serialize("registryImpl", deployment.registryImpl);
         addresses = addresses.serialize(
             "registryProxy", address(deployment.registryProxy)
         );
 
+        string memory storageContracts = "storageContracts";
+        storageContracts.serialize("erc721Enumerable", address(0));
+        storageContracts.serialize("erc20ProportionateBalance", address(0));
+        storageContracts =
+            storageContracts.serialize("erc20AvgBalance", address(0));
+
         string memory chainInfo = "chainInfo";
         chainInfo.serialize("chainId", block.chainid);
         chainInfo = chainInfo.serialize("deploymentBlock", block.number);
 
         json.serialize("addresses", addresses);
+        json.serialize("storageContracts", storageContracts);
         json = json.serialize("chainInfo", chainInfo);
 
         json.write(outputPath());

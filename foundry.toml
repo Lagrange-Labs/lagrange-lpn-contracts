@@ -25,6 +25,7 @@ mainnet = "${MAINNET_RPC_URL}"
 base = "${BASE_RPC_URL}"
 fraxtal = "https://rpc.frax.com"
 mantle = "https://rpc.mantle.xyz"
+polygon_zkevm = "https://zkevm-rpc.com"
 
 [etherscan]
 sepolia = { key = "${MAINNET_ETHERSCAN_API_KEY}" }
@@ -37,3 +38,4 @@ mainnet = { key = "${MAINNET_ETHERSCAN_API_KEY}" }
 base = { key = "${BASESCAN_API_KEY}" }
 fraxtal = { key = "${FRAXSCAN_API_KEY}" }
 mantle = { key = "${MANTLESCAN_API_KEY}" }
+polygon_zkevm = { key = "${POLYGONSCAN_API_KEY}" }
