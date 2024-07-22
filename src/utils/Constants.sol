@@ -18,6 +18,7 @@ uint256 constant FRAXTAL_HOLESKY = 2522;
 
 uint256 constant MANTLE_SEPOLIA = 5003;
 uint256 constant MANTLE_MAINNET = 5000;
+uint256 constant POLYGON_ZKEVM = 1101;
 
 address constant OP_STACK_L1_BLOCK_PREDEPLOY_ADDR =
     0x4200000000000000000000000000000000000015;
@@ -53,6 +54,10 @@ function isOPStack() view returns (bool) {
         size := extcodesize(OP_STACK_L1_BLOCK_PREDEPLOY_ADDR)
     }
     return (size > 0);
+}
+
+function isCDK() view returns (bool) {
+    return block.chainid == POLYGON_ZKEVM;
 }
 
 function isMantle() view returns (bool) {
