@@ -8,7 +8,7 @@ import {Initializable} from
     "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {Groth16VerifierExtensions} from "./Groth16VerifierExtensions.sol";
 import {L1BlockHash, L1BlockNumber} from "./utils/L1Block.sol";
-import {isEthereum, isOPStack, isMantle} from "./utils/Constants.sol";
+import {isEthereum, isOPStack, isMantle, isCDK} from "./utils/Constants.sol";
 import {QueryParams} from "./utils/QueryParams.sol";
 
 /// @notice Error thrown when attempting to register a storage contract more than once.
@@ -47,6 +47,7 @@ contract LPNRegistryV0 is ILPNRegistry, OwnableWhitelist, Initializable {
     /// @notice A constant gas fee paid for each request to reimburse the relayer when it delivers the response
     uint256 public constant ETH_GAS_FEE = 0.05 ether;
     uint256 public constant OP_GAS_FEE = 0.00045 ether;
+    uint256 public constant CDK_GAS_FEE = 0.00045 ether;
     /// @dev Mantle uses a custom gas token
     uint256 public constant MANTLE_GAS_FEE = 1.5 ether;
 
@@ -208,11 +209,19 @@ contract LPNRegistryV0 is ILPNRegistry, OwnableWhitelist, Initializable {
             return ETH_GAS_FEE;
         }
 
-        if (isOPStack() && !isMantle()) {
+        if (isMantle()) {
+            return MANTLE_GAS_FEE;
+        }
+
+        if (isOPStack()) {
             return OP_GAS_FEE;
         }
 
-        return MANTLE_GAS_FEE;
+        if (isCDK()) {
+            return CDK_GAS_FEE;
+        }
+
+        revert("Chain not supported");
     }
 
     /// @notice Useful for backwards compatibility of prior contract version on Eth Mainnet

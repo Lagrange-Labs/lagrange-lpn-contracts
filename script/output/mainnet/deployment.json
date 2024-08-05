@@ -3,7 +3,11 @@
     "queryClient": "0x80c0a42F808d6f35e83F4939482A485caE536e6a",
     "registryImpl": "0xd31b81164c0295894D76f1F83Ad9e4a03ce02d60",
     "registryProxy": "0x2584665Beff871534118aAbAE781BC267Af142f9",
-    "storageContract": "0xBd3531dA5CF5857e7CfAA92426877b022e612cf8"
+    "storageContracts": {
+      "erc721Enumerable": "0xBd3531dA5CF5857e7CfAA92426877b022e612cf8",
+      "erc20ProportionateBalance": "0x8EF73f036fEEC873D0B2fd20892215Df5B8Bdd72",
+      "erc20AvgBalance": "0x0",
+    }
   },
   "chainInfo": {
     "chainId": 1,

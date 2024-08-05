@@ -46,7 +46,7 @@ fraxtal_testnet_integration_test : fraxtal_testnet_deploy_registry fraxtal_testn
 # Deploy the registry
 local_deploy_registry           :; ${DEPLOY_REGISTRY_CMD} local ${LOCAL_DEPLOY_FLAGS} --json
 testnet_deploy_registry         :; ${DEPLOY_REGISTRY_CMD} sepolia ${DEPLOY_FLAGS} --priority-gas-price 0.1gwei
-holesky_testnet_deploy_registry :; ${DEPLOY_REGISTRY_CMD} holesky ${DEPLOY_FLAGS} --priority-gas-price 0.1gwei
+holesky_testnet_deploy_registry :; ${DEPLOY_REGISTRY_CMD} holesky ${DEPLOY_FLAGS} --legacy
 mainnet_deploy_registry         :; ${DEPLOY_REGISTRY_CMD} mainnet ${DEPLOY_FLAGS} --priority-gas-price 0.5gwei ${MAINNET_DEPLOYER}
 base_testnet_deploy_registry    :; ${DEPLOY_REGISTRY_CMD} base_sepolia ${DEPLOY_FLAGS}
 base_mainnet_deploy_registry    :; ${DEPLOY_REGISTRY_CMD} base ${DEPLOY_FLAGS} ${MAINNET_DEPLOYER}
@@ -54,6 +54,7 @@ fraxtal_testnet_deploy_registry :; ${DEPLOY_REGISTRY_CMD} fraxtal_testnet ${DEPL
 fraxtal_mainnet_deploy_registry :; ${DEPLOY_REGISTRY_CMD} fraxtal ${DEPLOY_FLAGS} ${MAINNET_DEPLOYER}
 mantle_testnet_deploy_registry  :; ${DEPLOY_REGISTRY_CMD} mantle_sepolia ${DEPLOY_FLAGS} --with-gas-price 20000000 -g 4000000
 mantle_mainnet_deploy_registry  :; ${DEPLOY_REGISTRY_CMD} mantle ${DEPLOY_FLAGS} ${MAINNET_DEPLOYER} --legacy -g 1000000
+polygon_deploy_registry         :; ${DEPLOY_REGISTRY_CMD} polygon_zkevm ${DEPLOY_FLAGS} ${MAINNET_DEPLOYER}
 
 # Deploy clients
 local_deploy_clients        :; ${DEPLOY_CLIENTS_CMD} local ${LOCAL_DEPLOY_FLAGS}
@@ -67,6 +68,7 @@ fraxtal_testnet_deploy_clients :; ${DEPLOY_CLIENTS_CMD} fraxtal_testnet ${DEPLOY
 fraxtal_mainnet_deploy_clients :; ${DEPLOY_CLIENTS_CMD} fraxtal ${DEPLOY_FLAGS} ${MAINNET_DEPLOYER}
 mantle_testnet_deploy_clients :; ${DEPLOY_CLIENTS_CMD} mantle_sepolia ${DEPLOY_FLAGS} --with-gas-price 20000000 -g 4000000
 mantle_mainnet_deploy_clients :; ${DEPLOY_CLIENTS_CMD} mantle ${DEPLOY_FLAGS} ${MAINNET_DEPLOYER} --with-gas-price 20000000 -g 4000000
+polygon_mainnet_deploy_clients :; ${DEPLOY_CLIENTS_CMD} polygon_zkevm ${DEPLOY_FLAGS} ${MAINNET_DEPLOYER}
 
 # Run Queries
 testnet_query :; ${QUERY_CMD} sepolia ${DEPLOY_FLAGS}
@@ -82,6 +84,7 @@ mantle_mainnet_query :; ${QUERY_CMD} mantle ${DEPLOY_FLAGS} ${MAINNET_DEPLOYER} 
 mainnet_withdraw_fees :; ${WITHDRAW_FEES_CMD} mainnet ${LOCAL_DEPLOY_FLAGS} ${MAINNET_DEPLOYER}
 base_withdraw_fees    :; ${WITHDRAW_FEES_CMD} base ${LOCAL_DEPLOY_FLAGS} ${MAINNET_DEPLOYER}
 fraxtal_withdraw_fees :; ${WITHDRAW_FEES_CMD} fraxtal ${LOCAL_DEPLOY_FLAGS} ${MAINNET_DEPLOYER}
+mantle_withdraw_fees  :; ${WITHDRAW_FEES_CMD} mantle ${LOCAL_DEPLOY_FLAGS} ${MAINNET_DEPLOYER} --legacy -g 1000000
 
 # Bridge
 mainnet_bridge_base    :; ${BRIDGE_CMD} mainnet ${LOCAL_DEPLOY_FLAGS} --account v0_relayer --sender 0x373a4796Eb758a416366F561206E0472B508eCd1 --priority-gas-price 0.01gwei
