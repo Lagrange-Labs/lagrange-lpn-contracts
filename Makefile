@@ -79,6 +79,7 @@ mainnet_query :; ${QUERY_CMD} mainnet ${DEPLOY_FLAGS} ${MAINNET_DEPLOYER}
 base_mainnet_query :; ${QUERY_CMD} base ${DEPLOY_FLAGS} ${MAINNET_DEPLOYER}
 fraxtal_mainnet_query :; ${QUERY_CMD} fraxtal ${DEPLOY_FLAGS} ${MAINNET_DEPLOYER}
 mantle_mainnet_query :; ${QUERY_CMD} mantle ${DEPLOY_FLAGS} ${MAINNET_DEPLOYER} --with-gas-price 20000000 -g 4000000
+polygon_mainnet_query :; ${QUERY_CMD} polygon_zkevm ${DEPLOY_FLAGS} ${MAINNET_DEPLOYER}
 
 # Withdraw fees
 mainnet_withdraw_fees :; ${WITHDRAW_FEES_CMD} mainnet ${LOCAL_DEPLOY_FLAGS} ${MAINNET_DEPLOYER}

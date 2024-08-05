@@ -75,6 +75,10 @@ contract LPNRegistryV0 is ILPNRegistry, OwnableWhitelist, Initializable {
         uint256 startBlock,
         uint256 endBlock
     ) {
+        if (isCDK()) {
+            _;
+            return;
+        }
         if (isEthereum()) {
             uint256 genesisBlock = indexStart[storageContract];
 
