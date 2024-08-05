@@ -12,6 +12,7 @@ contract Query is BaseScript {
     LPNQueryV0 queryClient;
 
     address constant BLUR = 0x29469395eAf6f95920E59F858042f0e28D98a20B;
+    address constant STAKED_SEALS = 0x1C70D0A86475CC707b48aA79F112857e7957274f;
     address constant ANDRUS = 0xcd82FC81790A8Cf5081F026D2219c91be5a497b5;
 
     enum QueryType {
@@ -21,7 +22,9 @@ contract Query is BaseScript {
     }
 
     function run() external broadcaster {
-        QueryType queryType = QueryType.ERC20Avg;
+        // QueryType queryType = QueryType.ERC20Avg;
+        // QueryType queryType = QueryType.ERC20Total;
+        QueryType queryType = QueryType.ERC721;
 
         registry = LPNRegistryV0(getDeployedRegistry());
         queryClient = LPNQueryV0(getDeployedQueryClient());
@@ -30,7 +33,7 @@ contract Query is BaseScript {
     }
 
     function query(QueryType queryType) private {
-        uint256 queryRange = 1000;
+        uint256 queryRange = 1;
         uint256 endBlock = L1BlockNumber();
         uint256 startBlock = endBlock - (queryRange - 1);
 
@@ -42,18 +45,21 @@ contract Query is BaseScript {
 
         if (queryType == QueryType.ERC721) {
             if (isMainnet()) {
-                holder = BLUR;
+                // holder = BLUR;
+                holder = STAKED_SEALS;
             }
 
             contractType = "erc721Enumerable";
             offset = 5;
         } else if (queryType == QueryType.ERC20Total) {
             if (isMainnet()) {
-                revert("Not deployed yet");
+                holder = 0xfBCA378AeA93EADD6882299A3d74D8641Cc0C4BC;
+            } else {
+                holder = ANDRUS;
             }
+
             contractType = "erc20ProportionateBalance";
             rewardsRate = 100;
-            holder = ANDRUS;
         } else {
             if (isMainnet()) {
                 revert("Not deployed yet");
