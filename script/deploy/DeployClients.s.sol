@@ -34,37 +34,43 @@ contract DeployClients is BaseScript {
 
     /// @notice Deploys LPNQueryV0 and LagrangeLoonsNFT (only on Sepolia); whitelists and registers storageContract on L1
     function run() external broadcaster {
-        registry = LPNRegistryV0(getDeployedRegistry());
-        deployment = deploy();
-
-        if (isEthereum() && !registry.whitelist(deployment.storageContract)) {
-            registry.toggleWhitelist(deployment.storageContract);
+        if (isTestnet() || isLocal()) {
+            deployment.storageContract = deployTestNFT();
+            address receiver = 0x000000000000000000000000000000000000dEaD;
+            generateTestnetData(receiver);
         }
 
-        uint256 mappingSlot;
-        uint256 lengthSlot;
-
-        if (isMainnet()) {
-            mappingSlot = PUDGEY_PENGUINS_MAPPING_SLOT;
-            lengthSlot = PUDGEY_PENGUINS_LENGTH_SLOT;
-        } else {
-            mappingSlot = LAGRANGE_LOONS_MAPPING_SLOT;
-            lengthSlot = LAGRANGE_LOONS_LENGTH_SLOT;
-        }
-
-        if (isEthereum()) {
-            registry.register(
-                deployment.storageContract, mappingSlot, lengthSlot
-            );
-        }
-
-        if (isEthereum() && (isTestnet() || isLocal())) {
-            generateTestnetData();
-        }
-
-        assertions();
-
-        writeToJson();
+        // registry = LPNRegistryV0(getDeployedRegistry());
+        // deployment = deploy();
+        //
+        // if (isEthereum() && !registry.whitelist(deployment.storageContract)) {
+        //     registry.toggleWhitelist(deployment.storageContract);
+        // }
+        //
+        // uint256 mappingSlot;
+        // uint256 lengthSlot;
+        //
+        // if (isMainnet()) {
+        //     mappingSlot = PUDGEY_PENGUINS_MAPPING_SLOT;
+        //     lengthSlot = PUDGEY_PENGUINS_LENGTH_SLOT;
+        // } else {
+        //     mappingSlot = LAGRANGE_LOONS_MAPPING_SLOT;
+        //     lengthSlot = LAGRANGE_LOONS_LENGTH_SLOT;
+        // }
+        //
+        // if (isEthereum()) {
+        //     registry.register(
+        //         deployment.storageContract, mappingSlot, lengthSlot
+        //     );
+        // }
+        //
+        // if (isEthereum() && (isTestnet() || isLocal())) {
+        //     generateTestnetData();
+        // }
+        //
+        // assertions();
+        //
+        // writeToJson();
     }
 
     /// @notice Deploys LPNQueryV0 on all chains; Deploys LagrangeLoonsNFT on Sepolia
@@ -99,17 +105,30 @@ contract DeployClients is BaseScript {
         revert("Unregistered Chain");
     }
 
+    /// @notice Deploys LagrangeLoonsNFT on Testnets and Local
+    /// @return address of deployed contract
+    function deployTestNFT() public returns (address) {
+        LagrangeLoonsNFT lloons;
+
+        if (isEthereum()) {
+            lloons = new LagrangeLoonsNFT();
+            print("LagrangeLoonsNFT", address(lloons));
+        }
+
+        return address(lloons);
+    }
+
     /// @notice Mints and transfers NFTs
-    function generateTestnetData() private {
+    function generateTestnetData(address receiver) private {
         LagrangeLoonsNFT lloons = LagrangeLoonsNFT(deployment.storageContract);
-        if (!lloons.isApprovedForAll(deployer, deployment.queryClient)) {
-            lloons.setApprovalForAll(deployment.queryClient, true);
+        if (!lloons.isApprovedForAll(deployer, receiver)) {
+            lloons.setApprovalForAll(receiver, true);
         }
 
         for (uint256 i = 0; i < 20; i++) {
             lloons.mint();
             if (i % 2 == 0) {
-                lloons.transferFrom(deployer, deployment.queryClient, i);
+                lloons.transferFrom(deployer, receiver, i);
             }
         }
     }
