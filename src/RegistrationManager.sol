@@ -19,6 +19,9 @@ contract RegistrationManager is IRegistrationManager {
     /// @notice Mapping to track registered queries
     mapping(bytes32 hash => bool registered) public queries;
 
+    /// @dev Reserves storage slots for future upgrades
+    uint256[48] private __gap;
+
     function _registerTable(
         bytes32 hash,
         address contractAddr,

@@ -31,18 +31,22 @@ contract QueryManager is IQueryManager {
     uint256 public constant MAX_QUERY_RANGE = 50_000;
 
     /// @notice A constant gas fee paid for each request to reimburse the relayer when it delivers the response
-    uint256 public constant ETH_GAS_FEE = 0.05 ether;
+    uint256 public constant ETH_GAS_FEE = 0.005 ether;
     uint256 public constant OP_GAS_FEE = 0.00045 ether;
     uint256 public constant CDK_GAS_FEE = 0.00045 ether;
     /// @dev Mantle uses a custom gas token
     uint256 public constant MANTLE_GAS_FEE = 1.5 ether;
 
     /// @notice A counter that assigns unique ids for client requests.
+    // TODO: Need to ensure this does not conflict with V0
     uint256 public requestId;
 
     /// @notice Mapping to track requests and their associated clients.
     mapping(uint256 requestId => Groth16VerifierExtensions.Query query) public
         requests;
+
+    /// @dev Reserves storage slots for future upgrades
+    uint256[48] private __gap;
 
     modifier requireGasFee() {
         if (msg.value < gasFee()) {

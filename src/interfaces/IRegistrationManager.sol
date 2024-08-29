@@ -14,7 +14,7 @@ interface IRegistrationManager {
     );
 
     event NewQueryRegistration(
-        bytes32 indexed hash, bytes32 indexed tableHash, string indexed sql
+        bytes32 indexed hash, bytes32 indexed tableHash, string sql
     );
 
     function registerQuery(bytes32 hash, bytes32 tableHash, string calldata sql)
