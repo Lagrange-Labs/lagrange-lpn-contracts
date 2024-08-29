@@ -32,7 +32,7 @@ contract LPNRegistryV1 is
         _registerTable(hash, contractAddr, chainId, genesisBlock, name, schema);
     }
 
-    /// @notice The relayer withdraws all fees accumulated
+    /// @notice The owner withdraws all fees accumulated
     function withdrawFees() external onlyOwner returns (bool) {
         return _withdrawFees();
     }

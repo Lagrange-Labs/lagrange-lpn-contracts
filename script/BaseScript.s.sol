@@ -13,6 +13,11 @@ import {stdJson} from "forge-std/StdJson.sol";
 abstract contract BaseScript is Script {
     using stdJson for string;
 
+    enum Version {
+        V0,
+        V1
+    }
+
     /// @dev The address of the contract deployer.
     address public deployer = isMainnet()
         ? getDeployerAddress()
@@ -55,8 +60,8 @@ abstract contract BaseScript is Script {
 
         print("deployer", deployer);
 
-        if (!vm.exists(outputPath())) {
-            initJson();
+        if (!vm.exists(outputPath(Version.V1))) {
+            initJson(Version.V1);
         }
     }
 
@@ -79,6 +84,11 @@ abstract contract BaseScript is Script {
 
     function getDeployedRegistry() internal returns (address) {
         string memory json = vm.readFile(outputPath());
+        return json.readAddress(".addresses.registryProxy");
+    }
+
+    function getDeployedRegistry(Version version_) internal returns (address) {
+        string memory json = vm.readFile(outputPath(version_));
         return json.readAddress(".addresses.registryProxy");
     }
 
@@ -147,6 +157,22 @@ abstract contract BaseScript is Script {
         return string.concat(outputDir(chainName), "/deployment.json");
     }
 
+    function outputPath(Version version_) internal returns (string memory) {
+        string memory chainName = getChain(block.chainid).chainAlias;
+        return outputPath(chainName, version_);
+    }
+
+    function outputPath(string memory chainName, Version version_)
+        internal
+        pure
+        returns (string memory)
+    {
+        string memory version = version_ == Version.V0 ? "v0" : "v1";
+        return string.concat(
+            outputDir(chainName), "/", version, "-", "deployment.json"
+        );
+    }
+
     function mkdir(string memory dirPath) internal {
         string[] memory mkdirInputs = new string[](3);
         mkdirInputs[0] = "mkdir";
@@ -156,6 +182,10 @@ abstract contract BaseScript is Script {
     }
 
     function initJson() private {
+        initJson(Version.V0);
+    }
+
+    function initJson(Version version_) private {
         mkdir(outputDir());
 
         string memory json = "deploymentArtifact";
@@ -179,6 +209,6 @@ abstract contract BaseScript is Script {
         json.serialize("storageContracts", storageContracts);
         json = json.serialize("chainInfo", chainInfo);
 
-        json.write(outputPath());
+        json.write(outputPath(version_));
     }
 }
