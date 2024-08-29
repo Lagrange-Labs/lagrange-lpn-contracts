@@ -1,7 +1,7 @@
 {
   "addresses": {
     "queryClient": "0x7A83BE05091Cb14Ed66a0fBa89BA210FC3610eA0",
-    "registryImpl": "0x25678733Fd4Bc2b8c117495fdF60710CE1c3b511",
+    "registryImpl": "0x5E801F6A61Fc2ec2A8Ff97acdB8596c4086B1551",
     "registryProxy": "0x4f73289BFffEF7Eed9f284B1E76328beB52c6e37",
     "storageContracts": {
       "erc721Enumerable": "0x09C52d2dCdA5724823f5b3bEe93E989B218004Ac",
