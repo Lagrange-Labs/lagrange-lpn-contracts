@@ -2,11 +2,10 @@
 pragma solidity ^0.8.13;
 
 import {Groth16VerifierExtensions} from "./Groth16VerifierExtensions.sol";
-import {ILPNClient} from "./interfaces/ILPNClient.sol";
-import {QueryParams} from "./utils/QueryParams.sol";
-import {isCDK} from "./utils/Constants.sol";
-import {L1BlockHash, L1BlockNumber} from "./utils/L1Block.sol";
-import {isEthereum, isOPStack, isMantle, isCDK} from "./utils/Constants.sol";
+import {ILPNClientV1} from "./interfaces/ILPNClientV1.sol";
+import {isCDK} from "../utils/Constants.sol";
+import {L1BlockHash, L1BlockNumber} from "../utils/L1Block.sol";
+import {isEthereum, isOPStack, isMantle, isCDK} from "../utils/Constants.sol";
 import {IQueryManager} from "./interfaces/IQueryManager.sol";
 
 /// @notice Error thrown when attempting to query a block number that is after the current block.
@@ -41,9 +40,13 @@ contract QueryManager is IQueryManager {
     // TODO: Need to ensure this does not conflict with V0
     uint256 public requestId;
 
+    struct QueryRequest {
+        address client;
+        Groth16VerifierExtensions.QueryInput input;
+    }
+
     /// @notice Mapping to track requests and their associated clients.
-    mapping(uint256 requestId => Groth16VerifierExtensions.Query query) public
-        requests;
+    mapping(uint256 requestId => QueryRequest query) public requests;
 
     /// @dev Reserves storage slots for future upgrades
     uint256[48] private __gap;
@@ -77,7 +80,7 @@ contract QueryManager is IQueryManager {
 
     function request(
         bytes32 queryHash,
-        bytes calldata params,
+        uint256[] calldata placeholders,
         uint256 startBlock,
         uint256 endBlock
     )
@@ -100,26 +103,27 @@ contract QueryManager is IQueryManager {
             blockHash = L1BlockHash();
         }
 
-        // TODO:
-        // QueryParams.CombinedParams memory cp =
-        //     QueryParams.combinedFromBytes32(params);
-        //
-        // requests[requestId] = Groth16VerifierExtensions.Query({
-        //     contractAddress: storageContract,
-        //     userAddress: cp.userAddress,
-        //     minBlockNumber: uint96(startBlock),
-        //     maxBlockNumber: uint96(endBlock),
-        //     blockHash: blockHash,
-        //     clientAddress: msg.sender,
-        //     rewardsRate: cp.rewardsRate,
-        //     identifier: cp.identifier
-        // });
-        //
+        requests[requestId] = QueryRequest({
+            input: Groth16VerifierExtensions.QueryInput({
+                // TODO:
+                limit: 0,
+                // TODO:
+                offset: 0,
+                minBlockNumber: uint64(startBlock),
+                maxBlockNumber: uint64(endBlock),
+                blockHash: blockHash,
+                computationalHash: queryHash,
+                userPlaceholders: placeholders
+            }),
+            client: msg.sender
+        });
+
+        // TODO: Limit and offset separate from placeholders ?
         emit NewRequest(
             requestId,
             queryHash,
             msg.sender,
-            params,
+            placeholders,
             startBlock,
             endBlock,
             msg.value,
@@ -134,19 +138,19 @@ contract QueryManager is IQueryManager {
         bytes32[] calldata data,
         uint256 blockNumber
     ) external {
-        Groth16VerifierExtensions.Query memory query = requests[requestId_];
+        QueryRequest memory query = requests[requestId_];
         delete requests[requestId_];
 
         if (isEthereum()) {
-            query.blockHash = blockhash(blockNumber);
+            query.input.blockHash = blockhash(blockNumber);
         }
 
-        uint256[] memory results =
-            Groth16VerifierExtensions.processQuery(data, query);
+        Groth16VerifierExtensions.QueryOutput memory result =
+            Groth16VerifierExtensions.processQuery(data, query.input);
 
-        ILPNClient(query.clientAddress).lpnCallback(requestId_, results);
+        ILPNClientV1(query.client).lpnCallback(requestId_, result);
 
-        emit NewResponse(requestId_, query.clientAddress, results);
+        emit NewResponse(requestId_, query.client, result);
     }
 
     function gasFee() public view returns (uint256) {

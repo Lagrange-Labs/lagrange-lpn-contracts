@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-import {OwnableWhitelist} from "./utils/OwnableWhitelist.sol";
+import {OwnableWhitelist} from "../utils/OwnableWhitelist.sol";
 import {Initializable} from
     "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {RegistrationManager} from "./RegistrationManager.sol";
