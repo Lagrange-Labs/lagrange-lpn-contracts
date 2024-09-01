@@ -5,6 +5,32 @@ pragma solidity ^0.8.0;
 import "./Groth16Verifier.sol";
 import {isCDK} from "../utils/Constants.sol";
 
+// The query input struct passed into the processQuery function
+struct QueryInput {
+    // Query limit parameter
+    uint32 limit;
+    // Query offset parameter
+    uint32 offset;
+    // Minimum block number
+    uint64 minBlockNumber;
+    // Maximum block number
+    uint64 maxBlockNumber;
+    // Block hash
+    bytes32 blockHash;
+    // Computational hash
+    bytes32 computationalHash;
+    // User placeholder values
+    uint256[] userPlaceholders;
+}
+
+// The query output struct returned from the processQuery function
+struct QueryOutput {
+    // Total number of the all matching rows
+    uint256 totalMatchedRows;
+    // Returned rows of the current cursor
+    bytes[] rows;
+}
+
 library Groth16VerifierExtensions {
     // Top 3 bits mask.
     uint256 constant TOP_THREE_BIT_MASK = ~(uint256(7) << 253);
@@ -57,32 +83,6 @@ library Groth16VerifierExtensions {
 
     // A computation overflow error during the query process
     error QueryComputationOverflow();
-
-    // The query input struct passed into the processQuery function
-    struct QueryInput {
-        // Query limit parameter
-        uint32 limit;
-        // Query offset parameter
-        uint32 offset;
-        // Minimum block number
-        uint64 minBlockNumber;
-        // Maximum block number
-        uint64 maxBlockNumber;
-        // Block hash
-        bytes32 blockHash;
-        // Computational hash
-        bytes32 computationalHash;
-        // User placeholder values
-        uint256[] userPlaceholders;
-    }
-
-    // The query output struct returned from the processQuery function
-    struct QueryOutput {
-        // Total number of the all matching rows
-        uint256 totalMatchedRows;
-        // Returned rows of the current cursor
-        bytes[] rows;
-    }
 
     // The processQuery function does the followings:
     // 1. Parse the Groth16 proofs (8 uint256) and inputs (3 uint256) from the `data`

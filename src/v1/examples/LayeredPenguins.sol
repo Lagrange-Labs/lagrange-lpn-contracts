@@ -8,7 +8,7 @@ import {
     ERC721
 } from "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import {L1BlockNumber} from "../../utils/L1Block.sol";
-import {Groth16VerifierExtensions} from "../Groth16VerifierExtensions.sol";
+import {QueryOutput} from "../Groth16VerifierExtensions.sol";
 
 /// @notice Refer to docs page https://lagrange-labs.gitbook.io/lagrange-v2-1/zk-coprocessor/testnet-euclid-developer-docs/example-nft-mint-whitelist-on-l2-with-pudgy-penguins
 contract LayeredPenguins is LPNClientV1, ERC721Enumerable {
@@ -57,10 +57,10 @@ contract LayeredPenguins is LPNClientV1, ERC721Enumerable {
         );
     }
 
-    function processCallback(
-        uint256 requestId,
-        Groth16VerifierExtensions.QueryOutput memory result
-    ) internal override {
+    function processCallback(uint256 requestId, QueryOutput memory result)
+        internal
+        override
+    {
         bool isPudgyHolder = false;
         for (uint256 i = 0; i < result.rows.length; i++) {
             Row memory row = abi.decode(result.rows[i], (Row));

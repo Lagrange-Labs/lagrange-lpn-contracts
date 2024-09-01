@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 import {ILPNClientV1} from "../interfaces/ILPNClientV1.sol";
 import {ILPNRegistryV1} from "../interfaces/ILPNRegistryV1.sol";
-import {Groth16VerifierExtensions} from "../Groth16VerifierExtensions.sol";
+import {QueryOutput} from "../Groth16VerifierExtensions.sol";
 
 error CallbackNotAuthorized();
 
@@ -21,15 +21,14 @@ abstract contract LPNClientV1 is ILPNClientV1 {
         lpnRegistry = _lpnRegistry;
     }
 
-    function lpnCallback(
-        uint256 requestId,
-        Groth16VerifierExtensions.QueryOutput memory result
-    ) external onlyLagrangeRegistry {
+    function lpnCallback(uint256 requestId, QueryOutput memory result)
+        external
+        onlyLagrangeRegistry
+    {
         processCallback(requestId, result);
     }
 
-    function processCallback(
-        uint256 requestId,
-        Groth16VerifierExtensions.QueryOutput memory result
-    ) internal virtual;
+    function processCallback(uint256 requestId, QueryOutput memory result)
+        internal
+        virtual;
 }

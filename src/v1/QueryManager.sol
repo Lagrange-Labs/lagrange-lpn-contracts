@@ -1,7 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-import {Groth16VerifierExtensions} from "./Groth16VerifierExtensions.sol";
+import {
+    Groth16VerifierExtensions,
+    QueryInput,
+    QueryOutput
+} from "./Groth16VerifierExtensions.sol";
 import {ILPNClientV1} from "./interfaces/ILPNClientV1.sol";
 import {isCDK} from "../utils/Constants.sol";
 import {L1BlockHash, L1BlockNumber} from "../utils/L1Block.sol";
@@ -42,7 +46,7 @@ contract QueryManager is IQueryManager {
 
     struct QueryRequest {
         address client;
-        Groth16VerifierExtensions.QueryInput input;
+        QueryInput input;
     }
 
     /// @notice Mapping to track requests and their associated clients.
@@ -104,7 +108,7 @@ contract QueryManager is IQueryManager {
         }
 
         requests[requestId] = QueryRequest({
-            input: Groth16VerifierExtensions.QueryInput({
+            input: QueryInput({
                 // TODO:
                 limit: 0,
                 // TODO:
@@ -145,7 +149,7 @@ contract QueryManager is IQueryManager {
             query.input.blockHash = blockhash(blockNumber);
         }
 
-        Groth16VerifierExtensions.QueryOutput memory result =
+        QueryOutput memory result =
             Groth16VerifierExtensions.processQuery(data, query.input);
 
         ILPNClientV1(query.client).lpnCallback(requestId_, result);

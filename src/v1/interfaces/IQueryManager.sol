@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {Groth16VerifierExtensions} from "../Groth16VerifierExtensions.sol";
+import {QueryOutput} from "../Groth16VerifierExtensions.sol";
 
 /// @title IQueryManager
 /// @notice
@@ -31,9 +31,7 @@ interface IQueryManager {
     /// @param client The address of the client who made the matching request.
     /// @param result The computed results for the request.
     event NewResponse(
-        uint256 indexed requestId,
-        address indexed client,
-        Groth16VerifierExtensions.QueryOutput result
+        uint256 indexed requestId, address indexed client, QueryOutput result
     );
 
     /// @notice Submits a new request to the registry.
