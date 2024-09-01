@@ -3,11 +3,13 @@ pragma solidity ^0.8.13;
 
 import "forge-std/Test.sol";
 import {
-    OwnableWhitelist, NotAuthorized
-} from "../src/utils/OwnableWhitelist.sol";
+    OwnableWhitelist,
+    NotAuthorized
+} from "../../src/utils/OwnableWhitelist.sol";
 import {Ownable} from "solady/auth/Ownable.sol";
 import {Initializable} from
     "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "forge-std/console2.sol";
 
 contract MockOwnableWhitelist is OwnableWhitelist, Initializable {
     function initialize(address owner) external initializer {

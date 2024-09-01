@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-import {LPNClientV0} from "../LPNClientV0.sol";
-import {ILPNRegistry} from "../../interfaces/ILPNRegistry.sol";
+import {LPNClientV0} from "../client/LPNClientV0.sol";
+import {ILPNRegistry} from "../interfaces/ILPNRegistry.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import {QueryParams} from "../../utils/QueryParams.sol";
+import {QueryParams} from "../QueryParams.sol";
 
 import {IERC20} from "forge-std/interfaces/IERC20.sol";
 import {MockERC20} from "forge-std/mocks/MockERC20.sol";

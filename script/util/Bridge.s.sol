@@ -2,8 +2,8 @@
 pragma solidity ^0.8.25;
 
 import {BaseScript} from "../BaseScript.s.sol";
-import {LPNRegistryV0} from "../../src/LPNRegistryV0.sol";
-import {LPNQueryV0} from "../../src/client/LPNQueryV0.sol";
+import {LPNRegistryV0} from "../../src/v0/LPNRegistryV0.sol";
+import {LPNQueryV0} from "../../src/v0/client/LPNQueryV0.sol";
 import {
     PUDGEY_PENGUINS,
     L1_BASE_BRIDGE,

@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-import {LPNClientV0} from "../LPNClientV0.sol";
-import {ILPNRegistry} from "../../interfaces/ILPNRegistry.sol";
+import {LPNClientV0} from "../client/LPNClientV0.sol";
+import {ILPNRegistry} from "../interfaces/ILPNRegistry.sol";
 import {ERC721Enumerable} from
     "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Pausable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import {QueryParams} from "../../utils/QueryParams.sol";
+import {QueryParams} from "../QueryParams.sol";
 
 contract AirdropNFTCrosschain is LPNClientV0 {
     using QueryParams for QueryParams.NFTQueryParams;
