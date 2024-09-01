@@ -31,7 +31,8 @@ contract DeployLPNRegistry is BaseScript {
             deployment = deploy(newSalt("V1_REG_0"), deployer);
             writeToJson();
         } else {
-            address updatedRegistryImpl = upgrade(getDeployedRegistry());
+            address updatedRegistryImpl =
+                upgrade(getDeployedRegistry(Version.V1));
             writeToJson(updatedRegistryImpl);
         }
 
