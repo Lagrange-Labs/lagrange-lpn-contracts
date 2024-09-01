@@ -2,8 +2,8 @@
 pragma solidity ^0.8.13;
 
 import {BaseScript} from "../BaseScript.s.sol";
-import {SampleClientV0} from "../../test/SampleClientV0.sol";
-import {ILPNRegistry} from "../../src/interfaces/ILPNRegistry.sol";
+import {SampleClientV0} from "../../test/v0/SampleClientV0.sol";
+import {ILPNRegistry} from "../../src/v0/interfaces/ILPNRegistry.sol";
 
 contract DeploySampleClient is BaseScript {
     SampleClientV0 client;

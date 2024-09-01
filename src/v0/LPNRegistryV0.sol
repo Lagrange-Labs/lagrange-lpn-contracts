@@ -3,13 +3,13 @@ pragma solidity ^0.8.13;
 
 import {ILPNRegistry} from "./interfaces/ILPNRegistry.sol";
 import {ILPNClient} from "./interfaces/ILPNClient.sol";
-import {OwnableWhitelist} from "./utils/OwnableWhitelist.sol";
+import {OwnableWhitelist} from "../utils/OwnableWhitelist.sol";
 import {Initializable} from
     "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {Groth16VerifierExtensions} from "./Groth16VerifierExtensions.sol";
-import {L1BlockHash, L1BlockNumber} from "./utils/L1Block.sol";
-import {isEthereum, isOPStack, isMantle, isCDK} from "./utils/Constants.sol";
-import {QueryParams} from "./utils/QueryParams.sol";
+import {L1BlockHash, L1BlockNumber} from "../utils/L1Block.sol";
+import {isEthereum, isOPStack, isMantle, isCDK} from "../utils/Constants.sol";
+import {QueryParams} from "./QueryParams.sol";
 
 /// @notice Error thrown when attempting to register a storage contract more than once.
 error ContractAlreadyRegistered();

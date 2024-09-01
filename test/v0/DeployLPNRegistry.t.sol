@@ -2,12 +2,12 @@
 pragma solidity ^0.8.13;
 
 import "forge-std/Test.sol";
-import {LPNRegistryV0} from "../src/LPNRegistryV0.sol";
+import {LPNRegistryV0} from "../../src/v0/LPNRegistryV0.sol";
 import {ERC1967Factory} from "solady/utils/ERC1967Factory.sol";
 import {ERC1967FactoryConstants} from "solady/utils/ERC1967FactoryConstants.sol";
-import {DeployLPNRegistry} from "../script/deploy/DeployLPNRegistry.s.sol";
+import {DeployLPNRegistry} from "../../script/deploy/DeployLPNRegistry.s.sol";
 import {DeployERC1967ProxyFactory} from
-    "../script/deploy/DeployERC1967ProxyFactory.s.sol";
+    "../../script/deploy/DeployERC1967ProxyFactory.s.sol";
 
 contract DeployLPNRegistryTest is Test {
     DeployLPNRegistry public deployScript = new DeployLPNRegistry();

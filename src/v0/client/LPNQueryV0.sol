@@ -3,7 +3,7 @@ pragma solidity ^0.8.13;
 
 import {LPNClientV0} from "./LPNClientV0.sol";
 import {ILPNRegistry} from "../interfaces/ILPNRegistry.sol";
-import {QueryParams} from "../utils/QueryParams.sol";
+import {QueryParams} from "../QueryParams.sol";
 
 /**
  * @title LPNQueryV0

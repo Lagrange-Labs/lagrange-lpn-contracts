@@ -2,8 +2,8 @@
 pragma solidity ^0.8.13;
 
 import {BaseScript} from "../BaseScript.s.sol";
-import {LPNRegistryV0} from "../../src/LPNRegistryV0.sol";
-import {TestERC20} from "../../src/client/examples/ERC20Balance.sol";
+import {LPNRegistryV0} from "../../src/v0/LPNRegistryV0.sol";
+import {TestERC20} from "../../src/v0/examples/ERC20Balance.sol";
 
 import {
     TEST_ERC20_MAPPING_SLOT,

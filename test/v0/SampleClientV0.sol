@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-import {LPNClientV0} from "../src/client/LPNClientV0.sol";
-import {ILPNRegistry} from "../src/interfaces/ILPNRegistry.sol";
-import {QueryParams} from "../src/utils/QueryParams.sol";
+import {LPNClientV0} from "../../src/v0/client/LPNClientV0.sol";
+import {ILPNRegistry} from "../../src/v0/interfaces/ILPNRegistry.sol";
+import {QueryParams} from "../../src/v0/QueryParams.sol";
 
 contract SampleClientV0 is LPNClientV0 {
     using QueryParams for QueryParams.NFTQueryParams;

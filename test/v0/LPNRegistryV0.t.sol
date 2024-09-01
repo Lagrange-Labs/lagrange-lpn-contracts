@@ -11,22 +11,23 @@ import {
     QueryInvalidRange,
     QueryGreaterThanMaxRange,
     InsufficientGasFee
-} from "../src/LPNRegistryV0.sol";
-import {NotAuthorized} from "../src/utils/OwnableWhitelist.sol";
-import {ILPNRegistry} from "../src/interfaces/ILPNRegistry.sol";
-import {ILPNClient} from "../src/interfaces/ILPNClient.sol";
+} from "../../src/v0/LPNRegistryV0.sol";
+import {NotAuthorized} from "../../src/utils/OwnableWhitelist.sol";
+import {ILPNRegistry} from "../../src/v0/interfaces/ILPNRegistry.sol";
+import {ILPNClient} from "../../src/v0/interfaces/ILPNClient.sol";
 import {Initializable} from
     "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import {Groth16Verifier} from "../src/Groth16Verifier.sol";
-import {Groth16VerifierExtensions} from "../src/Groth16VerifierExtensions.sol";
+import {Groth16Verifier} from "../../src/v0/Groth16Verifier.sol";
+import {Groth16VerifierExtensions} from
+    "../../src/v0/Groth16VerifierExtensions.sol";
 import {
     ETH_MAINNET,
     BASE_MAINNET,
     OP_STACK_L1_BLOCK_PREDEPLOY_ADDR
-} from "../src/utils/Constants.sol";
-import {IOptimismL1Block} from "../src/interfaces/IOptimismL1Block.sol";
+} from "../../src/utils/Constants.sol";
+import {IOptimismL1Block} from "../../src/interfaces/IOptimismL1Block.sol";
 import {Ownable} from "solady/auth/Ownable.sol";
-import {QueryParams} from "../src/utils/QueryParams.sol";
+import {QueryParams} from "../../src/v0/QueryParams.sol";
 
 contract MockLPNClient is ILPNClient {
     uint256 public lastRequestId;

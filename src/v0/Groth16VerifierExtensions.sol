@@ -3,7 +3,7 @@
 pragma solidity ^0.8.0;
 
 import "./Groth16Verifier.sol";
-import {isCDK} from "./utils/Constants.sol";
+import {isCDK} from "../utils/Constants.sol";
 
 library Groth16VerifierExtensions {
     // byteLen(uint160) / 4
