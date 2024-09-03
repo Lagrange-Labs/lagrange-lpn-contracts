@@ -20,7 +20,7 @@ struct QueryInput {
     // Computational hash
     bytes32 computationalHash;
     // User placeholder values
-    uint256[] userPlaceholders;
+    bytes32[] userPlaceholders;
 }
 
 // The query output struct returned from the processQuery function
@@ -226,17 +226,17 @@ library Groth16VerifierExtensions {
         // Check the user placeholders.
         for (uint256 i = 0; i < numPlaceholders - 2; ++i) {
             require(
-                uint256(data[PI_OFFSET + PLACEHOLDER_VALUES_POS + 2 + i])
+                data[PI_OFFSET + PLACEHOLDER_VALUES_POS + 2 + i]
                     == query.userPlaceholders[i],
                 "The user placeholder must equal as expected."
             );
         }
 
         // Check the query limit and offset.
-        uint32 limit = uint32(bytes4(rem << (REM_QUERY_LIMIT_POS * 32)));
-        require(limit == query.limit, "Query limit must equal as expected.");
-        uint32 offset = uint32(bytes4(rem << (REM_QUERY_OFFSET_POS * 32)));
-        require(offset == query.offset, "Query limit must equal as expected.");
+        // uint32 limit = uint32(bytes4(rem << (REM_QUERY_LIMIT_POS * 32)));
+        // require(limit == query.limit, "Query limit must equal as expected.");
+        // uint32 offset = uint32(bytes4(rem << (REM_QUERY_OFFSET_POS * 32)));
+        // require(offset == query.offset, "Query offset must equal as expected.");
 
         // Throw an error if overflow.
         uint32 overflow = uint32(bytes4(rem << (REM_OVERFLOW_POS * 32)));

@@ -45,8 +45,8 @@ contract LayeredPenguins is LPNClientV1, ERC721Enumerable {
     }
 
     function queryPudgyPenguins() private returns (uint256) {
-        uint256[] memory placeholders = new uint256[](1);
-        placeholders[0] = uint256(uint160(msg.sender));
+        bytes32[] memory placeholders = new bytes32[](1);
+        placeholders[0] = bytes32(bytes20(msg.sender));
 
         // TODO: Limit + Offset
         return lpnRegistry.request{value: lpnRegistry.gasFee()}(

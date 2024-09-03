@@ -84,7 +84,7 @@ contract QueryManager is IQueryManager {
 
     function request(
         bytes32 queryHash,
-        uint256[] calldata placeholders,
+        bytes32[] calldata placeholders,
         uint256 startBlock,
         uint256 endBlock
     )

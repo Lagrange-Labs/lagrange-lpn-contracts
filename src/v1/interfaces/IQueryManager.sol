@@ -19,7 +19,7 @@ interface IQueryManager {
         uint256 indexed requestId,
         bytes32 indexed queryHash,
         address indexed client,
-        uint256[] placeholders,
+        bytes32[] placeholders,
         uint256 startBlock,
         uint256 endBlock,
         uint256 gasFee,
@@ -42,7 +42,7 @@ interface IQueryManager {
     /// @return The ID of the newly created request.
     function request(
         bytes32 queryHash,
-        uint256[] calldata placeholders,
+        bytes32[] calldata placeholders,
         uint256 startBlock,
         uint256 endBlock
     ) external payable returns (uint256);
