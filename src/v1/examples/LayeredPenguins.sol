@@ -12,13 +12,11 @@ import {QueryOutput} from "../Groth16VerifierExtensions.sol";
 
 /// @notice Refer to docs page https://lagrange-labs.gitbook.io/lagrange-v2-1/zk-coprocessor/testnet-euclid-developer-docs/example-nft-mint-whitelist-on-l2-with-pudgy-penguins
 contract LayeredPenguins is LPNClientV1, ERC721Enumerable {
-    /// SELECT key FROM pudgy_penguins_owners WHERE value = $1;
+    /// SELECT AVG(key) FROM pudgy_penguins_owners WHERE value = $1;
     bytes32 public constant SELECT_PUDGY_PENGUINS_QUERY_HASH =
         0xb4ae7462039ec325e1fc805a91fb35c9505f350e609d4d53e1c6e4f3dbfe8997;
     string public constant PUDGY_METADATA_URI =
         "ipfs://bafybeibc5sgo2plmjkq2tzmhrn54bk3crhnc23zd2msg4ea7a4pxrkgfna/";
-
-    uint256 id;
 
     struct MintRequest {
         address sender;
@@ -48,7 +46,6 @@ contract LayeredPenguins is LPNClientV1, ERC721Enumerable {
         bytes32[] memory placeholders = new bytes32[](1);
         placeholders[0] = bytes32(bytes20(msg.sender));
 
-        // TODO: Limit + Offset
         return lpnRegistry.request{value: lpnRegistry.gasFee()}(
             SELECT_PUDGY_PENGUINS_QUERY_HASH,
             placeholders,
@@ -61,18 +58,14 @@ contract LayeredPenguins is LPNClientV1, ERC721Enumerable {
         internal
         override
     {
-        bool isPudgyHolder = false;
+        MintRequest memory req = mintRequests[requestId];
+
         for (uint256 i = 0; i < result.rows.length; i++) {
             Row memory row = abi.decode(result.rows[i], (Row));
 
-            isPudgyHolder = true;
-        }
-
-        if (isPudgyHolder) {
-            MintRequest memory req = mintRequests[requestId];
-            _mint(req.sender, id);
-
-            id++;
+            if (ownerOf(row.tokenId) == address(0)) {
+                _mint(req.sender, row.tokenId);
+            }
         }
 
         delete mintRequests[requestId];
