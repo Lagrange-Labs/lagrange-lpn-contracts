@@ -1,12 +1,28 @@
 {
+  "dev": {
+    "addresses": {
+      "queryClient": "0x0000000000000000000000000000000000000000",
+      "registryImpl": "0xf13CACB0a3FCD464803690Fdd06Fd792e33D82ED",
+      "registryProxy": "0xC9135b51c4DD04B6E082e2cB56a5C26b3a53Ee47"
+    },
+    "chainInfo": {
+      "chainId": 17000,
+      "deploymentBlock": 2166099
+    },
+    "storageContracts": {
+      "erc20AvgBalance": "0x0000000000000000000000000000000000000000",
+      "erc20ProportionateBalance": "0x0000000000000000000000000000000000000000",
+      "erc721Enumerable": "0x0000000000000000000000000000000000000000"
+    }
+  },
   "addresses": {
     "queryClient": "0x0000000000000000000000000000000000000000",
-    "registryImpl": "0x285a467901b8C06C45754E3D41Aea50Db0a28472",
-    "registryProxy": "0xC9135b51c4DD04B6E082e2cB56a5C26b3a53Ee47"
+    "registryImpl": "0x7fc914f86A8eC5bCDA00d6F0D4655b5716f5f12d",
+    "registryProxy": "0xF8E0EfefAFfa31f9C85F175147d64753e4eC8157"
   },
   "chainInfo": {
     "chainId": 17000,
-    "deploymentBlock": 2166099
+    "deploymentBlock": 2259946
   },
   "storageContracts": {
     "erc20AvgBalance": "0x0000000000000000000000000000000000000000",
