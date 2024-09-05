@@ -30,8 +30,9 @@ contract LayeredPenguins is LPNClientV1, ERC721Enumerable {
 
     constructor(ILPNRegistryV1 lpnRegistry_)
         ERC721("Layered Penguins", "LPDGY")
-        LPNClientV1(lpnRegistry_)
-    {}
+    {
+        LPNClientV1._initialize(lpnRegistry_);
+    }
 
     function _baseURI() internal pure override returns (string memory) {
         return PUDGY_METADATA_URI;

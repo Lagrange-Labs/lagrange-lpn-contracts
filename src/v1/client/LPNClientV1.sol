@@ -17,7 +17,7 @@ abstract contract LPNClientV1 is ILPNClientV1 {
         _;
     }
 
-    constructor(ILPNRegistryV1 _lpnRegistry) {
+    function _initialize(ILPNRegistryV1 _lpnRegistry) internal {
         lpnRegistry = _lpnRegistry;
     }
 
