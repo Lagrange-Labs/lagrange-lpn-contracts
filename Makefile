@@ -72,8 +72,8 @@ mantle_mainnet_deploy_clients :; ${DEPLOY_CLIENTS_CMD} mantle ${DEPLOY_FLAGS} ${
 polygon_mainnet_deploy_clients :; ${DEPLOY_CLIENTS_CMD} polygon_zkevm ${DEPLOY_FLAGS} ${MAINNET_DEPLOYER}
 
 # Deploy Query Clients
-holesky_deploy_query_client      :; ${DEPLOY_QUERY_CLIENT_CMD} holesky ${DEPLOY_FLAGS} --gas-estimate-multiplier 1000 # multiply estimate by 10
-mainnet_deploy_query_client      :; ${DEPLOY_QUERY_CLIENT_CMD} mainnet ${DEPLOY_FLAGS} --priority-gas-price 0.5gwei --account v0_owner
+holesky_deploy_query_client :; ${DEPLOY_QUERY_CLIENT_CMD} holesky ${DEPLOY_FLAGS} --gas-estimate-multiplier 1000 # multiply estimate by 10
+mainnet_deploy_query_client :; ${DEPLOY_QUERY_CLIENT_CMD} mainnet ${DEPLOY_FLAGS} --priority-gas-price 0.5gwei --account v0_owner
 
 # Run Queries
 testnet_query :; ${QUERY_CMD} sepolia ${DEPLOY_FLAGS}

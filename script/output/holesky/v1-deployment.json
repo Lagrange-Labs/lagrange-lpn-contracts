@@ -16,8 +16,8 @@
     }
   },
   "addresses": {
-    "queryClientImpl": "0x0000000000000000000000000000000000000000",
-    "queryClientProxy": "0x0000000000000000000000000000000000000000",
+    "queryClientImpl": "0x80c0a42F808d6f35e83F4939482A485caE536e6a",
+    "queryClientProxy": "0xcB170B5a3cf707b4dAc2AbdD6919A0c30A8ec145",
     "registryImpl": "0x67A8e112670727fA09D4005020A67D7ACd9d62D1",
     "registryProxy": "0xF8E0EfefAFfa31f9C85F175147d64753e4eC8157"
   },

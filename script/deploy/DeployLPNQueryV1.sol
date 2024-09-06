@@ -86,30 +86,24 @@ contract DeployLPNQueryV1 is BaseScript {
     function assertions() private view {}
 
     function writeToJson() private {
-        mkdir(outputDir());
+        vm.writeJson(
+            vm.toString(address(deployment.queryProxy)),
+            outputPath(Version.V1),
+            ".addresses.queryClientProxy"
+        );
 
-        string memory json = "deploymentArtifact";
-
-        string memory addresses = "addresses";
-        addresses.serialize("queryImpl", deployment.queryImpl);
-        addresses =
-            addresses.serialize("queryProxy", address(deployment.queryProxy));
-
-        string memory chainInfo = "chainInfo";
-        chainInfo.serialize("chainId", block.chainid);
-        chainInfo = chainInfo.serialize("deploymentBlock", block.number);
-
-        json.serialize("addresses", addresses);
-        json = json.serialize("chainInfo", chainInfo);
-
-        json.write(outputPath(Version.V1));
+        vm.writeJson(
+            vm.toString(deployment.queryImpl),
+            outputPath(Version.V1),
+            ".addresses.queryClientImpl"
+        );
     }
 
     function writeToJson(address updatedQueryImpl) private {
         vm.writeJson(
             vm.toString(updatedQueryImpl),
             outputPath(Version.V1),
-            ".addresses.queryImpl"
+            ".addresses.queryClientImpl"
         );
     }
 }

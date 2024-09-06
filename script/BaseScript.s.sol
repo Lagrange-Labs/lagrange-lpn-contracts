@@ -118,7 +118,7 @@ abstract contract BaseScript is Script {
 
     function getDeployedQueryClient() internal returns (address) {
         string memory json = vm.readFile(outputPath());
-        return json.readAddress(".addresses.queryClient");
+        return json.readAddress(".addresses.queryClientProxy");
     }
 
     function getDeployedQueryClient(Version version_)
@@ -126,7 +126,7 @@ abstract contract BaseScript is Script {
         returns (address)
     {
         string memory json = vm.readFile(outputPath(version_));
-        return json.readAddress(".addresses.queryClient");
+        return json.readAddress(".addresses.queryClientProxy");
     }
 
     function print(string memory key, string memory value) internal pure {
