@@ -43,7 +43,7 @@ library Groth16VerifierExtensions {
     // Maximum number of the items per result
     uint32 constant MAX_NUM_ITEMS_PER_OUTPUT = 5;
     // Maximum number of the placeholders
-    uint32 constant MAX_NUM_PLACEHOLDERS = 14;
+    uint32 constant MAX_NUM_PLACEHOLDERS = 10;
 
     // The start uint256 offset of the public inputs in calldata.
     // groth16_proof_number (8) + groth16_input_number (3)
@@ -261,18 +261,16 @@ library Groth16VerifierExtensions {
         uint32 numResults = uint32(bytes4(rem << (REM_NUM_RESULTS_POS * 32)));
         require(numResults <= MAX_NUM_OUTPUTS, "Result number cannot overflow.");
 
-        // TODO: Each result value is an Uint256 and need to confirm this encoding code.
-        // And it encodes the whole row with dummy values, since we don't know the real
-        // number of items per result here.
         uint32 offset = PI_OFFSET + RESULT_VALUES_POS;
         bytes[] memory rows = new bytes[](numResults);
-        for (uint256 i = 0; i < numResults; ++i) {
-            rows[i] = abi.encode(
-                data[
-                    offset + i * MAX_NUM_ITEMS_PER_OUTPUT:
-                        offset + (i + 1) * MAX_NUM_ITEMS_PER_OUTPUT
-                ]
-            );
+
+        for (uint32 i = 0; i < numResults; ++i) {
+            uint256[] memory columns = new uint256[](MAX_NUM_ITEMS_PER_OUTPUT);
+            for (uint32 j = 0; j < MAX_NUM_ITEMS_PER_OUTPUT; ++j) {
+                columns[j] =
+                    uint256(data[offset + i * MAX_NUM_ITEMS_PER_OUTPUT + j]);
+            }
+            rows[i] = abi.encodePacked(columns);
         }
 
         QueryOutput memory output =
@@ -281,7 +279,7 @@ library Groth16VerifierExtensions {
         return output;
     }
 
-    // Revert the bytes of each Uint32 in block hash.
+    // Reverse the bytes of each Uint32 in block hash.
     // Since we pack to little-endian for each Uint32 in block hash.
     function convertToBlockHash(bytes32 original)
         internal
@@ -294,7 +292,6 @@ library Groth16VerifierExtensions {
                 result |= bytes32(original[i * 4 + j]) >> (8 * (i * 4 + 3 - j));
             }
         }
-
         return result;
     }
 }
