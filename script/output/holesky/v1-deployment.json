@@ -1,16 +1,32 @@
 {
+  "dev": {
+    "addresses": {
+      "queryClientImpl": "0xFC27422DC2A67A126CD3cB32E20A8E97Fe50ADe2",
+      "queryClientProxy": "0x5C189dC46c2c6136dBaFdAAa02Db46CD2dF683A3",
+      "registryImpl": "0x88Eb75C864C07774Ec6C4C15EA0a37496EdDd954",
+      "registryProxy": "0xC9135b51c4DD04B6E082e2cB56a5C26b3a53Ee47"
+    },
+    "chainInfo": {
+      "chainId": 17000,
+      "deploymentBlock": 2166099
+    },
+    "storageContracts": {
+      "lagrangeLoonsERC721Enumerable": "0x46c93c8813c3daaa0dc9159094d2b7a8f0885b48",
+      "simpleMapping": "0x458398c1b29eaf50edf6d63d1ec368802e0d16ae"
+    }
+  },
   "addresses": {
-    "queryClient": "0x0000000000000000000000000000000000000000",
-    "registryImpl": "0x285a467901b8C06C45754E3D41Aea50Db0a28472",
-    "registryProxy": "0xC9135b51c4DD04B6E082e2cB56a5C26b3a53Ee47"
+    "queryClientImpl": "0x80c0a42F808d6f35e83F4939482A485caE536e6a",
+    "queryClientProxy": "0xcB170B5a3cf707b4dAc2AbdD6919A0c30A8ec145",
+    "registryImpl": "0x8F6366Cb2655a401aCC73BaFC067D2df6c80DA25",
+    "registryProxy": "0xF8E0EfefAFfa31f9C85F175147d64753e4eC8157"
   },
   "chainInfo": {
     "chainId": 17000,
-    "deploymentBlock": 2166099
+    "deploymentBlock": 2259946
   },
   "storageContracts": {
-    "erc20AvgBalance": "0x0000000000000000000000000000000000000000",
-    "erc20ProportionateBalance": "0x0000000000000000000000000000000000000000",
-    "erc721Enumerable": "0x0000000000000000000000000000000000000000"
+    "lagrangeLoonsERC721Enumerable": "0x46c93c8813c3daaa0dc9159094d2b7a8f0885b48",
+    "simpleMapping": "0x458398c1b29eaf50edf6d63d1ec368802e0d16ae"
   }
 }

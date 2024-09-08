@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+import {QueryOutput} from "../Groth16VerifierExtensions.sol";
+
 /// @title IQueryManager
 /// @notice
 interface IQueryManager {
@@ -8,7 +10,7 @@ interface IQueryManager {
     /// @param requestId The ID of the request.
     /// @param queryHash The identifier of the SQL query associated with the request.
     /// @param client The address of the client who made this request.
-    /// @param params The query params associated with this query type.
+    /// @param placeholders Values for the numbered placeholders in the query.
     /// @param startBlock The starting block for the computation.
     /// @param endBlock The ending block for the computation.
     /// @param proofBlock The requested block for the proof to be computed against.
@@ -17,7 +19,7 @@ interface IQueryManager {
         uint256 indexed requestId,
         bytes32 indexed queryHash,
         address indexed client,
-        bytes params,
+        bytes32[] placeholders,
         uint256 startBlock,
         uint256 endBlock,
         uint256 gasFee,
@@ -27,20 +29,20 @@ interface IQueryManager {
     /// @notice Event emitted when a response is received.
     /// @param requestId The ID of the request.
     /// @param client The address of the client who made the matching request.
-    /// @param results The computed results for the request.
+    /// @param result The computed results for the request.
     event NewResponse(
-        uint256 indexed requestId, address indexed client, uint256[] results
+        uint256 indexed requestId, address indexed client, QueryOutput result
     );
 
     /// @notice Submits a new request to the registry.
     /// @param queryHash The identifier of the SQL query associated with the request.
-    /// @param params The dynamic query params associated with the query.
+    /// @param placeholders Values for the numbered placeholders in the query.
     /// @param startBlock The starting block for the computation.
     /// @param endBlock The ending block for the computation.
     /// @return The ID of the newly created request.
     function request(
         bytes32 queryHash,
-        bytes calldata params,
+        bytes32[] calldata placeholders,
         uint256 startBlock,
         uint256 endBlock
     ) external payable returns (uint256);

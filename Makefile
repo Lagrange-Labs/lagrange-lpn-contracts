@@ -10,6 +10,7 @@ MAINNET_DEPLOYER=--account v0_owner --sender ${DEPLOYER_ADDR}
 DEPLOY_PROXY_FACTORY_CMD=forge script DeployERC1967ProxyFactory --rpc-url
 DEPLOY_REGISTRY_CMD=forge script DeployLPNRegistry --rpc-url
 DEPLOY_CLIENTS_CMD=forge script DeployClients --rpc-url
+DEPLOY_QUERY_CLIENT_CMD=forge script DeployLPNQueryV1 --rpc-url
 DEPLOY_ERC20_CMD=forge script DeployERC20 --rpc-url
 QUERY_CMD=forge script Query --rpc-url
 WITHDRAW_FEES_CMD=forge script WithdrawFees --rpc-url
@@ -69,6 +70,10 @@ fraxtal_mainnet_deploy_clients :; ${DEPLOY_CLIENTS_CMD} fraxtal ${DEPLOY_FLAGS} 
 mantle_testnet_deploy_clients :; ${DEPLOY_CLIENTS_CMD} mantle_sepolia ${DEPLOY_FLAGS} --with-gas-price 20000000 -g 4000000
 mantle_mainnet_deploy_clients :; ${DEPLOY_CLIENTS_CMD} mantle ${DEPLOY_FLAGS} ${MAINNET_DEPLOYER} --with-gas-price 20000000 -g 4000000
 polygon_mainnet_deploy_clients :; ${DEPLOY_CLIENTS_CMD} polygon_zkevm ${DEPLOY_FLAGS} ${MAINNET_DEPLOYER}
+
+# Deploy Query Clients
+holesky_deploy_query_client :; ${DEPLOY_QUERY_CLIENT_CMD} holesky ${DEPLOY_FLAGS} --gas-estimate-multiplier 1000 # multiply estimate by 10
+mainnet_deploy_query_client :; ${DEPLOY_QUERY_CLIENT_CMD} mainnet ${DEPLOY_FLAGS} --priority-gas-price 0.5gwei --account v0_owner
 
 # Run Queries
 testnet_query :; ${QUERY_CMD} sepolia ${DEPLOY_FLAGS}

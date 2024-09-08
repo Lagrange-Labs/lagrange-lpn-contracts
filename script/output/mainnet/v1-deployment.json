@@ -1,0 +1,17 @@
+{
+  "addresses": {
+    "queryClientImpl": "0xECA0320aBAAEED6B2a234ACDca06Ff44f8bEa32E",
+    "queryClientProxy": "0xcB170B5a3cf707b4dAc2AbdD6919A0c30A8ec145",
+    "registryImpl": "0x4aB3F5802F1fC4699fB820876305D151e5448ED8",
+    "registryProxy": "0xF8E0EfefAFfa31f9C85F175147d64753e4eC8157"
+  },
+  "chainInfo": {
+    "chainId": 1,
+    "deploymentBlock": 20667673
+  },
+  "storageContracts": {
+    "erc20AvgBalance": "0x0000000000000000000000000000000000000000",
+    "erc20ProportionateBalance": "0x0000000000000000000000000000000000000000",
+    "erc721Enumerable": "0x0000000000000000000000000000000000000000"
+  }
+}

@@ -462,7 +462,7 @@ contract LPNRegistryV0Test is Test {
             endBlock
         );
 
-        bytes32[] memory proof = readProof("/test/full_proof.bin");
+        bytes32[] memory proof = readProof("/test/v0/full_proof.bin");
         // TODO: Figure out how to mock block hash
         vm.expectRevert(
             bytes(
@@ -521,7 +521,7 @@ contract LPNRegistryV0Test is Test {
             endBlock
         );
 
-        bytes32[] memory proof = readProof("/test/full_proof.bin");
+        bytes32[] memory proof = readProof("/test/v0/full_proof.bin");
 
         vm.expectEmit(true, true, true, true);
         emit NewResponse(requestId, address(client), expectedResults);

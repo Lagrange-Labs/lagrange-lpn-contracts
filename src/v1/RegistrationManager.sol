@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-import {isEthereum, isOPStack, isMantle, isCDK} from "./utils/Constants.sol";
+import {isEthereum, isOPStack, isMantle, isCDK} from "../utils/Constants.sol";
 import {IRegistrationManager} from "./interfaces/IRegistrationManager.sol";
 
 /// @notice Error thrown when attempting to register a table more than once.

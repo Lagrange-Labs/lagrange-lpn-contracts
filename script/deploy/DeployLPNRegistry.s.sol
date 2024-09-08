@@ -2,7 +2,7 @@
 pragma solidity ^0.8.13;
 
 import {BaseScript} from "../BaseScript.s.sol";
-import {LPNRegistryV1} from "../../src/LPNRegistryV1.sol";
+import {LPNRegistryV1} from "../../src/v1/LPNRegistryV1.sol";
 import {ERC1967Factory} from "solady/utils/ERC1967Factory.sol";
 import {ERC1967FactoryConstants} from "solady/utils/ERC1967FactoryConstants.sol";
 import {
