@@ -3,7 +3,7 @@
 pragma solidity ^0.8.0;
 
 import "./Groth16Verifier.sol";
-import {isCDK} from "../utils/Constants.sol";
+import {isCDK, isMainnet} from "../utils/Constants.sol";
 
 library Groth16VerifierExtensions {
     // byteLen(uint160) / 4
@@ -207,7 +207,7 @@ library Groth16VerifierExtensions {
 
         bytes32 blockHash = bytes32(convertToHash(pis, PI_BLOCK_HASH_OFFSET));
         require(
-            blockHash == query.blockHash || isCDK(),
+            blockHash == query.blockHash || isCDK() || isMainnet(),
             "The parsed block hash must be equal to the expected one in query."
         );
 

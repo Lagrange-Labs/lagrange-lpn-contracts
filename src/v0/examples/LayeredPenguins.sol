@@ -36,17 +36,23 @@ contract LayeredPenguins is LPNClientV0, ERC721Enumerable {
         return PUDGY_METADATA_URI;
     }
 
-    function requestMint() external payable {
-        uint256 requestId = queryPudgyPenguins();
-        mintRequests[requestId] = MintRequest({sender: msg.sender});
+    function requestMint(address minter, uint256 blockNumber)
+        external
+        payable
+    {
+        uint256 requestId = queryPudgyPenguins(minter, blockNumber);
+        mintRequests[requestId] = MintRequest({sender: minter});
     }
 
-    function queryPudgyPenguins() private returns (uint256) {
+    function queryPudgyPenguins(address minter, uint256 blockNumber)
+        private
+        returns (uint256)
+    {
         return lpnRegistry.request{value: lpnRegistry.gasFee()}(
             PUDGY_PENGUINS,
-            QueryParams.newNFTQueryParams(msg.sender, 0).toBytes32(),
-            L1BlockNumber(),
-            L1BlockNumber()
+            QueryParams.newNFTQueryParams(minter, 0).toBytes32(),
+            blockNumber,
+            blockNumber
         );
     }
 
