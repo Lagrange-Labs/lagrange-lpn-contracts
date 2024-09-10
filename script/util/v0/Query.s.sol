@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-import {BaseScript} from "../BaseScript.s.sol";
-import {LPNQueryV0} from "../../src/v0/client/LPNQueryV0.sol";
-import {LPNRegistryV0} from "../../src/v0/LPNRegistryV0.sol";
-import {isEthereum, isMainnet} from "../../src/utils/Constants.sol";
-import {L1BlockNumber} from "../../src/utils/L1Block.sol";
+import {BaseScript} from "../../BaseScript.s.sol";
+import {LPNQueryV0} from "../../../src/v0/client/LPNQueryV0.sol";
+import {LPNRegistryV0} from "../../../src/v0/LPNRegistryV0.sol";
+import {isEthereum, isMainnet} from "../../../src/utils/Constants.sol";
+import {L1BlockNumber} from "../../../src/utils/L1Block.sol";
 
 contract Query is BaseScript {
     LPNRegistryV0 registry;
@@ -24,6 +24,7 @@ contract Query is BaseScript {
     function run() external broadcaster {
         // QueryType queryType = QueryType.ERC20Avg;
         // QueryType queryType = QueryType.ERC20Total;
+
         QueryType queryType = QueryType.ERC721;
 
         registry = LPNRegistryV0(getDeployedRegistry());
@@ -68,13 +69,9 @@ contract Query is BaseScript {
             rewardsRate = 1;
         }
 
-        address storageContract = getDeployedStorageContract(contractType);
-
-        if (!isEthereum()) {
-            storageContract = isMainnet()
-                ? getDeployedStorageContract(contractType, "mainnet")
-                : getDeployedStorageContract(contractType, "holesky");
-        }
+        address storageContract = isMainnet()
+            ? getDeployedStorageContract(contractType, "mainnet")
+            : getDeployedStorageContract(contractType, "holesky");
 
         if (queryType == QueryType.ERC721) {
             queryClient.queryNFT{value: registry.gasFee()}(
