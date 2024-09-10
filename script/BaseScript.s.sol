@@ -193,24 +193,33 @@ abstract contract BaseScript is Script {
         mkdir(outputDir());
 
         string memory json = "deploymentArtifact";
-
         string memory addresses = "addresses";
-        addresses.serialize("queryClient", address(0));
-        addresses.serialize("registryImpl", address(0));
-        addresses = addresses.serialize("registryProxy", address(0));
-
-        string memory storageContracts = "storageContracts";
-        storageContracts.serialize("erc721Enumerable", address(0));
-        storageContracts.serialize("erc20ProportionateBalance", address(0));
-        storageContracts =
-            storageContracts.serialize("erc20AvgBalance", address(0));
 
         string memory chainInfo = "chainInfo";
         chainInfo.serialize("chainId", uint256(0));
         chainInfo = chainInfo.serialize("deploymentBlock", uint256(0));
 
+        if (version_ == Version.V0) {
+            addresses.serialize("queryClient", address(0));
+
+            string memory storageContracts = "storageContracts";
+            storageContracts.serialize("erc721Enumerable", address(0));
+            storageContracts.serialize("erc20ProportionateBalance", address(0));
+            storageContracts =
+                storageContracts.serialize("erc20AvgBalance", address(0));
+
+            json.serialize("storageContracts", storageContracts);
+        } else if (version_ == Version.V1) {
+            addresses.serialize("queryClientImpl", address(0));
+            addresses.serialize("queryClientProxy", address(0));
+        } else {
+            require(false, "Unsupported Contract Version");
+        }
+
+        addresses.serialize("registryImpl", address(0));
+        addresses = addresses.serialize("registryProxy", address(0));
+
         json.serialize("addresses", addresses);
-        json.serialize("storageContracts", storageContracts);
         json = json.serialize("chainInfo", chainInfo);
 
         json.write(outputPath(version_));

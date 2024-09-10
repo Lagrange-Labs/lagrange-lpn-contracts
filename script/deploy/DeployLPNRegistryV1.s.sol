@@ -13,7 +13,7 @@ import {
 } from "../../src/utils/Constants.sol";
 import {stdJson} from "forge-std/StdJson.sol";
 
-contract DeployLPNRegistry is BaseScript {
+contract DeployLPNRegistryV1 is BaseScript {
     using stdJson for string;
 
     struct Deployment {
