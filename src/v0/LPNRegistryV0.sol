@@ -45,7 +45,7 @@ contract LPNRegistryV0 is ILPNRegistry, OwnableWhitelist, Initializable {
     uint256 public constant MAX_QUERY_RANGE = 50_000;
 
     /// @notice A constant gas fee paid for each request to reimburse the relayer when it delivers the response
-    uint256 public constant ETH_GAS_FEE = 0.05 ether;
+    uint256 public constant ETH_GAS_FEE = 0.005 ether;
     uint256 public constant OP_GAS_FEE = 0.00045 ether;
     uint256 public constant CDK_GAS_FEE = 0.00045 ether;
     /// @dev Mantle uses a custom gas token

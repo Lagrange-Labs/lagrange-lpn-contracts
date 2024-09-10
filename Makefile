@@ -8,10 +8,12 @@ LOCAL_DEPLOY_FLAGS=--broadcast ${VERBOSITY} --ffi --slow
 DEPLOY_FLAGS=--verify ${LOCAL_DEPLOY_FLAGS}
 MAINNET_DEPLOYER=--account v0_owner --sender ${DEPLOYER_ADDR}
 DEPLOY_PROXY_FACTORY_CMD=forge script DeployERC1967ProxyFactory --rpc-url
-DEPLOY_REGISTRY_CMD=forge script DeployLPNRegistry --rpc-url
+DEPLOY_REGISTRY_CMD=forge script DeployLPNRegistryV1 --rpc-url
+DEPLOY_REGISTRY_V0_CMD=forge script DeployLPNRegistryV0 --rpc-url
 DEPLOY_CLIENTS_CMD=forge script DeployClients --rpc-url
 DEPLOY_QUERY_CLIENT_CMD=forge script DeployLPNQueryV1 --rpc-url
 DEPLOY_ERC20_CMD=forge script DeployERC20 --rpc-url
+DEPLOY_PENG_CMD=forge script DeployLayeredPenguins --rpc-url
 QUERY_CMD=forge script Query --rpc-url
 WITHDRAW_FEES_CMD=forge script WithdrawFees --rpc-url
 BRIDGE_CMD=forge script Bridge --rpc-url
@@ -49,6 +51,7 @@ local_deploy_registry           :; ${DEPLOY_REGISTRY_CMD} local ${LOCAL_DEPLOY_F
 testnet_deploy_registry         :; ${DEPLOY_REGISTRY_CMD} sepolia ${DEPLOY_FLAGS} --priority-gas-price 0.1gwei
 holesky_testnet_deploy_registry :; ${DEPLOY_REGISTRY_CMD} holesky ${DEPLOY_FLAGS} --legacy
 mainnet_deploy_registry         :; ${DEPLOY_REGISTRY_CMD} mainnet ${DEPLOY_FLAGS} --priority-gas-price 0.5gwei ${MAINNET_DEPLOYER}
+mainnet_deploy_registry_v0      :; ${DEPLOY_REGISTRY_V0_CMD} mainnet ${DEPLOY_FLAGS} --priority-gas-price 0.5gwei ${MAINNET_DEPLOYER}
 base_testnet_deploy_registry    :; ${DEPLOY_REGISTRY_CMD} base_sepolia ${DEPLOY_FLAGS}
 base_mainnet_deploy_registry    :; ${DEPLOY_REGISTRY_CMD} base ${DEPLOY_FLAGS} ${MAINNET_DEPLOYER}
 fraxtal_testnet_deploy_registry :; ${DEPLOY_REGISTRY_CMD} fraxtal_testnet ${DEPLOY_FLAGS}
@@ -74,6 +77,8 @@ polygon_mainnet_deploy_clients :; ${DEPLOY_CLIENTS_CMD} polygon_zkevm ${DEPLOY_F
 # Deploy Query Clients
 holesky_deploy_query_client :; ${DEPLOY_QUERY_CLIENT_CMD} holesky ${DEPLOY_FLAGS} --gas-estimate-multiplier 1000 # multiply estimate by 10
 mainnet_deploy_query_client :; ${DEPLOY_QUERY_CLIENT_CMD} mainnet ${DEPLOY_FLAGS} --priority-gas-price 0.5gwei --account v0_owner
+
+mainnet_deploy_layered_penguins :; ${DEPLOY_PENG_CMD} mainnet ${DEPLOY_FLAGS} --priority-gas-price 0.5gwei --account v0_owner
 
 # Run Queries
 testnet_query :; ${QUERY_CMD} sepolia ${DEPLOY_FLAGS}

@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-import {BaseScript} from "../BaseScript.s.sol";
-import {LPNRegistryV0} from "../../src/v0/LPNRegistryV0.sol";
+import {BaseScript} from "../../BaseScript.s.sol";
+import {LPNRegistryV0} from "../../../src/v0/LPNRegistryV0.sol";
 import {
     AirdropNFTCrosschain,
     LagrangeLoonsNFT
-} from "../../src/v0/examples/AirdropNFTCrosschain.sol";
-import {LPNQueryV0} from "../../src/v0/client/LPNQueryV0.sol";
+} from "../../../src/v0/examples/AirdropNFTCrosschain.sol";
+import {LPNQueryV0} from "../../../src/v0/client/LPNQueryV0.sol";
 import {
     PUDGEY_PENGUINS,
     PUDGEY_PENGUINS_MAPPING_SLOT,
@@ -18,7 +18,7 @@ import {
     isTestnet,
     isEthereum,
     isLocal
-} from "../../src/utils/Constants.sol";
+} from "../../../src/utils/Constants.sol";
 import {stdJson} from "forge-std/StdJson.sol";
 
 contract DeployClients is BaseScript {
@@ -32,45 +32,37 @@ contract DeployClients is BaseScript {
     LPNRegistryV0 registry;
     Deployment deployment;
 
-    /// @notice Deploys LPNQueryV0 and LagrangeLoonsNFT (only on Sepolia); whitelists and registers storageContract on L1
+    /// @notice Deploys LPNQueryV0 and LagrangeLoonsNFT; whitelists and registers storageContract on L1
     function run() external broadcaster {
-        if (isTestnet() || isLocal()) {
-            deployment.storageContract = deployTestNFT();
-            address receiver = 0x000000000000000000000000000000000000dEaD;
-            generateTestnetData(receiver);
+        registry = LPNRegistryV0(getDeployedRegistry());
+        deployment = deploy();
+
+        if (isEthereum() && !registry.whitelist(deployment.storageContract)) {
+            registry.toggleWhitelist(deployment.storageContract);
         }
 
-        // registry = LPNRegistryV0(getDeployedRegistry());
-        // deployment = deploy();
-        //
-        // if (isEthereum() && !registry.whitelist(deployment.storageContract)) {
-        //     registry.toggleWhitelist(deployment.storageContract);
-        // }
-        //
-        // uint256 mappingSlot;
-        // uint256 lengthSlot;
-        //
-        // if (isMainnet()) {
-        //     mappingSlot = PUDGEY_PENGUINS_MAPPING_SLOT;
-        //     lengthSlot = PUDGEY_PENGUINS_LENGTH_SLOT;
-        // } else {
-        //     mappingSlot = LAGRANGE_LOONS_MAPPING_SLOT;
-        //     lengthSlot = LAGRANGE_LOONS_LENGTH_SLOT;
-        // }
-        //
-        // if (isEthereum()) {
-        //     registry.register(
-        //         deployment.storageContract, mappingSlot, lengthSlot
-        //     );
-        // }
-        //
-        // if (isEthereum() && (isTestnet() || isLocal())) {
-        //     generateTestnetData();
-        // }
-        //
-        // assertions();
-        //
-        // writeToJson();
+        uint256 mappingSlot;
+        uint256 lengthSlot;
+
+        if (isMainnet()) {
+            mappingSlot = PUDGEY_PENGUINS_MAPPING_SLOT;
+            lengthSlot = PUDGEY_PENGUINS_LENGTH_SLOT;
+        } else {
+            mappingSlot = LAGRANGE_LOONS_MAPPING_SLOT;
+            lengthSlot = LAGRANGE_LOONS_LENGTH_SLOT;
+        }
+
+        if (isEthereum()) {
+            registry.register(
+                deployment.storageContract, mappingSlot, lengthSlot
+            );
+        }
+
+        if (isEthereum() && (isTestnet() || isLocal())) {
+            generateTestnetData(0x000000000000000000000000000000000000dEaD);
+        }
+
+        writeToJson();
     }
 
     /// @notice Deploys LPNQueryV0 on all chains; Deploys LagrangeLoonsNFT on Sepolia
@@ -147,6 +139,4 @@ contract DeployClients is BaseScript {
             ".addresses.queryClient"
         );
     }
-
-    function assertions() private view {}
 }

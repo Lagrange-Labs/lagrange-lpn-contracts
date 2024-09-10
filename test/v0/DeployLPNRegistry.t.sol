@@ -5,13 +5,15 @@ import "forge-std/Test.sol";
 import {LPNRegistryV0} from "../../src/v0/LPNRegistryV0.sol";
 import {ERC1967Factory} from "solady/utils/ERC1967Factory.sol";
 import {ERC1967FactoryConstants} from "solady/utils/ERC1967FactoryConstants.sol";
-import {DeployLPNRegistry} from "../../script/deploy/DeployLPNRegistry.s.sol";
+import {DeployLPNRegistryV0} from
+    "../../script/deploy/v0/DeployLPNRegistryV0.s.sol";
+
 import {DeployERC1967ProxyFactory} from
     "../../script/deploy/DeployERC1967ProxyFactory.s.sol";
 
 contract DeployLPNRegistryTest is Test {
-    DeployLPNRegistry public deployScript = new DeployLPNRegistry();
-    DeployLPNRegistry.Deployment deployment;
+    DeployLPNRegistryV0 public deployScript = new DeployLPNRegistryV0();
+    DeployLPNRegistryV0.Deployment deployment;
 
     ERC1967Factory proxyFactory =
         ERC1967Factory(ERC1967FactoryConstants.ADDRESS);
@@ -71,7 +73,7 @@ contract DeployLPNRegistryTest is Test {
         bytes32 newSalt =
             bytes32(abi.encodePacked(address(deployScript), "LPN_V1"));
 
-        DeployLPNRegistry.Deployment memory newDeployment =
+        DeployLPNRegistryV0.Deployment memory newDeployment =
             deployScript.deploy(newSalt, owner);
 
         assert(deployment.registryProxy != newDeployment.registryProxy);

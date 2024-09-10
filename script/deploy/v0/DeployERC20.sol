@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-import {BaseScript} from "../BaseScript.s.sol";
-import {LPNRegistryV0} from "../../src/v0/LPNRegistryV0.sol";
-import {TestERC20} from "../../src/v0/examples/ERC20Balance.sol";
+import {BaseScript} from "../../BaseScript.s.sol";
+import {LPNRegistryV0} from "../../../src/v0/LPNRegistryV0.sol";
+import {TestERC20} from "../../../src/v0/examples/ERC20Balance.sol";
 
 import {
     TEST_ERC20_MAPPING_SLOT,
     isMainnet,
     isEthereum
-} from "../../src/utils/Constants.sol";
+} from "../../../src/utils/Constants.sol";
 
 contract DeployERC20 is BaseScript {
     struct Deployment {

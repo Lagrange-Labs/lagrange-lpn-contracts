@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-import {BaseScript} from "../BaseScript.s.sol";
-import {LPNRegistryV1} from "../../src/v1/LPNRegistryV1.sol";
+import {BaseScript} from "../../BaseScript.s.sol";
+import {LPNRegistryV0} from "../../../src/v0/LPNRegistryV0.sol";
 import {ERC1967Factory} from "solady/utils/ERC1967Factory.sol";
 import {ERC1967FactoryConstants} from "solady/utils/ERC1967FactoryConstants.sol";
 import {
@@ -10,14 +10,14 @@ import {
     isEthereum,
     isMainnet,
     isLocal
-} from "../../src/utils/Constants.sol";
+} from "../../../src/utils/Constants.sol";
 import {stdJson} from "forge-std/StdJson.sol";
 
-contract DeployLPNRegistry is BaseScript {
+contract DeployLPNRegistryV0 is BaseScript {
     using stdJson for string;
 
     struct Deployment {
-        LPNRegistryV1 registryProxy;
+        LPNRegistryV0 registryProxy;
         address registryImpl;
     }
 
@@ -27,12 +27,12 @@ contract DeployLPNRegistry is BaseScript {
         ERC1967Factory(ERC1967FactoryConstants.ADDRESS);
 
     function run() external broadcaster returns (Deployment memory) {
-        if (getDeployedRegistry(Version.V1) == address(0)) {
-            deployment = deploy(newSalt("V1_REG_0"), deployer);
+        if (getDeployedRegistry(Version.V0) == address(0)) {
+            deployment = deploy(newSalt("V0_EUCLID_0"), deployer);
             writeToJson();
         } else {
             address updatedRegistryImpl =
-                upgrade(getDeployedRegistry(Version.V1));
+                upgrade(getDeployedRegistry(Version.V0));
             writeToJson(updatedRegistryImpl);
         }
 
@@ -46,8 +46,8 @@ contract DeployLPNRegistry is BaseScript {
         returns (Deployment memory)
     {
         // Deploy a new implementation
-        address registryImpl = address(new LPNRegistryV1());
-        print("LPNRegistryV1 (implementation)", address(registryImpl));
+        address registryImpl = address(new LPNRegistryV0());
+        print("LPNRegistryV0 (implementation)", address(registryImpl));
 
         if (isLocal()) {
             vm.etch(
@@ -62,20 +62,20 @@ contract DeployLPNRegistry is BaseScript {
             registryImpl,
             owner,
             salt_,
-            abi.encodeWithSelector(LPNRegistryV1.initialize.selector, owner)
+            abi.encodeWithSelector(LPNRegistryV0.initialize.selector, owner)
         );
-        print("LPNRegistryV1 (proxy)", address(registryProxy));
+        print("LPNRegistryV0 (proxy)", address(registryProxy));
 
         return Deployment({
-            registryProxy: LPNRegistryV1(registryProxy),
+            registryProxy: LPNRegistryV0(registryProxy),
             registryImpl: registryImpl
         });
     }
 
     function upgrade(address proxy) public returns (address) {
         // Deploy a new implementation
-        address registryImpl = address(new LPNRegistryV1());
-        print("LPNRegistryV1 (implementation)", address(registryImpl));
+        address registryImpl = address(new LPNRegistryV0());
+        print("LPNRegistryV0 (implementation)", address(registryImpl));
 
         // Update proxy to point to new implementation contract
         proxyFactory.upgrade(proxy, registryImpl);
@@ -110,13 +110,13 @@ contract DeployLPNRegistry is BaseScript {
         json.serialize("storageContracts", storageContracts);
         json = json.serialize("chainInfo", chainInfo);
 
-        json.write(outputPath(Version.V1));
+        json.write(outputPath(Version.V0));
     }
 
     function writeToJson(address updatedRegistryImpl) private {
         vm.writeJson(
             vm.toString(updatedRegistryImpl),
-            outputPath(Version.V1),
+            outputPath(Version.V0),
             ".addresses.registryImpl"
         );
     }
