@@ -31,7 +31,7 @@ error InsufficientGasFee();
 /// @notice TODO
 contract QueryManager is IQueryManager {
     /// @notice The maximum number of blocks a query can be computed over
-    uint256 public constant MAX_QUERY_RANGE = 1_000;
+    uint256 public constant MAX_QUERY_RANGE = 50_000;
 
     /// @notice A constant gas fee paid for each request to reimburse the relayer when it delivers the response
     uint256 public constant ETH_GAS_FEE = 0.01 ether;
