@@ -12,7 +12,8 @@ DEPLOY_REGISTRY_CMD=forge script DeployLPNRegistryV1 --rpc-url
 DEPLOY_REGISTRY_V0_CMD=forge script DeployLPNRegistryV0 --rpc-url
 DEPLOY_CLIENTS_CMD=forge script DeployClients --rpc-url
 DEPLOY_QUERY_CLIENT_CMD=forge script DeployLPNQueryV1 --rpc-url
-DEPLOY_ERC20_CMD=forge script DeployERC20 --rpc-url
+DEPLOY_TEST_ERC20_CMD=forge script DeployTestERC20 --rpc-url
+DEPLOY_ERC20_DISTRIBUTOR_CMD=forge script DeployERC20Distributor --rpc-url
 DEPLOY_PENG_CMD=forge script DeployLayeredPenguins --rpc-url
 QUERY_CMD=forge script Query --rpc-url
 WITHDRAW_FEES_CMD=forge script WithdrawFees --rpc-url
@@ -64,7 +65,7 @@ polygon_deploy_registry         :; ${DEPLOY_REGISTRY_CMD} polygon_zkevm ${DEPLOY
 local_deploy_clients        :; ${DEPLOY_CLIENTS_CMD} local ${LOCAL_DEPLOY_FLAGS}
 testnet_deploy_clients      :; ${DEPLOY_CLIENTS_CMD} sepolia ${DEPLOY_FLAGS} --priority-gas-price 0.1gwei
 holesky_deploy_clients      :; ${DEPLOY_CLIENTS_CMD} holesky ${DEPLOY_FLAGS} --gas-estimate-multiplier 1000 # multiply estimate by 10
-holesky_deploy_test_erc20   :; ${DEPLOY_ERC20_CMD} holesky ${DEPLOY_FLAGS} --gas-estimate-multiplier 1000 --sender ${DEPLOYER_ADDR}
+holesky_deploy_test_erc20   :; ${DEPLOY_TEST_ERC20_CMD} holesky ${DEPLOY_FLAGS} --gas-estimate-multiplier 1000 # --sender ${DEPLOYER_ADDR}
 mainnet_deploy_clients      :; ${DEPLOY_CLIENTS_CMD} mainnet ${DEPLOY_FLAGS} --priority-gas-price 0.5gwei --account v0_owner
 base_testnet_deploy_clients :; ${DEPLOY_CLIENTS_CMD} base_sepolia ${DEPLOY_FLAGS}
 base_mainnet_deploy_clients :; ${DEPLOY_CLIENTS_CMD} base ${DEPLOY_FLAGS} ${MAINNET_DEPLOYER}
@@ -78,6 +79,8 @@ polygon_mainnet_deploy_clients :; ${DEPLOY_CLIENTS_CMD} polygon_zkevm ${DEPLOY_F
 holesky_deploy_query_client :; ${DEPLOY_QUERY_CLIENT_CMD} holesky ${DEPLOY_FLAGS} --gas-estimate-multiplier 1000 # multiply estimate by 10
 mainnet_deploy_query_client :; ${DEPLOY_QUERY_CLIENT_CMD} mainnet ${DEPLOY_FLAGS} --priority-gas-price 0.5gwei --account v0_owner
 
+# Deploy Examples
+holesky_deploy_erc20_distributor :; ${DEPLOY_ERC20_DISTRIBUTOR_CMD} holesky ${DEPLOY_FLAGS} --gas-estimate-multiplier 1000 # multiply estimate by 10
 mainnet_deploy_layered_penguins :; ${DEPLOY_PENG_CMD} mainnet ${DEPLOY_FLAGS} --priority-gas-price 0.5gwei --account v0_owner
 
 # Run Queries

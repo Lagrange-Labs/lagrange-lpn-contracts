@@ -7,7 +7,6 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import {QueryParams} from "../QueryParams.sol";
 
 import {IERC20} from "forge-std/interfaces/IERC20.sol";
-import {MockERC20} from "forge-std/mocks/MockERC20.sol";
 
 contract ERC20Balance is LPNClientV0 {
     using QueryParams for QueryParams.ERC20QueryParams;
@@ -119,22 +118,4 @@ contract ERC20Balance is LPNClientV0 {
     }
 
     function airdropTokens(address holder, uint256 amount) private {}
-}
-
-contract TestERC20 is MockERC20 {
-    // It is important to register the correct storage slot of the mapping you want to query.
-    // The `_balanceOf` mapping is in storage slot 4 in the forge-std MockERC20 implementation:
-    //     `mapping(address => uint256) private _balanceOf;`
-
-    constructor() {
-        MockERC20.initialize("Test ERC20", "LERC20", 18);
-    }
-
-    function mint(address to, uint256 amount) external {
-        _mint(to, amount);
-    }
-
-    function burn(address from, uint256 amount) external {
-        _burn(from, amount);
-    }
 }
