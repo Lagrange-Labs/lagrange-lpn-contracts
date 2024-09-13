@@ -27,7 +27,7 @@ contract ERC20Distributor is MockERC20, LPNClientV1 {
 
     /// @dev An example query hash that can be overridden when calling `initiateClaim`
     bytes32 public constant AVG_BALANCE_QUERY_HASH =
-        0xf5495e59cb0786c6c2d6a7dc64ed222fb8e20fb1dc65788d2f4d264f48ae645b;
+        0xeffca84cd99e1c088589a69e04692374fa600b6caa6fa1f16902bae9840de244;
 
     /// @dev The ERC20 contract that is being queried
     IERC20 public constant ERC20_TO_BE_QUERIED =
@@ -37,8 +37,8 @@ contract ERC20Distributor is MockERC20, LPNClientV1 {
     uint256 REWARD_RATE = 100 ether;
 
     /// @notice The farming campaign lasts for 1 month
-    uint256 public constant CAMPAIGN_START_BLOCK = 2316830;
-    uint256 public constant CAMPAIGN_END_BLOCK = 2532830;
+    uint256 public constant CAMPAIGN_START_BLOCK = 2341753;
+    uint256 public constant CAMPAIGN_END_BLOCK = 2557753;
 
     /// @notice Mapping from request ID to the campaign ID and holder it is made for
     mapping(uint256 => RequestData) public requestData;
