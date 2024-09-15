@@ -12,7 +12,7 @@ cd $GIT_REPO_PATH && \
     git pull origin $BRANCH && \
     cd -
 
-cp "${GIT_REPO_PATH}/${CODE_DIR_PATH}/TestGroth16Verifier.sol" $VERIFIER_FILE
+cp "${GIT_REPO_PATH}/${CODE_DIR_PATH}/verifier.sol" $VERIFIER_FILE
 cp "${GIT_REPO_PATH}/${CODE_DIR_PATH}/Groth16VerifierExtensions.sol" $VERIFIER_EXTENSIONS_FILE
 
 # Use as library instead of contract
