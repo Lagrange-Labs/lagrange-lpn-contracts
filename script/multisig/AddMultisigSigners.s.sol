@@ -3,9 +3,7 @@ pragma solidity ^0.8.13;
 
 import {BaseScript} from "../BaseScript.s.sol";
 
-/// @dev Deploy multsigs with the same address (0xE7cdA508FEB53713fB7C69bb891530C924980366)
-/// to various EVM chains (except for zkSync !)
-
+/// @dev Add new multisig signers and update signing threshold
 /// @dev Can execute this script like so:
 /// make AddMultisigSigners_base ARGS='--sig "run(address[],uint256)" "[0x4fbCd47f4f9c28645F6E70C9c7C2ca41A6Ed6727,0xa2DAF7E5F433f12461D07FF0495fE3694D6B483F]" 2'
 contract AddMultisigSigners is BaseScript {
