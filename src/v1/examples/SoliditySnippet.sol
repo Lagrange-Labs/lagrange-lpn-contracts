@@ -1,17 +1,23 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.25;
 
-// import {LPNClientV1} from "lagrange-lpn-contracts/src/v1/client/LPNClientV1.sol";
-// import {ILPNRegistryV1} from
-//     "lagrange-lpn-contracts/src/v1/interfaces/ILPNRegistryV1.sol";
 // import {L1BlockNumber} from "lagrange-lpn-contracts/src/utils/L1Block.sol";
-// import {QueryOutput} from
-//     "lagrange-lpn-contracts/src/v1/Groth16VerifierExtensions.sol";
+// import {
+//     LPNClientV1,
+//     ILPNRegistryV1,
+//     QueryOutput,
+//     QueryErrorCode,
+//     QueryExecutionError
+// } from "lagrange-lpn-contracts/src/v1/client/SDK.sol";
 
-import {LPNClientV1} from "../client/LPNClientV1.sol";
-import {ILPNRegistryV1} from "../interfaces/ILPNRegistryV1.sol";
 import {L1BlockNumber} from "../../utils/L1Block.sol";
-import {QueryOutput} from "../Groth16VerifierExtensions.sol";
+import {
+    LPNClientV1,
+    ILPNRegistryV1,
+    QueryOutput,
+    QueryErrorCode,
+    QueryExecutionError
+} from "../client/SDK.sol";
 
 contract YourContract is LPNClientV1 {
     /// YOUR QUERY: SELECT AVG(key) FROM pudgy_penguins_owners WHERE value = $1;
@@ -43,6 +49,10 @@ contract YourContract is LPNClientV1 {
         internal
         override
     {
+        if (result.error != QueryErrorCode.NoError) {
+            revert QueryExecutionError(result.error);
+        }
+
         bool context = requests[requestId];
 
         uint256 someResult;

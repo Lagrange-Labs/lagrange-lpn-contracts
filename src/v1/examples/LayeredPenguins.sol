@@ -1,14 +1,19 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.25;
 
-import {LPNClientV1} from "../client/LPNClientV1.sol";
-import {ILPNRegistryV1} from "../interfaces/ILPNRegistryV1.sol";
 import {
     ERC721Enumerable,
     ERC721
 } from "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
+
 import {L1BlockNumber} from "../../utils/L1Block.sol";
-import {QueryOutput} from "../Groth16VerifierExtensions.sol";
+import {
+    LPNClientV1,
+    ILPNRegistryV1,
+    QueryOutput,
+    QueryErrorCode,
+    QueryExecutionError
+} from "../client/SDK.sol";
 
 /// @notice Refer to docs page https://lagrange-labs.gitbook.io/lagrange-v2-1/zk-coprocessor/testnet-euclid-developer-docs/example-nft-mint-whitelist-on-l2-with-pudgy-penguins
 contract LayeredPenguins is LPNClientV1, ERC721Enumerable {

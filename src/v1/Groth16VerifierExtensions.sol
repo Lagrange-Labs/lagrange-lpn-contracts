@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.0;
 
-import "./Groth16Verifier.sol";
+import {Groth16Verifier} from "./Groth16Verifier.sol";
 import {isCDK} from "../utils/Constants.sol";
 
 // The query input struct passed into the processQuery function
@@ -29,6 +29,16 @@ struct QueryOutput {
     uint256 totalMatchedRows;
     // Returned rows of the current cursor
     bytes[] rows;
+    // Query error, return NoError if none.
+    QueryErrorCode error;
+}
+
+// Query errors
+enum QueryErrorCode {
+    // No error
+    NoError,
+    // A computation overflow error during the query process
+    ComputationOverflow
 }
 
 library Groth16VerifierExtensions {
@@ -81,9 +91,6 @@ library Groth16VerifierExtensions {
     uint32 constant PI_LEN =
         32 * (PI_REM_OFFSET - PI_OFFSET) + (REM_QUERY_OFFSET_POS + 1) * 4;
 
-    // A computation overflow error during the query process
-    error QueryComputationOverflow();
-
     // The processQuery function does the followings:
     // 1. Parse the Groth16 proofs (8 uint256) and inputs (3 uint256) from the `data`
     //    argument, and call `verifyProof` function for Groth16 verification.
@@ -103,10 +110,10 @@ library Groth16VerifierExtensions {
         verifyPublicInputs(data, groth16Inputs);
 
         // 3. Ensure the items of public inputs equal as expected for query.
-        verifyQuery(data, query);
+        QueryErrorCode error = verifyQuery(data, query);
 
         // 4. Parse and return the query output.
-        return parseOutput(data);
+        return parseOutput(data, error);
     }
 
     // Parse the Groth16 proofs and inputs, do verification, and returns the Groth16 inputs.
@@ -185,6 +192,7 @@ library Groth16VerifierExtensions {
     function verifyQuery(bytes32[] calldata data, QueryInput memory query)
         internal
         view
+        returns (QueryErrorCode)
     {
         // Retrieve the last Uint256 of public inputs.
         bytes32 rem = data[PI_REM_OFFSET];
@@ -232,6 +240,7 @@ library Groth16VerifierExtensions {
             );
         }
 
+        // TODO: Uncomment once limit and offset supported
         // Check the query limit and offset.
         // uint32 limit = uint32(bytes4(rem << (REM_QUERY_LIMIT_POS * 32)));
         // require(limit == query.limit, "Query limit must equal as expected.");
@@ -240,13 +249,14 @@ library Groth16VerifierExtensions {
 
         // Throw an error if overflow.
         uint32 overflow = uint32(bytes4(rem << (REM_OVERFLOW_POS * 32)));
-        if (overflow != 0) {
-            revert QueryComputationOverflow();
+        if (overflow == 0) {
+            return QueryErrorCode.NoError;
         }
+        return QueryErrorCode.ComputationOverflow;
     }
 
     // Parse the query output from the public inputs.
-    function parseOutput(bytes32[] calldata data)
+    function parseOutput(bytes32[] calldata data, QueryErrorCode error)
         internal
         pure
         returns (QueryOutput memory)
@@ -273,8 +283,11 @@ library Groth16VerifierExtensions {
             rows[i] = abi.encodePacked(columns);
         }
 
-        QueryOutput memory output =
-            QueryOutput({totalMatchedRows: totalMatchedRows, rows: rows});
+        QueryOutput memory output = QueryOutput({
+            totalMatchedRows: totalMatchedRows,
+            rows: rows,
+            error: error
+        });
 
         return output;
     }
