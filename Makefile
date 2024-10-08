@@ -5,7 +5,7 @@
 VERBOSITY=-vvvv
 BASE_DEPLOY_FLAGS=--broadcast ${VERBOSITY} --ffi --slow
 DEPLOY_FLAGS=--verify ${BASE_DEPLOY_FLAGS}
-MAINNET_DEPLOYER=--account lpn_owner --sender ${DEPLOYER_ADDR}
+MAINNET_DEPLOYER=--account lpn_owner
 
 # Define chains
 CHAINS=local sepolia holesky mainnet base_sepolia base fraxtal_testnet fraxtal mantle_sepolia mantle polygon_zkevm

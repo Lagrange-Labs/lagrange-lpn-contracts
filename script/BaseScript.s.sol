@@ -2,15 +2,22 @@
 pragma solidity ^0.8.13;
 
 import {Script, console2, StdChains} from "forge-std/Script.sol";
+import {stdJson} from "forge-std/StdJson.sol";
+import {BatchScript} from "forge-safe/BatchScript.sol";
+
 import {
     MANTLE_MAINNET,
     MANTLE_SEPOLIA,
     isMainnet,
     isTestnet
 } from "../src/utils/Constants.sol";
-import {stdJson} from "forge-std/StdJson.sol";
 
-abstract contract BaseScript is Script {
+interface ISafe {
+    function addOwnerWithThreshold(address owner, uint256 _threshold)
+        external;
+}
+
+abstract contract BaseScript is BatchScript {
     using stdJson for string;
 
     enum Version {
@@ -18,10 +25,11 @@ abstract contract BaseScript is Script {
         V1
     }
 
+    /// @dev The address of Lagrange's Multisig
+    ISafe SAFE = ISafe(0xE7cdA508FEB53713fB7C69bb891530C924980366);
+
     /// @dev The address of the contract deployer.
-    address public deployer = isMainnet()
-        ? getDeployerAddress()
-        : vm.rememberKey(vm.envUint("PRIVATE_KEY"));
+    address public deployer;
 
     modifier broadcaster() {
         vm.startBroadcast();
@@ -47,9 +55,11 @@ abstract contract BaseScript is Script {
             "polygon_zkevm",
             ChainData("Polygon zkEVM", 1101, "https://zkevm-rpc.com")
         );
-        // (, deployer,) = vm.readCallers(); // TODO: read sender from env
+
         if (isMainnet()) {
-            deployer = getDeployerAddress();
+            vm.startBroadcast();
+            (, deployer,) = vm.readCallers();
+            vm.stopBroadcast();
         } else {
             deployer = vm.rememberKey(vm.envUint("PRIVATE_KEY"));
         }
@@ -72,10 +82,6 @@ abstract contract BaseScript is Script {
 
     function setDeployer(address _deployer) public {
         deployer = _deployer;
-    }
-
-    function getDeployerAddress() internal view returns (address) {
-        return vm.envAddress("DEPLOYER_ADDR");
     }
 
     function getDeployedRegistry() internal returns (address) {
