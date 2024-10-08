@@ -3,7 +3,7 @@
     "addresses": {
       "queryClientImpl": "0xFC27422DC2A67A126CD3cB32E20A8E97Fe50ADe2",
       "queryClientProxy": "0x5C189dC46c2c6136dBaFdAAa02Db46CD2dF683A3",
-      "registryImpl": "0x8C9856831add06c9beB731743847a6dd615fb396",
+      "registryImpl": "0x4d3956ae8cb28041c2f7a9f04e0a7e6f68328ea0",
       "registryProxy": "0xC9135b51c4DD04B6E082e2cB56a5C26b3a53Ee47"
     },
     "chainInfo": {
@@ -18,7 +18,7 @@
   "addresses": {
     "queryClientImpl": "0x80c0a42F808d6f35e83F4939482A485caE536e6a",
     "queryClientProxy": "0xcB170B5a3cf707b4dAc2AbdD6919A0c30A8ec145",
-    "registryImpl": "0x017b173B7A5Bf7C44F313D01F393F0A445430347",
+    "registryImpl": "0x60daa0d36ea623b48b53ba4fc6ef3ab90892a1a7",
     "registryProxy": "0xF8E0EfefAFfa31f9C85F175147d64753e4eC8157"
   },
   "chainInfo": {
