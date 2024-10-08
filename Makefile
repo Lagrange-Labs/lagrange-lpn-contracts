@@ -34,7 +34,7 @@ define make-command-rule
 $(1)_$(2): CHAIN_FLAGS = $(call get-chain-flags,$(2))
 $(1)_$(2): DEPLOYER_FLAGS = $(call use-mainnet-deployer,$(2))
 $(1)_$(2):
-	forge script $(1) --rpc-url $(2) $${DEPLOY_FLAGS} $${CHAIN_FLAGS} $${DEPLOYER_FLAGS}
+	forge script $(1) --rpc-url $(2) $${DEPLOY_FLAGS} $${CHAIN_FLAGS} $${DEPLOYER_FLAGS} $(ARGS)
 endef
 
 $(foreach chain,${CHAINS},$(foreach script,${SCRIPT_NAMES},$(eval $(call make-command-rule,${script},${chain}))))
