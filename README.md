@@ -34,7 +34,7 @@ $ make DeployLPNQueryV1_local
 # Deploy / Upgrade Testnet
 $ make DeployLPNRegistryV1_holesky
 
-# Deploy to Mainnet
+# Deploy / Upgrade Mainnet
 $ make DeployLPNRegistryV1_mainnet
 $ make DeployLPNRegistryV1_base
 $ make DeployLPNRegistryV1_fraxtal
@@ -51,6 +51,22 @@ $ make Query_mainnet
 $ make Query_base
 $ make Query_fraxtal
 $ make Query_mantle
+```
+
+### Multisig Admin Scripts
+```bash
+$ make DeployMultisig_base
+
+$ make UpdateMultisigSigners_polygon_zkevm \
+  ARGS='--sig "run(address[],uint256)" "[0x1234...5678,0x5678...1234]" 2'
+
+$ make WhitelistZKMR_mainnet
+$ make WhitelistLSC_mainnet
+
+$ make WithdrawFees_mainnet
+$ make WithdrawFees_base
+$ make WithdrawFees_mantle
+$ make WithdrawFees_polygon_zkevm
 ```
 
 ## Key Features
