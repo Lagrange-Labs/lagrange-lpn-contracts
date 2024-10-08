@@ -1,10 +1,10 @@
 #! /bin/bash
 
-GIT_REPO_PATH=../Euclid-database
+GIT_REPO_PATH=../mapreduce-plonky2
 CODE_DIR_PATH=groth16-framework/test_data
 BRANCH=main
-VERIFIER_FILE=./src/Groth16Verifier.sol
-VERIFIER_EXTENSIONS_FILE=./src/Groth16VerifierExtensions.sol
+VERIFIER_FILE=./src/v1/Groth16Verifier.sol
+VERIFIER_EXTENSIONS_FILE=./src/v1/Groth16VerifierExtensions.sol
 
 cd $GIT_REPO_PATH && \
     git fetch origin $BRANCH && \
