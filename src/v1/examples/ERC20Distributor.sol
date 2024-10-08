@@ -4,9 +4,13 @@ pragma solidity ^0.8.13;
 import {MockERC20} from "forge-std/mocks/MockERC20.sol";
 import {IERC20} from "forge-std/interfaces/IERC20.sol";
 
-import {LPNClientV1} from "../client/LPNClientV1.sol";
-import {ILPNRegistryV1} from "../interfaces/ILPNRegistryV1.sol";
-import {QueryOutput} from "../Groth16VerifierExtensions.sol";
+import {
+    LPNClientV1,
+    ILPNRegistryV1,
+    QueryOutput,
+    QueryErrorCode,
+    QueryExecutionError
+} from "../client/SDK.sol";
 
 struct RequestData {
     /// @dev Address of the token holder for which the request is made
@@ -102,6 +106,10 @@ contract ERC20Distributor is MockERC20, LPNClientV1 {
         internal
         override
     {
+        if (result.error != QueryErrorCode.NoError) {
+            revert QueryExecutionError(result.error);
+        }
+
         if (result.rows.length == 0) return;
 
         uint256 integral =
