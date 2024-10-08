@@ -150,7 +150,7 @@ abstract contract BaseScript is Script {
     }
 
     function outputPath() internal returns (string memory) {
-        return string.concat(outputDir(), "/deployment.json");
+        return outputPath(Version.V1);
     }
 
     function outputPath(string memory chainName)
