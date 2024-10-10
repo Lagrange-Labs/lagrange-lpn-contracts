@@ -93,7 +93,7 @@ contract WhitelistZKMR is WhitelistBase {
             bytes memory txn = abi.encodeWithSelector(
                 IStakeRegistryZKMR.addToWhitelist.selector, operators
             );
-            addToBatch(ZKMR_STAKE_REGISTRY_ADDRESS, 0, txn);
+            addToBatch(ZKMR_STAKE_REGISTRY_ADDRESS, txn);
             executeBatch(true);
         } else {
             vm.startBroadcast();

@@ -38,7 +38,7 @@ contract WhitelistLSC is WhitelistBase {
         bytes memory txn = abi.encodeWithSelector(
             IStakeRegistryLSC.addOperatorsToWhitelist.selector, operators
         );
-        addToBatch(LSC_STAKE_REGISTRY_ADDRESS, 0, txn);
+        addToBatch(LSC_STAKE_REGISTRY_ADDRESS, txn);
         executeBatch(true);
     }
 }

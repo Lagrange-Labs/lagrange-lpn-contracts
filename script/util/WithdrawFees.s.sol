@@ -9,7 +9,7 @@ contract WithdrawFees is BaseScript {
         bytes memory txn =
             abi.encodeWithSelector(LPNRegistryV1.withdrawFees.selector);
 
-        addToBatch(getDeployedRegistry(Version.V1), 0, txn);
+        addToBatch(getDeployedRegistry(Version.V1), txn);
 
         executeBatch(true);
     }
