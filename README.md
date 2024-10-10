@@ -28,27 +28,45 @@ $ forge test -vvv
 ### Deployment
 ```bash
 # Local development
-$ make local_deploy_registry
-$ make local_deploy_clients
+$ make DeployLPNRegistryV1_local
+$ make DeployLPNQueryV1_local
 
-# Deploy to Testnet
-$ make holesky_deploy_registry
-$ make holesky_deploy_clients
+# Deploy / Upgrade Testnet
+$ make DeployLPNRegistryV1_holesky
 
-# Deploy to Mainnet
-$ make mainnet_deploy_registry
-$ make mainnet_deploy_clients
+# Deploy / Upgrade Mainnet
+$ make DeployLPNRegistryV1_mainnet
+$ make DeployLPNRegistryV1_base
+$ make DeployLPNRegistryV1_fraxtal
+$ make DeployLPNRegistryV1_mantle
+$ make DeployLPNRegistryV1_polygon_zkevm
 ```
 
 ### Queries
 ```bash
 # Run queries on different networks
-$ make holesky_query
+$ make Query_holesky
 
-$ make mainnet_query
-$ make base_mainnet_query
-$ make fraxtal_mainnet_query
-$ make mantle_mainnet_query
+$ make Query_mainnet
+$ make Query_base
+$ make Query_fraxtal
+$ make Query_mantle
+```
+
+### Multisig Admin Scripts
+```bash
+$ make DeployMultisig_base
+
+$ make UpdateMultisigSigners_polygon_zkevm \
+  ARGS='--sig "run(address[],uint256)" "[0x1234...5678,0x5678...1234]" 2'
+
+$ make WhitelistZKMR_mainnet
+$ make WhitelistLSC_mainnet
+
+$ make WithdrawFees_mainnet
+$ make WithdrawFees_base
+$ make WithdrawFees_mantle
+$ make WithdrawFees_polygon_zkevm
 ```
 
 ## Key Features
