@@ -1,11 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-import {Script} from "forge-std/Script.sol";
+import {BaseScript} from "../BaseScript.s.sol";
+import {SafeToL2Migration} from
+    "safe-smart-account/libraries/SafeToL2Migration.sol";
 
 /// @dev Deploy multsigs with the same address (0xE7cdA508FEB53713fB7C69bb891530C924980366)
 /// to various EVM chains (except for zkSync !)
-contract DeployMultisig is Script {
+contract DeployMultisig is BaseScript {
     /// @dev Deploys a 3 / 5 multisig with signers
     /// Kashish 0xD1B55c3EAE5Fe41A48B23D6B0EdA462a204C745d
     /// Ismael 0xFBF21Db575E16c36f1433Dd0153E36FEc83E8a3a
@@ -18,19 +20,41 @@ contract DeployMultisig is Script {
     /// @dev Address of Gnosis Factory for most EVM chains; deploys Safe Proxy 1.3
     address SAFE_PROXY_FACTORY_ADDR = 0xa6B71E26C5e0845f74c812102Ca7114b6a896AB2;
 
-    modifier broadcaster() {
-        vm.startBroadcast();
-        _;
-        vm.stopBroadcast();
-    }
+    /// @dev L2 version of Safe 1.3.0 contract
+    address constant L2_SINGLETON_VERSION_1_3 =
+        0x3E5c63644E683549055b9Be8653de26E0B4CD36E;
 
-    function run() external broadcaster {
+    /// @dev Migration contract already deployed on most chains
+    address constant SAFE_TO_L2_MIGRATION_ADDR =
+        0xfF83F6335d8930cBad1c0D439A841f01888D9f69;
+
+    function run() external {
         deploy();
+        upgrade();
     }
 
-    function deploy() public {
+    /// @dev Deploy the L1 v1.3.0 Safe to L2s
+    function deploy() public broadcaster {
         (bool sent,) = SAFE_PROXY_FACTORY_ADDR.call(SAFE_DEPLOY_INPUT);
 
         require(sent, "Failed to deploy multisig");
+    }
+
+    /// @dev Upgrade to the L2 v1.3.0 Safe contract
+    function upgrade() public isBatch(address(SAFE)) {
+        bytes memory migrateData =
+            abi.encodeWithSelector(SafeToL2Migration.migrateToL2.selector);
+
+        encodedTxns.push(
+            abi.encodePacked(
+                Operation.DELEGATECALL,
+                SAFE_TO_L2_MIGRATION_ADDR,
+                uint256(0),
+                migrateData.length,
+                migrateData
+            )
+        );
+
+        executeBatch(true);
     }
 }

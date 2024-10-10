@@ -4,6 +4,7 @@ pragma solidity ^0.8.13;
 import {Script, console2, StdChains} from "forge-std/Script.sol";
 import {stdJson} from "forge-std/StdJson.sol";
 import {BatchScript} from "forge-safe/BatchScript.sol";
+import {ISafe} from "safe-smart-account/interfaces/ISafe.sol";
 
 import {
     MANTLE_MAINNET,
@@ -11,11 +12,6 @@ import {
     isMainnet,
     isTestnet
 } from "../src/utils/Constants.sol";
-
-interface ISafe {
-    function addOwnerWithThreshold(address owner, uint256 _threshold)
-        external;
-}
 
 abstract contract BaseScript is BatchScript {
     using stdJson for string;
