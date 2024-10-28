@@ -138,8 +138,18 @@ abstract contract BaseScript is BatchScript {
         print(contractName, vm.toString(contractAddress));
     }
 
+    function getChainAlias() internal returns (string memory) {
+        string memory envAlias = vm.envString("CHAIN_ALIAS");
+
+        if (bytes(envAlias).length > 0) {
+            return envAlias;
+        }
+
+        return getChain(block.chainid).chainAlias;
+    }
+
     function outputDir() internal returns (string memory) {
-        string memory chainName = getChain(block.chainid).chainAlias;
+        string memory chainName = getChainAlias();
         return outputDir(chainName);
     }
 
@@ -164,7 +174,7 @@ abstract contract BaseScript is BatchScript {
     }
 
     function outputPath(Version version_) internal returns (string memory) {
-        string memory chainName = getChain(block.chainid).chainAlias;
+        string memory chainName = getChainAlias();
         return outputPath(chainName, version_);
     }
 

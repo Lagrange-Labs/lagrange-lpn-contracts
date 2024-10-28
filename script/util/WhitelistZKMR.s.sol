@@ -22,10 +22,10 @@ abstract contract WhitelistBase is BaseScript {
         internal
         virtual;
 
-    function run() external isBatch(address(SAFE)) {
+    function run() external {
         checkNetworkRequirement();
 
-        string memory chainName = getChain(block.chainid).chainAlias;
+        string memory chainName = getChainAlias();
         string memory root = vm.projectRoot();
         string memory path =
             string.concat(root, "/config/", chainName, "-operators.json");
@@ -90,17 +90,29 @@ contract WhitelistZKMR is WhitelistBase {
         override
     {
         if (isMainnet()) {
-            bytes memory txn = abi.encodeWithSelector(
-                IStakeRegistryZKMR.addToWhitelist.selector, operators
-            );
-            addToBatch(ZKMR_STAKE_REGISTRY_ADDRESS, txn);
-            executeBatch(true);
+            addOperatorsToWhitelistMainnet(operators);
         } else {
-            vm.startBroadcast();
-            IStakeRegistryZKMR(ZKMR_STAKE_REGISTRY_ADDRESS).addToWhitelist(
-                operators
-            );
-            vm.stopBroadcast();
+            addOperatorsToWhitelistHolesky(operators);
         }
+    }
+
+    function addOperatorsToWhitelistMainnet(address[] memory operators)
+        internal
+        isBatch(address(SAFE))
+    {
+        bytes memory txn = abi.encodeWithSelector(
+            IStakeRegistryZKMR.addToWhitelist.selector, operators
+        );
+        addToBatch(ZKMR_STAKE_REGISTRY_ADDRESS, txn);
+        executeBatch(true);
+    }
+
+    function addOperatorsToWhitelistHolesky(address[] memory operators)
+        internal
+        broadcaster
+    {
+        IStakeRegistryZKMR(ZKMR_STAKE_REGISTRY_ADDRESS).addToWhitelist(
+            operators
+        );
     }
 }

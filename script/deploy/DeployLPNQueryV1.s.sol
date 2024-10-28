@@ -22,7 +22,7 @@ contract DeployLPNQueryV1 is BaseScript {
     ERC1967Factory proxyFactory =
         ERC1967Factory(ERC1967FactoryConstants.ADDRESS);
 
-    function run() external broadcaster returns (Deployment memory) {
+    function run() external returns (Deployment memory) {
         if (getDeployedQueryClient(Version.V1) == address(0)) {
             deployment.queryImpl = deployImplementation();
 
@@ -47,7 +47,7 @@ contract DeployLPNQueryV1 is BaseScript {
     }
 
     /// @dev Deploy a new implementation contract
-    function deployImplementation() public returns (address) {
+    function deployImplementation() public broadcaster returns (address) {
         address queryImpl = address(new LPNQueryV1());
         print("LPNQueryV1 (implementation)", address(queryImpl));
         return queryImpl;
@@ -57,6 +57,7 @@ contract DeployLPNQueryV1 is BaseScript {
     /// @dev The deployer is the admin of the proxy and is authorized to upgrade the proxy
     function deployProxy(address queryImpl, bytes32 salt_, address owner)
         public
+        broadcaster
         returns (address)
     {
         if (isLocal()) {
@@ -83,27 +84,38 @@ contract DeployLPNQueryV1 is BaseScript {
     /// @dev Update proxy to point to new implementation contract
     /// @dev On mainnets, this proposes a tx to the multisig
     /// @dev On testnets, this directly sends a tx onchain
-    function upgrade(LPNQueryV1 proxy, address queryImpl)
-        public
+    function upgrade(LPNQueryV1 proxy, address queryImpl) public {
+        if (isMainnet()) {
+            upgradeMainnet(proxy, queryImpl);
+        } else {
+            upgradeHolesky(proxy, queryImpl);
+        }
+    }
+
+    function upgradeMainnet(LPNQueryV1 proxy, address queryImpl)
+        internal
         isBatch(address(SAFE))
     {
-        if (isMainnet()) {
-            bytes memory txn = abi.encodeWithSelector(
-                ERC1967Factory.upgrade.selector, address(proxy), queryImpl
+        bytes memory txn = abi.encodeWithSelector(
+            ERC1967Factory.upgrade.selector, address(proxy), queryImpl
+        );
+
+        addToBatch(address(proxyFactory), txn);
+        executeBatch(true);
+    }
+
+    function upgradeHolesky(LPNQueryV1 proxy, address queryImpl)
+        public
+        broadcaster
+    {
+        if (isLocal()) {
+            vm.etch(
+                ERC1967FactoryConstants.ADDRESS,
+                ERC1967FactoryConstants.BYTECODE
             );
-
-            addToBatch(address(proxyFactory), txn);
-            executeBatch(true);
-        } else {
-            if (isLocal()) {
-                vm.etch(
-                    ERC1967FactoryConstants.ADDRESS,
-                    ERC1967FactoryConstants.BYTECODE
-                );
-            }
-
-            proxyFactory.upgrade(address(proxy), queryImpl);
         }
+
+        proxyFactory.upgrade(address(proxy), queryImpl);
     }
 
     function writeToJson() private {

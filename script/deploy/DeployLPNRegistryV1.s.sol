@@ -81,29 +81,38 @@ contract DeployLPNRegistryV1 is BaseScript {
     /// @dev Update proxy to point to new implementation contract
     /// @dev On mainnets, this proposes a tx to the multisig
     /// @dev On testnets, this directly sends a tx onchain
-    function upgrade(LPNRegistryV1 proxy, address registryImpl)
+    function upgrade(LPNRegistryV1 proxy, address registryImpl) public {
+        if (isMainnet()) {
+            upgradeMainnet(proxy, registryImpl);
+        } else {
+            upgradeHolesky(proxy, registryImpl);
+        }
+    }
+
+    function upgradeMainnet(LPNRegistryV1 proxy, address registryImpl)
         public
         isBatch(address(SAFE))
     {
-        if (isMainnet()) {
-            bytes memory txn = abi.encodeWithSelector(
-                ERC1967Factory.upgrade.selector, address(proxy), registryImpl
+        bytes memory txn = abi.encodeWithSelector(
+            ERC1967Factory.upgrade.selector, address(proxy), registryImpl
+        );
+
+        addToBatch(address(proxyFactory), txn);
+        executeBatch(true);
+    }
+
+    function upgradeHolesky(LPNRegistryV1 proxy, address registryImpl)
+        public
+        broadcaster
+    {
+        if (isLocal()) {
+            vm.etch(
+                ERC1967FactoryConstants.ADDRESS,
+                ERC1967FactoryConstants.BYTECODE
             );
-
-            addToBatch(address(proxyFactory), txn);
-            executeBatch(true);
-        } else {
-            if (isLocal()) {
-                vm.etch(
-                    ERC1967FactoryConstants.ADDRESS,
-                    ERC1967FactoryConstants.BYTECODE
-                );
-            }
-
-            vm.startBroadcast();
-            proxyFactory.upgrade(address(proxy), registryImpl);
-            vm.stopBroadcast();
         }
+
+        proxyFactory.upgrade(address(proxy), registryImpl);
     }
 
     function writeToJson() private {
