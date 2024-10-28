@@ -9,7 +9,10 @@ You can see the [Lagrange ZK Prover Network AVS Contracts here](https://github.c
 # Guide for Maintainers
 
 ## Contract Addresses
-You can find relevant deployed contract addresses in the `v1-deployment.json` files. e.g. [holesky v1-deployment.json](./script/output/holesky/v1-deployment.json)
+You can find relevant deployed contract addresses in the `v1-deployment.json` files. e.g.
+- [holesky_dev v1-deployment.json](./script/output/holesky_dev/v1-deployment.json) (devnet)
+- [holesky v1-deployment.json](./script/output/holesky/v1-deployment.json) (testnet)
+- [mainnet v1-deployment.json](./script/output/mainnet/v1-deployment.json) (mainnet L1)
 
 ## Environment Setup
 Be sure to include a `.env` file and export the environment variables shown in `.env.example`
