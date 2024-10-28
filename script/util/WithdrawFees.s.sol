@@ -2,12 +2,15 @@
 pragma solidity ^0.8.13;
 
 import {BaseScript} from "../BaseScript.s.sol";
-import {LPNRegistryV0} from "../../src/v0/LPNRegistryV0.sol";
-import {LPNQueryV0} from "../../src/v0/client/LPNQueryV0.sol";
-import {PUDGEY_PENGUINS} from "../../src/utils/Constants.sol";
+import {LPNRegistryV1} from "../../src/v1/LPNRegistryV1.sol";
 
 contract WithdrawFees is BaseScript {
-    function run() external broadcaster {
-        LPNRegistryV0(getDeployedRegistry()).withdrawFees();
+    function run() external isBatch(address(SAFE)) {
+        bytes memory txn =
+            abi.encodeWithSelector(LPNRegistryV1.withdrawFees.selector);
+
+        addToBatch(getDeployedRegistry(Version.V1), txn);
+
+        executeBatch(true);
     }
 }
