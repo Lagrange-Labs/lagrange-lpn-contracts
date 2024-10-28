@@ -5,7 +5,7 @@ import {BaseScript} from "../BaseScript.s.sol";
 import {LPNQueryV1} from "../../src/v1/client/LPNQueryV1.sol";
 import {ERC1967Factory} from "solady/utils/ERC1967Factory.sol";
 import {ERC1967FactoryConstants} from "solady/utils/ERC1967FactoryConstants.sol";
-import {isLocal} from "../../src/utils/Constants.sol";
+import {isLocal, isMainnet} from "../../src/utils/Constants.sol";
 import {stdJson} from "forge-std/StdJson.sol";
 import {ILPNRegistryV1} from "../../src/v1/interfaces/ILPNRegistryV1.sol";
 
@@ -24,66 +24,87 @@ contract DeployLPNQueryV1 is BaseScript {
 
     function run() external broadcaster returns (Deployment memory) {
         if (getDeployedQueryClient(Version.V1) == address(0)) {
-            deployment = deploy(newSalt("V1_QUERY_0"), deployer);
+            deployment.queryImpl = deployImplementation();
+
+            address owner = isMainnet() ? address(SAFE) : deployer;
+
+            deployment.queryProxy = LPNQueryV1(
+                deployProxy(deployment.queryImpl, newSalt("V1_QUERY_0"), owner)
+            );
+
             writeToJson();
         } else {
-            address updatedQueryImpl =
-                upgrade(getDeployedQueryClient(Version.V1));
-            writeToJson(updatedQueryImpl);
-        }
+            deployment.queryImpl = deployImplementation();
+            upgrade(
+                LPNQueryV1(getDeployedQueryClient(Version.V1)),
+                deployment.queryImpl
+            );
 
-        assertions();
+            writeToJson(deployment.queryImpl);
+        }
 
         return deployment;
     }
 
-    function deploy(bytes32 salt_, address owner)
-        public
-        returns (Deployment memory)
-    {
-        // Deploy a new implementation
+    /// @dev Deploy a new implementation contract
+    function deployImplementation() public returns (address) {
         address queryImpl = address(new LPNQueryV1());
         print("LPNQueryV1 (implementation)", address(queryImpl));
+        return queryImpl;
+    }
 
+    /// @dev Deploy a new proxy pointing to the implementation
+    /// @dev The deployer is the admin of the proxy and is authorized to upgrade the proxy
+    function deployProxy(address queryImpl, bytes32 salt_, address owner)
+        public
+        returns (address)
+    {
         if (isLocal()) {
             vm.etch(
                 ERC1967FactoryConstants.ADDRESS,
                 ERC1967FactoryConstants.BYTECODE
             );
         }
-
-        // Get the LPNRegistryV1 address
-        address lpnRegistry = getDeployedRegistry(Version.V1);
-        require(lpnRegistry != address(0), "LPNRegistry not deployed");
-
-        // Deploy a new proxy pointing to the implementation
         address queryProxy = proxyFactory.deployDeterministicAndCall(
             queryImpl,
             owner,
             salt_,
             abi.encodeWithSelector(
-                LPNQueryV1.initialize.selector, ILPNRegistryV1(lpnRegistry)
+                LPNQueryV1.initialize.selector,
+                ILPNRegistryV1(getDeployedRegistry(Version.V1))
             )
         );
-        print("LPNQueryV1 (proxy)", address(queryProxy));
 
-        return Deployment({
-            queryProxy: LPNQueryV1(queryProxy),
-            queryImpl: queryImpl
-        });
+        print("LPNQueryV1 (proxy)", queryProxy);
+
+        return queryProxy;
     }
 
-    function upgrade(address proxy) public returns (address) {
-        // Deploy a new implementation
-        address queryImpl = address(new LPNQueryV1());
-        print("LPNQueryV1 (implementation)", address(queryImpl));
+    /// @dev Update proxy to point to new implementation contract
+    /// @dev On mainnets, this proposes a tx to the multisig
+    /// @dev On testnets, this directly sends a tx onchain
+    function upgrade(LPNQueryV1 proxy, address queryImpl)
+        public
+        isBatch(address(SAFE))
+    {
+        if (isMainnet()) {
+            bytes memory txn = abi.encodeWithSelector(
+                ERC1967Factory.upgrade.selector, address(proxy), queryImpl
+            );
 
-        // Update proxy to point to new implementation contract
-        proxyFactory.upgrade(proxy, queryImpl);
-        return queryImpl;
+            addToBatch(address(proxyFactory), txn);
+            executeBatch(true);
+        } else {
+            if (isLocal()) {
+                vm.etch(
+                    ERC1967FactoryConstants.ADDRESS,
+                    ERC1967FactoryConstants.BYTECODE
+                );
+            }
+
+            proxyFactory.upgrade(address(proxy), queryImpl);
+        }
     }
-
-    function assertions() private view {}
 
     function writeToJson() private {
         vm.writeJson(

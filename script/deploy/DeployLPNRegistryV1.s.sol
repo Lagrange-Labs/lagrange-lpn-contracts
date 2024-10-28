@@ -5,12 +5,7 @@ import {BaseScript} from "../BaseScript.s.sol";
 import {LPNRegistryV1} from "../../src/v1/LPNRegistryV1.sol";
 import {ERC1967Factory} from "solady/utils/ERC1967Factory.sol";
 import {ERC1967FactoryConstants} from "solady/utils/ERC1967FactoryConstants.sol";
-import {
-    PUDGEY_PENGUINS,
-    isEthereum,
-    isMainnet,
-    isLocal
-} from "../../src/utils/Constants.sol";
+import {isMainnet, isLocal} from "../../src/utils/Constants.sol";
 import {stdJson} from "forge-std/StdJson.sol";
 
 contract DeployLPNRegistryV1 is BaseScript {
@@ -26,63 +21,90 @@ contract DeployLPNRegistryV1 is BaseScript {
     ERC1967Factory proxyFactory =
         ERC1967Factory(ERC1967FactoryConstants.ADDRESS);
 
-    function run() external broadcaster returns (Deployment memory) {
+    function run() external returns (Deployment memory) {
         if (getDeployedRegistry(Version.V1) == address(0)) {
-            deployment = deploy(newSalt("V1_REG_0"), deployer);
+            deployment.registryImpl = deployImplementation();
+
+            address owner = isMainnet() ? address(SAFE) : deployer;
+
+            deployment.registryProxy = LPNRegistryV1(
+                deployProxy(deployment.registryImpl, newSalt("V1_REG_0"), owner)
+            );
+
             writeToJson();
         } else {
-            address updatedRegistryImpl =
-                upgrade(getDeployedRegistry(Version.V1));
-            writeToJson(updatedRegistryImpl);
-        }
+            deployment.registryImpl = deployImplementation();
+            upgrade(
+                LPNRegistryV1(getDeployedRegistry(Version.V1)),
+                deployment.registryImpl
+            );
 
-        assertions();
+            writeToJson(deployment.registryImpl);
+        }
 
         return deployment;
     }
 
-    function deploy(bytes32 salt_, address owner)
-        public
-        returns (Deployment memory)
-    {
-        // Deploy a new implementation
+    /// @dev Deploy a new implementation contract
+    function deployImplementation() public broadcaster returns (address) {
         address registryImpl = address(new LPNRegistryV1());
         print("LPNRegistryV1 (implementation)", address(registryImpl));
+        return registryImpl;
+    }
 
+    /// @dev Deploy a new proxy pointing to the implementation
+    /// @dev The deployer is the admin of the proxy and is authorized to upgrade the proxy
+    /// @dev The deployer is the owner of the proxy and is authorized to add whitelisted clients to the registry
+    function deployProxy(address registryImpl, bytes32 salt_, address owner)
+        public
+        broadcaster
+        returns (address)
+    {
         if (isLocal()) {
             vm.etch(
                 ERC1967FactoryConstants.ADDRESS,
                 ERC1967FactoryConstants.BYTECODE
             );
         }
-        // Deploy a new proxy pointing to the implementation
-        // The deployer is the admin of the proxy and is authorized to upgrade the proxy
-        // The deployer is the owner of the proxy and is authorized to add whitelisted clients to the registry
         address registryProxy = proxyFactory.deployDeterministicAndCall(
             registryImpl,
             owner,
             salt_,
             abi.encodeWithSelector(LPNRegistryV1.initialize.selector, owner)
         );
-        print("LPNRegistryV1 (proxy)", address(registryProxy));
 
-        return Deployment({
-            registryProxy: LPNRegistryV1(registryProxy),
-            registryImpl: registryImpl
-        });
+        print("LPNRegistryV1 (proxy)", registryProxy);
+
+        return registryProxy;
     }
 
-    function upgrade(address proxy) public returns (address) {
-        // Deploy a new implementation
-        address registryImpl = address(new LPNRegistryV1());
-        print("LPNRegistryV1 (implementation)", address(registryImpl));
+    /// @dev Update proxy to point to new implementation contract
+    /// @dev On mainnets, this proposes a tx to the multisig
+    /// @dev On testnets, this directly sends a tx onchain
+    function upgrade(LPNRegistryV1 proxy, address registryImpl)
+        public
+        isBatch(address(SAFE))
+    {
+        if (isMainnet()) {
+            bytes memory txn = abi.encodeWithSelector(
+                ERC1967Factory.upgrade.selector, address(proxy), registryImpl
+            );
 
-        // Update proxy to point to new implementation contract
-        proxyFactory.upgrade(proxy, registryImpl);
-        return registryImpl;
+            addToBatch(address(proxyFactory), txn);
+            executeBatch(true);
+        } else {
+            if (isLocal()) {
+                vm.etch(
+                    ERC1967FactoryConstants.ADDRESS,
+                    ERC1967FactoryConstants.BYTECODE
+                );
+            }
+
+            vm.startBroadcast();
+            proxyFactory.upgrade(address(proxy), registryImpl);
+            vm.stopBroadcast();
+        }
     }
-
-    function assertions() private view {}
 
     function writeToJson() private {
         mkdir(outputDir());
