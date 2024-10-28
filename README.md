@@ -93,6 +93,12 @@ $ make Query_mantle
 ```
 
 ### Whitelist
+
+First, add 1 or more new operator addresses to either:
+- [holesky-operators.json](./config/holesky-operators.json)
+- [mainnet-operators.json](./config/holesky-operators.json)
+
+Then, run the appropriate command:
 ```bash
 # Must set PRIVATE_KEY to testnet admin
 $ make WhitelistZKMR_holesky
