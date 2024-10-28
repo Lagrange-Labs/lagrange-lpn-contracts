@@ -8,7 +8,7 @@ DEPLOY_FLAGS=--verify ${BASE_DEPLOY_FLAGS}
 MAINNET_DEPLOYER=--account lpn_owner
 
 # Define chains
-CHAINS=local sepolia holesky mainnet base_sepolia base fraxtal_testnet fraxtal mantle_sepolia mantle polygon_zkevm
+CHAINS=anvil sepolia holesky_dev holesky mainnet base_sepolia base fraxtal_testnet fraxtal mantle_sepolia mantle polygon_zkevm
 
 # Find all .s.sol files in the scripts directory and its subdirectories
 SCRIPT_FILES := $(shell find ./script -name '*.s.sol' -type f)
@@ -58,7 +58,7 @@ $(1)_$(2): CHAIN_FLAGS = $(call get-chain-flags,$(2))
 $(1)_$(2): DEPLOYER_FLAGS = $(call use-mainnet-deployer,$(2))
 $(1)_$(2):
 	$(if $(filter mantle%,$(2)),$(call switch-evm-version),)
-	forge script $(1) --rpc-url $(2) $${DEPLOY_FLAGS} $${CHAIN_FLAGS} $${DEPLOYER_FLAGS} $(ARGS)
+	CHAIN_ALIAS=$(2) forge script $(1) --rpc-url $(2) $${DEPLOY_FLAGS} $${CHAIN_FLAGS} $${DEPLOYER_FLAGS} $(ARGS)
 	$(if $(filter mantle%,$(2)),$(call restore-evm-version),)
 endef
 

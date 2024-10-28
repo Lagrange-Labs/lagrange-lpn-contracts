@@ -14,8 +14,12 @@ verbosity = 4
 line_length = 80
 
 [rpc_endpoints]
-local = "http://localhost:8545"
-holesky = "https://rpc.holesky.ethpandaops.io"
+# used for local development
+anvil = "http://localhost:8545"
+# used for `dev` environment
+holesky_dev = "https://holesky.gateway.tenderly.co"
+# used for `test` environment
+holesky = "https://holesky.gateway.tenderly.co"
 sepolia = "${SEPOLIA_RPC_URL}"
 base_sepolia = "${BASE_SEPOLIA_RPC_URL}"
 fraxtal_testnet = "https://rpc.testnet.frax.com"

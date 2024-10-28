@@ -8,6 +8,9 @@ You can see the [Lagrange ZK Prover Network AVS Contracts here](https://github.c
 
 # Guide for Maintainers
 
+## Contract Addresses
+You can find relevant deployed contract addresses in the `v1-deployment.json` files. e.g. [holesky v1-deployment.json](./script/output/holesky/v1-deployment.json)
+
 ## Environment Setup
 Be sure to include a `.env` file and export the environment variables shown in `.env.example`
 
@@ -58,11 +61,14 @@ contract WhitelistZKMR is WhitelistBase {
 }
 ```
 
-## Deployment
+### Deployment
 ```bash
 # Local development
-$ make DeployLPNRegistryV1_local
-$ make DeployLPNQueryV1_local
+$ make DeployLPNRegistryV1_anvil
+$ make DeployLPNQueryV1_anvil
+
+# Deploy / Upgrade Devnet
+$ make DeployLPNRegistryV1_holesky_dev
 
 # Deploy / Upgrade Testnet
 $ make DeployLPNRegistryV1_holesky
@@ -75,7 +81,7 @@ $ make DeployLPNRegistryV1_mantle
 $ make DeployLPNRegistryV1_polygon_zkevm
 ```
 
-## Queries
+### Queries
 ```bash
 # Run queries on different networks
 $ make Query_holesky
@@ -86,20 +92,36 @@ $ make Query_fraxtal
 $ make Query_mantle
 ```
 
-## Multisig Admin Scripts
+### Whitelist
 ```bash
-$ make DeployMultisig_base
+# Must set PRIVATE_KEY to testnet admin
+$ make WhitelistZKMR_holesky
 
-$ make UpdateMultisigSigners_polygon_zkevm \
-  ARGS='--sig "run(address[],uint256)" "[0x1234...5678,0x5678...1234]" 2'
-
+# Must submit from a multisig signer
 $ make WhitelistZKMR_mainnet
-$ make WhitelistLSC_mainnet
 
+# Must submit from a multisig signer
+$ make WhitelistLSC_mainnet
+```
+
+### Withdrawing Fees
+```bash
+# Must submit all of these from a multisig signer
 $ make WithdrawFees_mainnet
 $ make WithdrawFees_base
+$ make WithdrawFees_fraxtal
 $ make WithdrawFees_mantle
 $ make WithdrawFees_polygon_zkevm
+```
+
+### Multisig Admin Scripts
+```bash
+# Only required to run once for each newly supported chain
+$ make DeployMultisig_base
+
+# Must submit from a multisig signer
+$ make UpdateMultisigSigners_polygon_zkevm \
+  ARGS='--sig "run(address[],uint256)" "[0x1234...5678,0x5678...1234]" 2'
 ```
 
 # Credit - [Gnark](https://github.com/Consensys/gnark)
