@@ -30,7 +30,7 @@ $ forge test -vvv
 
 ## Makefile & Commands
 The commands in the [Makefile](./Makefile) are auto-generated based on:
-- the *.s.sol filenames under the [script](./script) directory
+- the `*.s.sol` filenames under the [script](./script) directory
 - the `CHAINS` array defined in the `Makefile`
 
 e.g.
