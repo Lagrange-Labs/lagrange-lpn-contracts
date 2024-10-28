@@ -39,15 +39,22 @@ sed -i '' 's/calldataload(add(input, 32))/mload(add(input, 32))/' $VERIFIER_FILE
 sed -i '' 's/calldataload(add(input, 64))/mload(add(input, 64))/' $VERIFIER_FILE
 
 # Import verifier library with renamed filename
-sed -i '' 's/verifier.sol/Groth16Verifier.sol/' $VERIFIER_EXTENSIONS_FILE
+sed -i '' 's/import {Verifier} from ".\/verifier.sol";/import {Groth16Verifier} from ".\/Groth16Verifier.sol";\
+   import {isCDK} from "..\/utils\/Constants.sol";/' $VERIFIER_EXTENSIONS_FILE
 
 # Use extensions as library instead of contract
-sed -i '' 's/contract Query2 is Verifier {/library Groth16VerifierExtensions {/' $VERIFIER_EXTENSIONS_FILE
+sed -i '' 's/contract Query is Verifier {/library Groth16VerifierExtensions {/' $VERIFIER_EXTENSIONS_FILE
 sed -i '' 's/CIRCUIT_DIGEST/Groth16Verifier.CIRCUIT_DIGEST/' $VERIFIER_EXTENSIONS_FILE
 sed -i '' 's/this.verifyProof/Groth16Verifier.verifyProof/' $VERIFIER_EXTENSIONS_FILE
 
 # Use internal instead of public functions
 sed -i '' 's/public view/internal view/' $VERIFIER_EXTENSIONS_FILE
+
+# Patch `verifyQuery` function to be `view` instead of `pure`
+sed -i '' '/function verifyQuery.*/,+2 s/pure/view/' $VERIFIER_EXTENSIONS_FILE
+
+# Patch `verifyQuery` function to skip blockhash verification for polygon CDK chains
+sed -i '' 's/blockHash == query.blockHash/isCDK() || blockHash == query.blockHash/' $VERIFIER_EXTENSIONS_FILE
 
 forge fmt
 

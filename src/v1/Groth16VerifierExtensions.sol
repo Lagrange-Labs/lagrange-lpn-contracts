@@ -305,6 +305,7 @@ library Groth16VerifierExtensions {
                 result |= bytes32(original[i * 4 + j]) >> (8 * (i * 4 + 3 - j));
             }
         }
+
         return result;
     }
 }
