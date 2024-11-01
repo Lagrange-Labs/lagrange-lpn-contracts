@@ -5,6 +5,7 @@ CODE_DIR_PATH=groth16-framework/test_data
 BRANCH=main
 VERIFIER_FILE=./src/v1/Groth16Verifier.sol
 VERIFIER_EXTENSIONS_FILE=./src/v1/Groth16VerifierExtensions.sol
+VERIFIER_SOL_URL="https://pub-64a4eb6e897e425083647b3e0e8539a1.r2.dev/groth16_assets/verifier.sol"
 
 cd $GIT_REPO_PATH && \
     git fetch origin $BRANCH && \
@@ -12,7 +13,7 @@ cd $GIT_REPO_PATH && \
     git pull origin $BRANCH && \
     cd -
 
-cp "${GIT_REPO_PATH}/${CODE_DIR_PATH}/verifier.sol" $VERIFIER_FILE
+wget -O $VERIFIER_FILE $VERIFIER_SOL_URL
 cp "${GIT_REPO_PATH}/${CODE_DIR_PATH}/Groth16VerifierExtensions.sol" $VERIFIER_EXTENSIONS_FILE
 
 # Use as library instead of contract
