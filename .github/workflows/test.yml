@@ -10,7 +10,7 @@ jobs:
     strategy:
       fail-fast: true
 
-    name: Foundry project
+    name: Foundry Tests
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
