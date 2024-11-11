@@ -1,4 +1,4 @@
-name: test
+name: fmt
 
 on: push
 
@@ -21,14 +21,7 @@ jobs:
         uses: foundry-rs/foundry-toolchain@v1
         with:
           version: nightly
-
-      - name: Run Forge build
-        run: |
-          forge --version
-          forge build --sizes
-        id: build
-
-      - name: Run Forge tests
-        run: |
-          forge test -vvv
-        id: test
+  
+      - name: Run Forge fmt
+        run: forge fmt --check
+        id: fmt
