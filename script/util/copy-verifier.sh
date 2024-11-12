@@ -5,7 +5,19 @@ CODE_DIR_PATH=groth16-framework/test_data
 BRANCH=main
 VERIFIER_FILE=./src/v1/Groth16Verifier.sol
 VERIFIER_EXTENSIONS_FILE=./src/v1/Groth16VerifierExtensions.sol
-VERIFIER_SOL_URL="https://pub-64a4eb6e897e425083647b3e0e8539a1.r2.dev/groth16_assets/verifier.sol"
+#VERIFIER_SOL_URL="https://pub-64a4eb6e897e425083647b3e0e8539a1.r2.dev/groth16_assets/verifier.sol"
+
+
+
+if [[ -z "$VERIFIER_SOL_URL" ]]; then
+    echo "Error: VERIFIER_SOL_URL is not set." >&2  # Print error to stderr
+    exit 1
+fi
+
+VERIFIER_SOL_URL="$VERIFIER_SOL_URL/groth16_assets/verifier.sol"
+
+
+echo "The value of MY_VAR is: $MY_VAR"
 
 cd $GIT_REPO_PATH && \
     git fetch origin $BRANCH && \
