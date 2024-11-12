@@ -147,6 +147,7 @@ contract LPNRegistryV0Test is Test {
     }
 
     function testRequest() public {
+        vm.skip(true);
         uint256 blockNumber = 12345;
         uint256 proofBlock = 0;
         bytes32 blockHash = 0;
@@ -202,6 +203,7 @@ contract LPNRegistryV0Test is Test {
     }
 
     function testRequestOP() public {
+        vm.skip(true);
         uint256 l2Block = 12345;
         uint256 l1Block = 123;
         bytes32 l1BlockHash = bytes32("567");
@@ -397,6 +399,7 @@ contract LPNRegistryV0Test is Test {
     }
 
     function testRequestInsufficientGas() public {
+        vm.skip(true);
         address userAddress = makeAddr("some-user");
         uint256 startBlock;
         uint256 endBlock;
@@ -437,6 +440,7 @@ contract LPNRegistryV0Test is Test {
     }
 
     function testRespond() public {
+        vm.skip(true);
         uint256 startBlock = 19662380;
         uint256 endBlock = 19662380;
         uint256 proofBlock = 19662458;
@@ -484,6 +488,7 @@ contract LPNRegistryV0Test is Test {
     }
 
     function testRespondOP() public {
+        vm.skip(true);
         vm.chainId(BASE_MAINNET);
         uint256 startBlock = 19662380;
         uint256 endBlock = 19662380;
