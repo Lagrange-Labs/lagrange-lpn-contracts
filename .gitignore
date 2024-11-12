@@ -10,7 +10,6 @@ out/
 # Docs
 docs/
 
-# Dotenv file
+# env files
 .env
-
-
+.envrc
