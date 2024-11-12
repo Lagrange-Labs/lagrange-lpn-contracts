@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.13;
+pragma solidity 0.8.25;
 
 import {isEthereum, isOPStack, isMantle, isCDK} from "../utils/Constants.sol";
 import {IRegistrationManager} from "./interfaces/IRegistrationManager.sol";
