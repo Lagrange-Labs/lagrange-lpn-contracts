@@ -88,8 +88,19 @@ contract QueryManager is IQueryManager {
         bytes32[] calldata placeholders,
         uint256 startBlock,
         uint256 endBlock
+    ) external payable returns (uint256) {
+        return request(queryHash, placeholders, startBlock, endBlock, 0, 0);
+    }
+
+    function request(
+        bytes32 queryHash,
+        bytes32[] calldata placeholders,
+        uint256 startBlock,
+        uint256 endBlock,
+        uint32 limit,
+        uint32 offset
     )
-        external
+        public
         payable
         requireGasFee
         validateQueryRange(startBlock, endBlock)
@@ -110,10 +121,8 @@ contract QueryManager is IQueryManager {
 
         requests[requestId] = QueryRequest({
             input: QueryInput({
-                // TODO:
-                limit: 0,
-                // TODO:
-                offset: 0,
+                limit: limit,
+                offset: offset,
                 minBlockNumber: uint64(startBlock),
                 maxBlockNumber: uint64(endBlock),
                 blockHash: blockHash,
