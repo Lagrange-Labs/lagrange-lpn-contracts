@@ -22,7 +22,7 @@ jobs:
         with:
           version: nightly
 
-      - name: Run forge coverage
+      - name: Check test coverage
         run: |
-          forge coverage --no-match-coverage "(script|test|examples|v0|mocks)"
+          make coverage
         id: coverage

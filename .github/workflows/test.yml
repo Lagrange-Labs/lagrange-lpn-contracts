@@ -22,7 +22,7 @@ jobs:
         with:
           version: nightly
 
-      - name: Run forge test
+      - name: Run unit tests
         run: |
-          forge test -vvv
+          make test
         id: test
