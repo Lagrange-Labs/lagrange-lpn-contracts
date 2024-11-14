@@ -13,3 +13,4 @@ docs/
 # env files
 .env
 .envrc
+.DS_Store

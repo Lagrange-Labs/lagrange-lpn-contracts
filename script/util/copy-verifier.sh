@@ -8,16 +8,22 @@ VERIFIER_EXTENSIONS_FILE=./src/v1/Groth16VerifierExtensions.sol
 #VERIFIER_SOL_URL="https://pub-64a4eb6e897e425083647b3e0e8539a1.r2.dev/groth16_assets/verifier.sol"
 
 
-
-if [[ -z "$VERIFIER_SOL_URL" ]]; then
-    echo "Error: VERIFIER_SOL_URL is not set." >&2  # Print error to stderr
+case "$1" in
+  dev)
+    VERIFIER_SOL_URL="https://pub-64a4eb6e897e425083647b3e0e8539a1.r2.dev"
+    ;;
+  test)
+    VERIFIER_SOL_URL="https://pub-fbb5db8dc9ee4e8da9daf13e07d27c24.r2.dev"
+    ;;
+  *)
+    echo "Usage: $0 {dev|test}"
     exit 1
-fi
+    ;;
+esac
+
+echo "VERIFIER_SOL_URL: $VERIFIER_SOL_URL"
 
 VERIFIER_SOL_URL="$VERIFIER_SOL_URL/groth16_assets/verifier.sol"
-
-
-echo "The value of MY_VAR is: $MY_VAR"
 
 cd $GIT_REPO_PATH && \
     git fetch origin $BRANCH && \
