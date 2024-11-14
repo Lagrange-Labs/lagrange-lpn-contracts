@@ -1,4 +1,4 @@
-name: test
+name: cov
 
 on: push
 
@@ -10,7 +10,7 @@ jobs:
     strategy:
       fail-fast: true
 
-    name: Foundry Tests
+    name: Foundry Coverage
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
@@ -22,7 +22,7 @@ jobs:
         with:
           version: nightly
 
-      - name: Run forge test
+      - name: Run forge coverage
         run: |
-          forge test -vvv
-        id: test
+          forge coverage --no-match-coverage "(script|test|examples|v0|mocks)"
+        id: coverage
