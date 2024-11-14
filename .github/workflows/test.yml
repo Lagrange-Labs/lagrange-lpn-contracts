@@ -23,6 +23,5 @@ jobs:
           version: nightly
 
       - name: Run unit tests
-        run: |
-          make test
+        run: make test
         id: test

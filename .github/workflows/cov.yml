@@ -22,7 +22,16 @@ jobs:
         with:
           version: nightly
 
-      - name: Check test coverage
-        run: |
-          make coverage
+      - name: Install LCOV
+        uses: hrishikesh-kadam/setup-lcov@f5da1b26b0dcf5d893077a3c4f29cf78079c841d # v1.0.0
+
+      - name: Generate coverage report
+        run: make coverage-report
         id: coverage
+
+      - name: Report code coverage
+        uses: zgosalvez/github-actions-report-lcov@a546f89a65a0cdcd82a92ae8d65e74d450ff3fbc # v4.1.4
+        with:
+          # update-comment: true TODO - add access token so that action can comment with coverage report
+          coverage-files: lcov.info
+          minimum-coverage: 12

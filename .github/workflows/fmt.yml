@@ -22,6 +22,6 @@ jobs:
         with:
           version: nightly
   
-      - name: Run Forge fmt
+      - name: Run forge fmt
         run: forge fmt --check
         id: fmt

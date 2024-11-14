@@ -13,3 +13,6 @@ docs/
 # env files
 .env
 .envrc
+
+# coverage report
+lcov.info

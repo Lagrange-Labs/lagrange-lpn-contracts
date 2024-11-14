@@ -65,15 +65,16 @@ endef
 $(foreach chain,${CHAINS},$(foreach script,${SCRIPT_NAMES},$(eval $(call make-command-rule,${script},${chain}))))
 
 # Other non-generic rules
-install  :; forge install
-update   :; forge update
-build    :; forge build
-test     :; forge test -vvv
-coverage :; forge coverage -v --no-match-coverage "(script|test|examples|v0|mocks)"
-clean    :; forge clean
-snapshot :; forge snapshot
-fmt      :; forge fmt
-slither  :; docker run -ti --entrypoint=/home/ethsec/.local/bin/slither -v ./:/local/ --workdir=/local trailofbits/eth-security-toolbox:nightly .
+install         :; forge install
+update          :; forge update
+build           :; forge build
+test            :; forge test -vvv
+coverage        :; forge coverage -v --no-match-coverage "(script|test|examples|v0|mocks)"
+coverage-report :; forge coverage -v --no-match-coverage "(script|test|examples|v0|mocks)" --report lcov
+clean           :; forge clean
+snapshot        :; forge snapshot
+fmt             :; forge fmt
+slither         :; docker run -ti --entrypoint=/home/ethsec/.local/bin/slither -v ./:/local/ --workdir=/local trailofbits/eth-security-toolbox:nightly .
 
 # List available scripts
 list-scripts:
