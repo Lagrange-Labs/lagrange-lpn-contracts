@@ -31,6 +31,14 @@ $ forge test
 $ forge test -vvv
 ```
 
+## Run Static Analysis
+Requirements:
+  * docker
+
+```bash
+$ make slither
+```
+
 ## Makefile & Commands
 The commands in the [Makefile](./Makefile) are auto-generated based on:
 - the `*.s.sol` filenames under the [script](./script) directory
