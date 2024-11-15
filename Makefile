@@ -73,6 +73,7 @@ trace   :; forge test -vvv
 clean   :; forge clean
 snapshot:; forge snapshot
 fmt     :; forge fmt
+slither :; docker run -ti --entrypoint=/home/ethsec/.local/bin/slither -v ./:/local/ --workdir=/local trailofbits/eth-security-toolbox:nightly .
 
 # List available scripts
 list-scripts:
