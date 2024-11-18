@@ -102,11 +102,8 @@ contract QueryManager is IQueryManager {
         uint256 proofBlock = 0;
         bytes32 blockHash = 0;
 
-        // TODO: Maybe store proofBlock for L1 queries as well
-        if (!isEthereum()) {
-            proofBlock = L1BlockNumber();
-            blockHash = L1BlockHash();
-        }
+        proofBlock = L1BlockNumber();
+        blockHash = L1BlockHash();
 
         requests[requestId] = QueryRequest({
             input: QueryInput({
@@ -145,10 +142,6 @@ contract QueryManager is IQueryManager {
     ) external {
         QueryRequest memory query = requests[requestId_];
         delete requests[requestId_];
-
-        if (isEthereum()) {
-            query.input.blockHash = blockhash(blockNumber);
-        }
 
         QueryOutput memory result =
             Groth16VerifierExtensions.processQuery(data, query.input);
