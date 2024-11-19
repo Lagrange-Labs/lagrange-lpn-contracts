@@ -11,7 +11,9 @@ import {
 /// @notice The latest L1 blockhash.
 function L1BlockHash() view returns (bytes32) {
     if (isEthereum()) {
-        return blockhash(block.number);
+        // cannont calculate blockhash for a pending block, we can only lookup the blockhash of
+        // the latest confirmed block
+        return blockhash(block.number - 1);
     }
 
     if (isOPStack()) {
@@ -24,7 +26,9 @@ function L1BlockHash() view returns (bytes32) {
 /// @notice The latest L1 block number.
 function L1BlockNumber() view returns (uint256) {
     if (isEthereum()) {
-        return block.number;
+        // block.number is the "pending" block, not actually the tip of the chain,
+        // see comment on blockhash above
+        return block.number - 1;
     }
 
     if (isOPStack()) {
