@@ -2,7 +2,7 @@
 
 GIT_REPO_PATH=../mapreduce-plonky2
 CODE_DIR_PATH=groth16-framework/test_data
-BRANCH=main
+BRANCH=holesky
 VERIFIER_FILE=./src/v1/Groth16Verifier.sol
 VERIFIER_EXTENSIONS_FILE=./src/v1/Groth16VerifierExtensions.sol
 #VERIFIER_SOL_URL="https://pub-64a4eb6e897e425083647b3e0e8539a1.r2.dev/groth16_assets/verifier.sol"
