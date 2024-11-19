@@ -143,7 +143,7 @@ contract LPNRegistryV1Test is Test {
             TEST_START_BLOCK,
             TEST_END_BLOCK,
             FEE,
-            0 // proofBlock is 0 for L1
+            block.number - 1
         );
         // do the thing
         uint256 id = registry.request{value: FEE}(
@@ -156,7 +156,8 @@ contract LPNRegistryV1Test is Test {
         assertEq(input.offset, 0);
         assertEq(input.minBlockNumber, TEST_START_BLOCK);
         assertEq(input.maxBlockNumber, TEST_END_BLOCK);
-        assertEq(input.blockHash, 0); // TODO - only on ethereum
+        assertEq(input.blockHash, blockhash(block.number - 1));
+        assertNotEq(input.blockHash, bytes32(0));
         assertEq(input.computationalHash, QUERY_HASH);
         assertEq(
             keccak256(abi.encode(input.userPlaceholders)),
@@ -206,8 +207,8 @@ contract LPNRegistryV1Test is Test {
         );
     }
 
-    function test_request_afterCurrentBlock_reverts() public {
-        uint256 futureBlock = block.number + 1;
+    function test_request_afterLatestBlock_reverts() public {
+        uint256 futureBlock = block.number;
         vm.prank(stranger);
         vm.expectRevert(QueryManager.QueryAfterCurrentBlock.selector);
         registry.request{value: FEE}(

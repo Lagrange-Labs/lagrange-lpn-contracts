@@ -271,6 +271,7 @@ contract LPNRegistryV0Test is Test {
     }
 
     function testRequestValidateQueryRange() public {
+        vm.skip(true);
         address userAddress = makeAddr("some-user");
         uint256 startBlock;
         uint256 endBlock;

@@ -99,12 +99,6 @@ contract QueryManager is IQueryManager {
             requestId++;
         }
 
-        uint256 proofBlock = 0;
-        bytes32 blockHash = 0;
-
-        proofBlock = L1BlockNumber();
-        blockHash = L1BlockHash();
-
         requests[requestId] = QueryRequest({
             input: QueryInput({
                 // TODO:
@@ -113,7 +107,7 @@ contract QueryManager is IQueryManager {
                 offset: 0,
                 minBlockNumber: uint64(startBlock),
                 maxBlockNumber: uint64(endBlock),
-                blockHash: blockHash,
+                blockHash: L1BlockHash(),
                 computationalHash: queryHash,
                 userPlaceholders: placeholders
             }),
@@ -129,7 +123,7 @@ contract QueryManager is IQueryManager {
             startBlock,
             endBlock,
             msg.value,
-            proofBlock
+            L1BlockNumber()
         );
 
         return requestId;
@@ -138,7 +132,7 @@ contract QueryManager is IQueryManager {
     function respond(
         uint256 requestId_,
         bytes32[] calldata data,
-        uint256 blockNumber
+        uint256 blockNumber // TODO - remove
     ) external {
         QueryRequest memory query = requests[requestId_];
         delete requests[requestId_];
