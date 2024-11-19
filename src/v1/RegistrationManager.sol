@@ -4,12 +4,6 @@ pragma solidity ^0.8.13;
 import {isEthereum, isOPStack, isMantle, isCDK} from "../utils/Constants.sol";
 import {IRegistrationManager} from "./interfaces/IRegistrationManager.sol";
 
-/// @notice Error thrown when attempting to register a table more than once.
-error TableAlreadyRegistered();
-
-/// @notice Error thrown when attempting to register a query more than once.
-error QueryAlreadyRegistered();
-
 /// @title RegistrationManager
 /// @notice TODO
 contract RegistrationManager is IRegistrationManager {
@@ -21,6 +15,12 @@ contract RegistrationManager is IRegistrationManager {
 
     /// @dev Reserves storage slots for future upgrades
     uint256[48] private __gap;
+
+    /// @notice Error thrown when attempting to register a table more than once.
+    error TableAlreadyRegistered();
+
+    /// @notice Error thrown when attempting to register a query more than once.
+    error QueryAlreadyRegistered();
 
     function _registerTable(
         bytes32 hash,
