@@ -168,6 +168,13 @@ contract LPNRegistryV1Test is Test {
             QUERY_HASH, PLACEHOLDERS, TEST_START_BLOCK, TEST_END_BLOCK
         );
         assertNotEq(id, id2);
+        // make request with explicit limit / offset (this is a different function)
+        uint256 id3 = registry.request{value: FEE}(
+            QUERY_HASH, PLACEHOLDERS, TEST_START_BLOCK, TEST_END_BLOCK, 10, 100
+        );
+        (, input) = registry.requests(id3);
+        assertEq(input.limit, 10);
+        assertEq(input.offset, 100);
     }
 
     function test_request_insufficientGasFee_reverts() public {

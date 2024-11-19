@@ -70,10 +70,12 @@ contract LPNQueryV1 is LPNClientV1, Initializable {
         bytes32 queryHash,
         bytes32[] calldata placeholders,
         uint256 startBlock,
-        uint256 endBlock
+        uint256 endBlock,
+        uint32 limit,
+        uint32 offset
     ) external payable {
         uint256 requestId = lpnRegistry.request{value: lpnRegistry.gasFee()}(
-            queryHash, placeholders, startBlock, endBlock
+            queryHash, placeholders, startBlock, endBlock, limit, offset
         );
 
         requests[requestId] = RequestMetadata({
