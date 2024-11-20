@@ -18,6 +18,10 @@ line_length = 80
 anvil = "http://localhost:8545"
 # used for `dev` environment
 holesky_dev = "https://holesky.gateway.tenderly.co"
+dev-0 = "https://holesky.gateway.tenderly.co"
+dev-1 = "https://holesky.gateway.tenderly.co"
+dev-2 = "https://holesky.gateway.tenderly.co"
+dev-3 = "https://holesky.gateway.tenderly.co"
 # used for `test` environment
 holesky = "https://holesky.gateway.tenderly.co"
 sepolia = "${SEPOLIA_RPC_URL}"

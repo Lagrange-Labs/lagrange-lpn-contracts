@@ -8,7 +8,7 @@ DEPLOY_FLAGS=--verify ${BASE_DEPLOY_FLAGS}
 MAINNET_DEPLOYER=--account lpn_owner
 
 # Define chains
-CHAINS=anvil sepolia holesky_dev holesky mainnet base_sepolia base fraxtal_testnet fraxtal mantle_sepolia mantle polygon_zkevm
+CHAINS=anvil sepolia holesky_dev dev-0 dev-1 dev-2 dev-3 holesky mainnet base_sepolia base fraxtal_testnet fraxtal mantle_sepolia mantle polygon_zkevm
 
 # Find all .s.sol files in the scripts directory and its subdirectories
 SCRIPT_FILES := $(shell find ./script -name '*.s.sol' -type f)
@@ -24,7 +24,7 @@ endef
 
 # Function to determine if MAINNET_DEPLOYER should be used
 define use-mainnet-deployer
-$(if $(or $(findstring local,$(1)),$(findstring sepolia,$(1)),$(findstring holesky,$(1)),$(findstring testnet,$(1))),,${MAINNET_DEPLOYER})
+$(if $(or $(findstring local,$(1)),$(findstring sepolia,$(1)),$(findstring dev-,$(1)),$(findstring holesky,$(1)),$(findstring testnet,$(1))),,${MAINNET_DEPLOYER})
 endef
 
 # EVM version management
@@ -58,7 +58,10 @@ $(1)_$(2): CHAIN_FLAGS = $(call get-chain-flags,$(2))
 $(1)_$(2): DEPLOYER_FLAGS = $(call use-mainnet-deployer,$(2))
 $(1)_$(2):
 	$(if $(filter mantle%,$(2)),$(call switch-evm-version),)
-	CHAIN_ALIAS=$(2) forge script $(1) --rpc-url $(2) $${DEPLOY_FLAGS} $${CHAIN_FLAGS} $${DEPLOYER_FLAGS} $(ARGS)
+	$(if $(findstring dev-,$(2)),$(eval SALT=S_$(2)),$(eval SALT=V1_REG_0))
+	
+	script/util/copy-verifier.sh $(2)
+	CHAIN_ALIAS=$(2) SALT=$(SALT) forge script $(1) --rpc-url $(2)  $${DEPLOY_FLAGS} $${CHAIN_FLAGS} $${DEPLOYER_FLAGS} $(ARGS)
 	$(if $(filter mantle%,$(2)),$(call restore-evm-version),)
 endef
 
