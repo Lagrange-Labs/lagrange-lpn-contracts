@@ -11,7 +11,7 @@ MAINNET_DEPLOYER=--account lpn_owner
 CHAINS=anvil sepolia holesky_dev dev-0 dev-1 dev-2 dev-3 holesky mainnet base_sepolia base fraxtal_testnet fraxtal mantle_sepolia mantle polygon_zkevm
 
 # Find all .s.sol files in the scripts directory and its subdirectories
-SCRIPT_FILES := $(shell find ./script -name '*.s.sol' -type f)
+SCRIPT_FILES := $(shell find ./script -name '*.s.sol' -type f -not -path "./script/output/*")
 
 # Extract script names without .s.sol extension to get the ContractName, e.g. DeployLPNRegistryV1
 SCRIPT_NAMES := $(patsubst %.s.sol,%,$(notdir $(SCRIPT_FILES)))
