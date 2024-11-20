@@ -47,6 +47,23 @@ interface IQueryManager {
         uint256 endBlock
     ) external payable returns (uint256);
 
+    /// @notice Submits a new request to the registry.
+    /// @param queryHash The identifier of the SQL query associated with the request.
+    /// @param placeholders Values for the numbered placeholders in the query.
+    /// @param startBlock The starting block for the computation.
+    /// @param endBlock The ending block for the computation.
+    /// @param limit The maximum number of rows to return.
+    /// @param offset The number of rows to offset from the beginning.
+    /// @return ID The ID of the newly created request.
+    function request(
+        bytes32 queryHash,
+        bytes32[] calldata placeholders,
+        uint256 startBlock,
+        uint256 endBlock,
+        uint32 limit,
+        uint32 offset
+    ) external payable returns (uint256);
+
     /// @notice Submits a response to a specific request.
     /// @param requestId_ The ID of the request to respond to.
     /// @param data The proof, inputs, and public inputs to verify.

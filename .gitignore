@@ -14,3 +14,6 @@ docs/
 .env
 .envrc
 .DS_Store
+
+# coverage report
+lcov.info

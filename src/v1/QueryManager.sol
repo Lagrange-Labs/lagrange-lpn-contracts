@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.13;
+pragma solidity 0.8.25;
 
 import {
     Groth16VerifierExtensions,
@@ -11,21 +11,6 @@ import {isCDK} from "../utils/Constants.sol";
 import {L1BlockHash, L1BlockNumber} from "../utils/L1Block.sol";
 import {isEthereum, isOPStack, isMantle, isCDK} from "../utils/Constants.sol";
 import {IQueryManager} from "./interfaces/IQueryManager.sol";
-
-/// @notice Error thrown when attempting to query a block number that is after the current block.
-/// @dev endBlock > block.number
-error QueryAfterCurrentBlock();
-
-/// @notice Error thrown when attempting to query a range that exceeds the maximum allowed range.
-/// @dev endBlock - startBlock > MAX_QUERY_RANGE
-error QueryGreaterThanMaxRange();
-
-/// @notice Error thrown when attempting to query an invalid range.
-/// @dev startBlock > endBlock
-error QueryInvalidRange();
-
-/// @notice Error thrown when gas fee is not paid.
-error InsufficientGasFee();
 
 /// @title QueryManager
 /// @notice TODO
@@ -55,6 +40,21 @@ contract QueryManager is IQueryManager {
     /// @dev Reserves storage slots for future upgrades
     uint256[48] private __gap;
 
+    /// @notice Error thrown when attempting to query a block number that is after the current block.
+    /// @dev endBlock > block.number
+    error QueryAfterCurrentBlock();
+
+    /// @notice Error thrown when attempting to query a range that exceeds the maximum allowed range.
+    /// @dev endBlock - startBlock > MAX_QUERY_RANGE
+    error QueryGreaterThanMaxRange();
+
+    /// @notice Error thrown when attempting to query an invalid range.
+    /// @dev startBlock > endBlock
+    error QueryInvalidRange();
+
+    /// @notice Error thrown when gas fee is not paid.
+    error InsufficientGasFee();
+
     modifier requireGasFee() {
         if (msg.value < gasFee()) {
             revert InsufficientGasFee();
@@ -77,6 +77,7 @@ contract QueryManager is IQueryManager {
             revert QueryInvalidRange();
         }
         if (endBlock - startBlock + 1 > MAX_QUERY_RANGE) {
+            // NOTE: technically the max range is MAX_QUERY_RANGE-1 :facepalm:
             revert QueryGreaterThanMaxRange();
         }
         _;
@@ -87,8 +88,19 @@ contract QueryManager is IQueryManager {
         bytes32[] calldata placeholders,
         uint256 startBlock,
         uint256 endBlock
+    ) external payable returns (uint256) {
+        return request(queryHash, placeholders, startBlock, endBlock, 0, 0);
+    }
+
+    function request(
+        bytes32 queryHash,
+        bytes32[] calldata placeholders,
+        uint256 startBlock,
+        uint256 endBlock,
+        uint32 limit,
+        uint32 offset
     )
-        external
+        public
         payable
         requireGasFee
         validateQueryRange(startBlock, endBlock)
@@ -98,24 +110,13 @@ contract QueryManager is IQueryManager {
             requestId++;
         }
 
-        uint256 proofBlock = 0;
-        bytes32 blockHash = 0;
-
-        // TODO: Maybe store proofBlock for L1 queries as well
-        if (!isEthereum()) {
-            proofBlock = L1BlockNumber();
-            blockHash = L1BlockHash();
-        }
-
         requests[requestId] = QueryRequest({
             input: QueryInput({
-                // TODO:
-                limit: 0,
-                // TODO:
-                offset: 0,
+                limit: limit,
+                offset: offset,
                 minBlockNumber: uint64(startBlock),
                 maxBlockNumber: uint64(endBlock),
-                blockHash: blockHash,
+                blockHash: L1BlockHash(),
                 computationalHash: queryHash,
                 userPlaceholders: placeholders
             }),
@@ -131,7 +132,7 @@ contract QueryManager is IQueryManager {
             startBlock,
             endBlock,
             msg.value,
-            proofBlock
+            L1BlockNumber()
         );
 
         return requestId;
@@ -140,14 +141,10 @@ contract QueryManager is IQueryManager {
     function respond(
         uint256 requestId_,
         bytes32[] calldata data,
-        uint256 blockNumber
+        uint256 blockNumber // TODO - remove
     ) external {
         QueryRequest memory query = requests[requestId_];
         delete requests[requestId_];
-
-        if (isEthereum()) {
-            query.input.blockHash = blockhash(blockNumber);
-        }
 
         QueryOutput memory result =
             Groth16VerifierExtensions.processQuery(data, query.input);
