@@ -4,8 +4,8 @@ GIT_REPO_PATH=../mapreduce-plonky2
 CODE_DIR_PATH=groth16-framework/test_data
 ENV=$1
 VERIFIER_FOLDER=./script/output/$1
-VERIFIER_FILE=$VERIFIER_FOLDER/Groth16Verifier.sol
-VERIFIER_EXTENSIONS_FILE=$VERIFIER_FOLDER/Groth16VerifierExtensions.sol
+VERIFIER_FILE=$VERIFIER_FOLDER/Groth16Verifier.sol.ignore
+VERIFIER_EXTENSIONS_FILE=$VERIFIER_FOLDER/Groth16VerifierExtensions.sol.ignore
 #VERIFIER_SOL_URL="https://pub-64a4eb6e897e425083647b3e0e8539a1.r2.dev/groth16_assets/verifier.sol"
 
 
