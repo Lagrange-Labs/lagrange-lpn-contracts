@@ -47,46 +47,51 @@ mkdir -p $VERIFIER_FOLDER
 wget -O $VERIFIER_FILE $VERIFIER_SOL_URL
 cp "${GIT_REPO_PATH}/${CODE_DIR_PATH}/Groth16VerifierExtensions.sol" $VERIFIER_EXTENSIONS_FILE
 
-# Use as library instead of contract
-sed -i '' 's/contract Verifier/library Groth16Verifier/' $VERIFIER_FILE
+# Use awk for the following transformations
+awk '{
+  # Use as library instead of contract
+  gsub(/contract Verifier/, "library Groth16Verifier");
 
-# Use internal instead of public functions
-sed -i '' 's/public view/internal view/' $VERIFIER_FILE
+  # Use internal instead of public functions
+  gsub(/public view/, "internal view");
 
-# Read proof argument from memory instead of calldata
-sed -i '' 's/calldata proof/memory proof/' $VERIFIER_FILE
-sed -i '' $'s/calldatacopy(f, proof, 0x100)/mstore(f, mload(add(proof, 0x00)))\
-    mstore(add(f, 0x20), mload(add(proof, 0x20)))\
-    mstore(add(f, 0x40), mload(add(proof, 0x40)))\
-    mstore(add(f, 0x60), mload(add(proof, 0x60)))\
-    mstore(add(f, 0x80), mload(add(proof, 0x80)))\
-    mstore(add(f, 0xa0), mload(add(proof, 0xa0)))\
-    mstore(add(f, 0xc0), mload(add(proof, 0xc0)))\
-    mstore(add(f, 0xe0), mload(add(proof, 0xe0)))/' $VERIFIER_FILE
+  # Read proof argument from memory instead of calldata
+  gsub(/calldata proof/, "memory proof");
+  gsub(/calldatacopy\(f, proof, 0x100\)/, "mstore(f, mload(add(proof, 0x00)))\nmstore(add(f, 0x20), mload(add(proof, 0x20)))\nmstore(add(f, 0x40), mload(add(proof, 0x40)))\nmstore(add(f, 0x60), mload(add(proof, 0x60)))\nmstore(add(f, 0x80), mload(add(proof, 0x80)))\nmstore(add(f, 0xa0), mload(add(proof, 0xa0)))\nmstore(add(f, 0xc0), mload(add(proof, 0xc0)))\nmstore(add(f, 0xe0), mload(add(proof, 0xe0)))");
 
-# Read input argument from memory instead of calldata
-sed -i '' 's/calldata input/memory input/' $VERIFIER_FILE
-sed -i '' 's/calldataload(input)/mload(input)/' $VERIFIER_FILE
-sed -i '' 's/calldataload(add(input, 32))/mload(add(input, 32))/' $VERIFIER_FILE
-sed -i '' 's/calldataload(add(input, 64))/mload(add(input, 64))/' $VERIFIER_FILE
+  # Read input argument from memory instead of calldata
+  gsub(/calldata input/, "memory input");
+  gsub(/calldataload\(input\)/, "mload(input)");
+  gsub(/calldataload\(add\(input, 32\)\)/, "mload(add(input, 32))");
+  gsub(/calldataload\(add\(input, 64\)\)/, "mload(add(input, 64))");
 
-# Import verifier library with renamed filename
-sed -i '' 's/import {Verifier} from ".\/verifier.sol";/import {Groth16Verifier} from ".\/Groth16Verifier.sol";\
-   import {isCDK} from "..\/utils\/Constants.sol";/' $VERIFIER_EXTENSIONS_FILE
+  print;
+}' $VERIFIER_FILE > $VERIFIER_FILE.tmp && mv $VERIFIER_FILE.tmp $VERIFIER_FILE
 
-# Use extensions as library instead of contract
-sed -i '' 's/contract Query is Verifier {/library Groth16VerifierExtensions {/' $VERIFIER_EXTENSIONS_FILE
-sed -i '' 's/CIRCUIT_DIGEST/Groth16Verifier.CIRCUIT_DIGEST/' $VERIFIER_EXTENSIONS_FILE
-sed -i '' 's/this.verifyProof/Groth16Verifier.verifyProof/' $VERIFIER_EXTENSIONS_FILE
+awk '{
+  # Import verifier library with renamed filename
+  gsub(/import {Verifier} from ".\/verifier.sol";/, "import {Groth16Verifier} from \".\/Groth16Verifier.sol\";\n   import {isCDK} from \"..\/utils\/Constants.sol\";");
 
-# Use internal instead of public functions
-sed -i '' 's/public view/internal view/' $VERIFIER_EXTENSIONS_FILE
+  # Use extensions as library instead of contract
+  gsub(/contract Query is Verifier {/, "library Groth16VerifierExtensions {");
+  gsub(/CIRCUIT_DIGEST/, "Groth16Verifier.CIRCUIT_DIGEST");
+  gsub(/this.verifyProof/, "Groth16Verifier.verifyProof");
 
-# Patch `verifyQuery` function to be `view` instead of `pure`
-sed -i '' '/function verifyQuery.*/,+2 s/pure/view/' $VERIFIER_EXTENSIONS_FILE
+  # Use internal instead of public functions
+  gsub(/public view/, "internal view");
 
-# Patch `verifyQuery` function to skip blockhash verification for polygon CDK chains
-sed -i '' 's/blockHash == query.blockHash/isCDK() || blockHash == query.blockHash/' $VERIFIER_EXTENSIONS_FILE
+  # Change "view" to "pure" in "function verifyQuery"
+  if (match($0, /function verifyQuery.*/)) {
+    sub(/pure/, "view"); 
+  }
+
+  # Patch `verifyQuery` function to skip blockhash verification for polygon CDK chains
+  gsub(/blockHash == query.blockHash/, "isCDK() || blockHash == query.blockHash");
+
+  print;
+}' $VERIFIER_EXTENSIONS_FILE > $VERIFIER_EXTENSIONS_FILE.tmp && mv $VERIFIER_EXTENSIONS_FILE.tmp $VERIFIER_EXTENSIONS_FILE
+
+
 
 forge fmt
 
@@ -95,28 +100,3 @@ cp $VERIFIER_FILE ./src/v1/Groth16Verifier.sol
 
 mv $VERIFIER_EXTENSIONS_FILE $VERIFIER_EXTENSIONS_FILE.ignore
 mv $VERIFIER_FILE $VERIFIER_FILE.ignore
-
-# verifyProof
-    # calldatacopy(f, proof, 0x100)
-    # ===>
-    # mstore(f, mload(add(proof, 0x00)))
-    # mstore(add(f, 0x20), mload(add(proof, 0x20)))
-    # mstore(add(f, 0x40), mload(add(proof, 0x40)))
-    # mstore(add(f, 0x60), mload(add(proof, 0x60)))
-    # mstore(add(f, 0x80), mload(add(proof, 0x80)))
-    # mstore(add(f, 0xa0), mload(add(proof, 0xa0)))
-    # mstore(add(f, 0xc0), mload(add(proof, 0xc0)))
-    # mstore(add(f, 0xe0), mload(add(proof, 0xe0)))
-
-# publicInputMSM
-    # s := calldataload(input)
-    # ===>
-    # s := mload(input)
-
-    # s := calldataload(add(input, 32))
-    # ===>
-    # s := mload(add(input, 32))
-
-    # s := calldataload(add(input, 64))
-    # ===>
-    # s := mload(add(input, 64))
