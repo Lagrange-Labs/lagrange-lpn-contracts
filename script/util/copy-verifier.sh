@@ -88,7 +88,7 @@ sed -i '' '/function verifyQuery.*/,+2 s/pure/view/' $VERIFIER_EXTENSIONS_FILE
 # Patch `verifyQuery` function to skip blockhash verification for polygon CDK chains
 sed -i '' 's/blockHash == query.blockHash/isCDK() || blockHash == query.blockHash/' $VERIFIER_EXTENSIONS_FILE
 
-forge fmt
+#forge fmt
 
 cp $VERIFIER_EXTENSIONS_FILE ./src/v1/Groth16VerifierExtensions.sol
 cp $VERIFIER_FILE ./src/v1/Groth16Verifier.sol
