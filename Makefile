@@ -67,6 +67,8 @@ endef
 
 $(foreach chain,${CHAINS},$(foreach script,${SCRIPT_NAMES},$(eval $(call make-command-rule,${script},${chain}))))
 
+.PHONY: test
+
 # Other non-generic rules
 install         :; forge install
 update          :; forge update
