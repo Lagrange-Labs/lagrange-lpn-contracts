@@ -2,21 +2,32 @@
 
 GIT_REPO_PATH=../mapreduce-plonky2
 CODE_DIR_PATH=groth16-framework/test_data
-BRANCH=holesky
-VERIFIER_FILE=./src/v1/Groth16Verifier.sol
-VERIFIER_EXTENSIONS_FILE=./src/v1/Groth16VerifierExtensions.sol
+ENV=$1
+VERIFIER_FOLDER=./script/output/$1
+VERIFIER_FILE=$VERIFIER_FOLDER/Groth16Verifier.sol.ignore
+VERIFIER_EXTENSIONS_FILE=$VERIFIER_FOLDER/Groth16VerifierExtensions.sol.ignore
 #VERIFIER_SOL_URL="https://pub-64a4eb6e897e425083647b3e0e8539a1.r2.dev/groth16_assets/verifier.sol"
 
 
-case "$1" in
-  dev)
+case "$ENV" in
+  dev-0)
     VERIFIER_SOL_URL="https://pub-64a4eb6e897e425083647b3e0e8539a1.r2.dev"
+    BRANCH=holesky
+    ;;
+  dev-1)
+    VERIFIER_SOL_URL="https://pub-a894572689a54c008859f232868fc67d.r2.dev"
+    BRANCH=holesky
+    ;;
+  dev-3)
+    VERIFIER_SOL_URL="https://pub-bca6985bd0e849b5b8840edc0b7f9e15.r2.dev"
+    BRANCH=holesky
     ;;
   test)
     VERIFIER_SOL_URL="https://pub-fbb5db8dc9ee4e8da9daf13e07d27c24.r2.dev"
+    BRANCH=holesky
     ;;
   *)
-    echo "Usage: $0 {dev|test}"
+    echo "Usage: $0 {dev-x|test}"
     exit 1
     ;;
 esac
@@ -30,6 +41,8 @@ cd $GIT_REPO_PATH && \
     git checkout $BRANCH && \
     git pull origin $BRANCH && \
     cd -
+
+mkdir -p $VERIFIER_FOLDER
 
 wget -O $VERIFIER_FILE $VERIFIER_SOL_URL
 cp "${GIT_REPO_PATH}/${CODE_DIR_PATH}/Groth16VerifierExtensions.sol" $VERIFIER_EXTENSIONS_FILE
@@ -76,6 +89,9 @@ sed -i '' '/function verifyQuery.*/,+2 s/pure/view/' $VERIFIER_EXTENSIONS_FILE
 sed -i '' 's/blockHash == query.blockHash/isCDK() || blockHash == query.blockHash/' $VERIFIER_EXTENSIONS_FILE
 
 forge fmt
+
+cp $VERIFIER_EXTENSIONS_FILE ./src/v1/Groth16VerifierExtensions.sol
+cp $VERIFIER_FILE ./src/v1/Groth16Verifier.sol
 
 # verifyProof
     # calldatacopy(f, proof, 0x100)

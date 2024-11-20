@@ -79,9 +79,7 @@ contract WhitelistZKMR is WhitelistBase {
     - Operators for testnet + mainnet are notified of the update
     - The testnet / mainnet contract is upgraded during the release of the new code / circuits to the operators
 1. Ensure desired changes to [Groth16Verifier.sol](./src/v1/Groth16Verifier.sol) are in the main branch of [mapreduce-plonky2](https://github.com/Lagrange-Labs/mapreduce-plonky2/blob/main/groth16-framework/test_data/verifier.sol)
-2. Run `./script/util/copy-verifier.sh` to copy the changes and apply various patches
-3. Run `git status` and double check any changes. Only the groth16 parameters should change.
-4. Run the desired command:
+2. Run the desired command:
 ```bash
 # Local development
 $ make DeployLPNRegistryV1_anvil

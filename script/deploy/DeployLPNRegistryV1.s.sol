@@ -27,9 +27,10 @@ contract DeployLPNRegistryV1 is BaseScript {
 
             address owner = isMainnet() ? address(SAFE) : deployer;
 
-            deployment.registryProxy = LPNRegistryV1(
-                deployProxy(deployment.registryImpl, newSalt("V1_REG_0"), owner)
-            );
+            bytes32 salt = newSalt(vm.envString("SALT"));
+
+            deployment.registryProxy =
+                LPNRegistryV1(deployProxy(deployment.registryImpl, salt, owner));
 
             writeToJson();
         } else {
