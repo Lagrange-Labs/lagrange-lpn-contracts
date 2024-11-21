@@ -60,7 +60,7 @@ jobs:
       fail-fast: false
       matrix:
         environment: [dev, test, prod]
-        image: [dashboard-ui]
+        image: [contract-deployer]
         include:
           - environment: dev
             aws_account_id: ${{ vars.ZKMR_DEV_AWS_ACCOUNT_ID }}
