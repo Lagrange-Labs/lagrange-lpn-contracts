@@ -59,7 +59,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        environment: [dev, test, prod]
+        environment: [dev, test]
         image: [contract-deployer]
         include:
           - environment: dev
