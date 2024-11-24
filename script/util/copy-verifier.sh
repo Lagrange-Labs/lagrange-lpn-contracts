@@ -1,13 +1,9 @@
 #! /bin/bash
 
-GIT_REPO_PATH=../mapreduce-plonky2
-CODE_DIR_PATH=groth16-framework/test_data
 ENV=$1
 VERIFIER_FOLDER=./script/output/$1
 VERIFIER_FILE=$VERIFIER_FOLDER/Groth16Verifier.sol.ignore
 VERIFIER_EXTENSIONS_FILE=$VERIFIER_FOLDER/Groth16VerifierExtensions.sol.ignore
-#VERIFIER_SOL_URL="https://pub-64a4eb6e897e425083647b3e0e8539a1.r2.dev/groth16_assets/verifier.sol"
-
 
 case "$ENV" in
   dev-0)
@@ -36,16 +32,10 @@ echo "VERIFIER_SOL_URL: $VERIFIER_SOL_URL"
 
 VERIFIER_SOL_URL="$VERIFIER_SOL_URL/groth16_assets/verifier.sol"
 
-cd $GIT_REPO_PATH && \
-    git fetch origin $BRANCH && \
-    git checkout $BRANCH && \
-    git pull origin $BRANCH && \
-    cd -
-
 mkdir -p $VERIFIER_FOLDER
 
 wget -O $VERIFIER_FILE $VERIFIER_SOL_URL
-cp "${GIT_REPO_PATH}/${CODE_DIR_PATH}/Groth16VerifierExtensions.sol" $VERIFIER_EXTENSIONS_FILE
+cp ./templates/Groth16VerifierExtensions.sol $VERIFIER_EXTENSIONS_FILE
 
 # Use as library instead of contract
 sed -i '' 's/contract Verifier/library Groth16Verifier/' $VERIFIER_FILE
