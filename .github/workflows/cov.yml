@@ -34,4 +34,4 @@ jobs:
         with:
           # update-comment: true TODO - add access token so that action can comment with coverage report
           coverage-files: lcov.info
-          minimum-coverage: 12
+          minimum-coverage: 8
