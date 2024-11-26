@@ -69,35 +69,30 @@ function isLocal() view returns (bool) {
 }
 
 function isTestnet() view returns (bool) {
-    uint256[5] memory testnets = [
+    uint256[6] memory testnets = [
         ETH_SEPOLIA,
         ETH_HOLESKY,
         BASE_SEPOLIA,
         FRAXTAL_HOLESKY,
-        MANTLE_SEPOLIA
+        MANTLE_SEPOLIA,
+        SCROLL_SEPOLIA
     ];
     return chainMatches(testnets);
 }
 
 function isMainnet() view returns (bool) {
-    uint256[5] memory mainnets = [
+    uint256[6] memory mainnets = [
         ETH_MAINNET,
         BASE_MAINNET,
         FRAXTAL_MAINNET,
         MANTLE_MAINNET,
-        POLYGON_ZKEVM_MAINNET
+        POLYGON_ZKEVM_MAINNET,
+        SCROLL_MAINNET
     ];
     return chainMatches(mainnets);
 }
 
-function chainMatches(uint256[4] memory chains) view returns (bool) {
-    for (uint256 i = 0; i < chains.length; i++) {
-        if (chains[i] == block.chainid) return true;
-    }
-    return false;
-}
-
-function chainMatches(uint256[5] memory chains) view returns (bool) {
+function chainMatches(uint256[6] memory chains) view returns (bool) {
     for (uint256 i = 0; i < chains.length; i++) {
         if (chains[i] == block.chainid) return true;
     }
