@@ -30,9 +30,8 @@ contract DeployLPNQueryV1 is BaseScript {
 
             bytes32 salt = newSalt(vm.envString("SALT"));
 
-            deployment.queryProxy = LPNQueryV1(
-                deployProxy(deployment.queryImpl, salt, owner)
-            );
+            deployment.queryProxy =
+                LPNQueryV1(deployProxy(deployment.queryImpl, salt, owner));
 
             writeToJson();
         } else {
