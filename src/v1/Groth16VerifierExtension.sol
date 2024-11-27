@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.25;
+pragma solidity ^0.8.0;
 
-import {Groth16Verifier} from "./Groth16Verifier.sol";
+import {Verifier} from "./Verifier.sol";
 import {isCDK} from "../utils/Constants.sol";
 
 // The query input struct passed into the processQuery function
@@ -41,7 +41,7 @@ enum QueryErrorCode {
     ComputationOverflow
 }
 
-library Groth16VerifierExtensions {
+contract Groth16VerifierExtension is Verifier {
     // Top 3 bits mask.
     uint256 constant TOP_THREE_BIT_MASK = ~(uint256(7) << 253);
 
@@ -99,8 +99,9 @@ library Groth16VerifierExtensions {
     // 3. Parse the items from public inputs, and check as expected for query.
     // 4. Parse and return the query output from public inputs.
     function processQuery(bytes32[] calldata data, QueryInput memory query)
-        internal
+        public
         view
+        virtual
         returns (QueryOutput memory)
     {
         // 1. Groth16 verification
@@ -120,6 +121,7 @@ library Groth16VerifierExtensions {
     function verifyGroth16Proof(bytes32[] calldata data)
         internal
         view
+        virtual
         returns (uint256[3] memory)
     {
         uint256[8] memory proofs;
@@ -134,12 +136,12 @@ library Groth16VerifierExtensions {
 
         // Ensure the sha256 hash equals to the last Groth16 input.
         require(
-            inputs[0] == uint256(Groth16Verifier.CIRCUIT_DIGEST),
+            inputs[0] == uint256(CIRCUIT_DIGEST),
             "The first Groth16 input must be equal to the circuit digest"
         );
 
         // Verify the Groth16 proof.
-        Groth16Verifier.verifyProof(proofs, inputs);
+        this.verifyProof(proofs, inputs);
 
         return inputs;
     }
@@ -148,7 +150,7 @@ library Groth16VerifierExtensions {
     function verifyPublicInputs(
         bytes32[] calldata data,
         uint256[3] memory groth16Inputs
-    ) internal pure {
+    ) internal pure virtual {
         // Parse the public inputs from calldata.
         bytes memory pi = parsePublicInputs(data);
 
@@ -192,6 +194,7 @@ library Groth16VerifierExtensions {
     function verifyQuery(bytes32[] calldata data, QueryInput memory query)
         internal
         view
+        virtual
         returns (QueryErrorCode)
     {
         // Retrieve the last Uint256 of public inputs.
@@ -199,10 +202,7 @@ library Groth16VerifierExtensions {
 
         // Check the block hash and computational hash.
         bytes32 blockHash = convertToBlockHash(data[PI_OFFSET + BLOCK_HASH_POS]);
-        require(
-            isCDK() || blockHash == query.blockHash,
-            "Block hash must equal as expected."
-        );
+        verifyBlockHash(blockHash, query.blockHash);
         bytes32 computationalHash = data[PI_OFFSET + COMPUTATIONAL_HASH_POS];
         require(
             computationalHash == query.computationalHash,
@@ -255,10 +255,26 @@ library Groth16VerifierExtensions {
         return QueryErrorCode.ComputationOverflow;
     }
 
+    /// @notice verifies two blockhashed are equal
+    /// @param blockHash the blockhash computed from the proof
+    /// @param expectedBlockHash the expected blockhash, retrieved from the query
+    /// @dev this function is virtual to allow for different implementations in different environments
+    function verifyBlockHash(bytes32 blockHash, bytes32 expectedBlockHash)
+        internal
+        view
+        virtual
+    {
+        require(
+            isCDK() || blockHash == expectedBlockHash,
+            "Block hash must equal as expected."
+        );
+    }
+
     // Parse the query output from the public inputs.
     function parseOutput(bytes32[] calldata data, QueryErrorCode error)
         internal
         pure
+        virtual
         returns (QueryOutput memory)
     {
         bytes32 rem = data[PI_REM_OFFSET];

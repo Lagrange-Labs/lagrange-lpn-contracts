@@ -3,19 +3,23 @@
 pragma solidity 0.8.25;
 
 import {Test} from "forge-std/Test.sol";
-import {LPNRegistryV1} from "../../src/v1/LPNRegistryV1.sol";
+import {LPNRegistryV1TestHelper} from
+    "../../src/v1/test_helpers/LPNRegistryV1TestHelper.sol";
 import {Initializable} from
     "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {Ownable} from "solady/auth/Ownable.sol";
 import {RegistrationManager} from "../../src/v1/RegistrationManager.sol";
 import {IRegistrationManager} from
     "../../src/v1/interfaces/IRegistrationManager.sol";
-import {QueryInput} from "../../src/v1/Groth16VerifierExtensions.sol";
+import {
+    QueryInput, QueryOutput
+} from "../../src/v1/Groth16VerifierExtension.sol";
 import {QueryManager} from "../../src/v1/QueryManager.sol";
 import {IQueryManager} from "../../src/v1/interfaces/IQueryManager.sol";
+import {ILPNClientV1} from "../../src/v1/interfaces/ILPNClientV1.sol";
 
 contract LPNRegistryV1Test is Test {
-    LPNRegistryV1 public registry;
+    LPNRegistryV1TestHelper public registry;
     address public owner;
     address public stranger;
     address public user2;
@@ -36,6 +40,20 @@ contract LPNRegistryV1Test is Test {
     uint256 constant TEST_START_BLOCK = 1000;
     uint256 constant TEST_END_BLOCK = 2000;
 
+    bytes32[] responseData = [
+        keccak256(abi.encode(1)),
+        keccak256(abi.encode(2)),
+        keccak256(abi.encode(3)),
+        keccak256(abi.encode(4)),
+        keccak256(abi.encode(5)),
+        keccak256(abi.encode(6)),
+        keccak256(abi.encode(7)),
+        keccak256(abi.encode(8)),
+        keccak256(abi.encode(9)),
+        keccak256(abi.encode(10)),
+        keccak256(abi.encode(11))
+    ];
+
     function setUp() public {
         vm.chainId(1); // pretend we're on ETH mainnet (must set before calling registry.gasFee())
 
@@ -43,8 +61,9 @@ contract LPNRegistryV1Test is Test {
         stranger = makeAddr("stranger");
         user2 = makeAddr("user2");
         vm.deal(stranger, 1 ether);
+        vm.deal(CONTRACT_ADDR, 1 ether);
 
-        registry = new LPNRegistryV1();
+        registry = new LPNRegistryV1TestHelper();
         registry.initialize(owner);
 
         PLACEHOLDERS = [
@@ -55,6 +74,14 @@ contract LPNRegistryV1Test is Test {
         FEE = registry.gasFee();
 
         vm.roll(TEST_START_BLOCK + registry.MAX_QUERY_RANGE() + 100); // fast-forward to ensure all queries in range are valid
+
+        // Mock the contract to receive callbacks
+        vm.etch(CONTRACT_ADDR, hex"00"); // set code at the address so it can receive calls
+        vm.mockCall(
+            CONTRACT_ADDR,
+            abi.encodeWithSelector(ILPNClientV1.lpnCallback.selector), // this will succeed with any input as long as the function sig is correct
+            ""
+        );
     }
 
     function test_initialize_duplicateAttempt_reverts() public {
@@ -223,11 +250,26 @@ contract LPNRegistryV1Test is Test {
         );
     }
 
+    /// @dev this test relies on a mocked processQuery() function in LPNRegistryV1TestHelper
     function test_respond_success() public {
-        // to properly test this we need to either:
-        //   a. mock the groth16 verifier library or ...
-        //   b. generate a real, working proof for this test (preferred)
-        vm.skip(true);
+        // make a request first
+        vm.startPrank(CONTRACT_ADDR);
+        uint256 id = registry.request{value: FEE}(
+            QUERY_HASH, PLACEHOLDERS, TEST_START_BLOCK, TEST_END_BLOCK
+        );
+        QueryOutput memory expectedOutput;
+        // check log
+        vm.expectEmit();
+        emit IQueryManager.NewResponse(id, CONTRACT_ADDR, expectedOutput);
+        // check callback
+        vm.expectCall(
+            CONTRACT_ADDR,
+            abi.encodeWithSelector(
+                ILPNClientV1.lpnCallback.selector, id, expectedOutput
+            )
+        );
+        // send the response
+        registry.respond(id, responseData, 100);
     }
 
     function test_respond_invalidRequestId_reverts() public {

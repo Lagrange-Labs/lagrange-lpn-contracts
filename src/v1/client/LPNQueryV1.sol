@@ -3,7 +3,7 @@ pragma solidity ^0.8.13;
 
 import {LPNClientV1} from "./LPNClientV1.sol";
 import {ILPNRegistryV1} from "../interfaces/ILPNRegistryV1.sol";
-import {QueryOutput} from "../Groth16VerifierExtensions.sol";
+import {QueryOutput} from "../Groth16VerifierExtension.sol";
 import {Initializable} from
     "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
