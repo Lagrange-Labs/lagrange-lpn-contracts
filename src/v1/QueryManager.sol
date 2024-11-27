@@ -14,7 +14,7 @@ import {IQueryManager} from "./interfaces/IQueryManager.sol";
 
 /// @title QueryManager
 /// @notice TODO
-contract QueryManager is IQueryManager {
+abstract contract QueryManager is IQueryManager {
     /// @notice The maximum number of blocks a query can be computed over
     uint256 public constant MAX_QUERY_RANGE = 50_000;
 

@@ -6,7 +6,7 @@ import {IRegistrationManager} from "./interfaces/IRegistrationManager.sol";
 
 /// @title RegistrationManager
 /// @notice TODO
-contract RegistrationManager is IRegistrationManager {
+abstract contract RegistrationManager is IRegistrationManager {
     /// @notice Mapping to track registered tables
     mapping(bytes32 hash => bool registered) public tables;
 
