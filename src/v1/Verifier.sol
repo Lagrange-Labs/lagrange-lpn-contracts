@@ -8,7 +8,7 @@ pragma solidity ^0.8.0;
 /// (256 bytes) and compressed (128 bytes) format. A view function is provided
 /// to compress proofs.
 /// @notice See <https://2π.com/23/bn254-compression> for further explanation.
-library Groth16Verifier {
+contract Verifier {
     /// Some of the provided public input values are larger than the field modulus.
     /// @dev Public input elements are not automatically reduced, as this is can be
     /// a dangerous source of bugs.
@@ -116,6 +116,7 @@ library Groth16Verifier {
     /// @notice The input does not need to be reduced.
     /// @param a the base
     /// @return x the result
+
     function negate(uint256 a) internal pure returns (uint256 x) {
         unchecked {
             x = (P - (a % P)) % P; // Modulo is cheaper than branching
@@ -415,7 +416,7 @@ library Groth16Verifier {
     /// @param input The public inputs. These are elements of the scalar field Fr.
     /// @return x The X coordinate of the resulting G1 point.
     /// @return y The Y coordinate of the resulting G1 point.
-    function publicInputMSM(uint256[3] memory input)
+    function publicInputMSM(uint256[3] calldata input)
         internal
         view
         returns (uint256 x, uint256 y)
@@ -436,7 +437,7 @@ library Groth16Verifier {
             mstore(add(f, 0x20), CONSTANT_Y)
             mstore(g, PUB_0_X)
             mstore(add(g, 0x20), PUB_0_Y)
-            s := mload(input)
+            s := calldataload(input)
             mstore(add(g, 0x40), s)
             success := and(success, lt(s, R))
             success :=
@@ -445,7 +446,7 @@ library Groth16Verifier {
                 and(success, staticcall(gas(), PRECOMPILE_ADD, f, 0x80, f, 0x40))
             mstore(g, PUB_1_X)
             mstore(add(g, 0x20), PUB_1_Y)
-            s := mload(add(input, 32))
+            s := calldataload(add(input, 32))
             mstore(add(g, 0x40), s)
             success := and(success, lt(s, R))
             success :=
@@ -454,7 +455,7 @@ library Groth16Verifier {
                 and(success, staticcall(gas(), PRECOMPILE_ADD, f, 0x80, f, 0x40))
             mstore(g, PUB_2_X)
             mstore(add(g, 0x20), PUB_2_Y)
-            s := mload(add(input, 64))
+            s := calldataload(add(input, 64))
             mstore(add(g, 0x40), s)
             success := and(success, lt(s, R))
             success :=
@@ -478,8 +479,8 @@ library Groth16Verifier {
     /// verifyProof. I.e. Groth16 points (A, B, C) encoded as in EIP-197.
     /// @return compressed The compressed proof. Elements are in the same order as for
     /// verifyCompressedProof. I.e. points (A, B, C) in compressed format.
-    function compressProof(uint256[8] memory proof)
-        internal
+    function compressProof(uint256[8] calldata proof)
+        public
         view
         returns (uint256[4] memory compressed)
     {
@@ -500,8 +501,8 @@ library Groth16Verifier {
     /// Elements must be reduced.
     function verifyCompressedProof(
         uint256[4] calldata compressedProof,
-        uint256[3] memory input
-    ) internal view {
+        uint256[3] calldata input
+    ) public view {
         (uint256 Ax, uint256 Ay) = decompress_g1(compressedProof[0]);
         (uint256 Bx0, uint256 Bx1, uint256 By0, uint256 By1) =
             decompress_g2(compressedProof[2], compressedProof[1]);
@@ -564,8 +565,8 @@ library Groth16Verifier {
     /// of compressProof.
     /// @param input the public input field elements in the scalar field Fr.
     /// Elements must be reduced.
-    function verifyProof(uint256[8] memory proof, uint256[3] memory input)
-        internal
+    function verifyProof(uint256[8] calldata proof, uint256[3] calldata input)
+        public
         view
     {
         (uint256 x, uint256 y) = publicInputMSM(input);
@@ -579,14 +580,7 @@ library Groth16Verifier {
 
             // Copy points (A, B, C) to memory. They are already in correct encoding.
             // This is pairing e(A, B) and G1 of e(C, -δ).
-            mstore(f, mload(add(proof, 0x00)))
-            mstore(add(f, 0x20), mload(add(proof, 0x20)))
-            mstore(add(f, 0x40), mload(add(proof, 0x40)))
-            mstore(add(f, 0x60), mload(add(proof, 0x60)))
-            mstore(add(f, 0x80), mload(add(proof, 0x80)))
-            mstore(add(f, 0xa0), mload(add(proof, 0xa0)))
-            mstore(add(f, 0xc0), mload(add(proof, 0xc0)))
-            mstore(add(f, 0xe0), mload(add(proof, 0xe0)))
+            calldatacopy(f, proof, 0x100)
 
             // Complete e(C, -δ) and write e(α, -β), e(L_pub, -γ) to memory.
             // OPT: This could be better done using a single codecopy, but

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {QueryOutput} from "../Groth16VerifierExtensions.sol";
+import {QueryOutput} from "../Groth16VerifierExtension.sol";
 
 /**
  * @title ILPNClientV1

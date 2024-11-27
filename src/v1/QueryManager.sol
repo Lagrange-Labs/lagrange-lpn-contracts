@@ -2,10 +2,10 @@
 pragma solidity 0.8.25;
 
 import {
-    Groth16VerifierExtensions,
+    Groth16VerifierExtension,
     QueryInput,
     QueryOutput
-} from "./Groth16VerifierExtensions.sol";
+} from "./Groth16VerifierExtension.sol";
 import {ILPNClientV1} from "./interfaces/ILPNClientV1.sol";
 import {isCDK} from "../utils/Constants.sol";
 import {L1BlockHash, L1BlockNumber} from "../utils/L1Block.sol";
@@ -14,7 +14,7 @@ import {IQueryManager} from "./interfaces/IQueryManager.sol";
 
 /// @title QueryManager
 /// @notice TODO
-abstract contract QueryManager is IQueryManager {
+abstract contract QueryManager is IQueryManager, Groth16VerifierExtension {
     /// @notice The maximum number of blocks a query can be computed over
     uint256 public constant MAX_QUERY_RANGE = 50_000;
 
@@ -146,8 +146,7 @@ abstract contract QueryManager is IQueryManager {
         QueryRequest memory query = requests[requestId_];
         delete requests[requestId_];
 
-        QueryOutput memory result =
-            Groth16VerifierExtensions.processQuery(data, query.input);
+        QueryOutput memory result = processQuery(data, query.input);
 
         ILPNClientV1(query.client).lpnCallback(requestId_, result);
 
