@@ -1,6 +1,6 @@
 {
   "addresses": {
-    "queryClient": "0x0000000000000000000000000000000000000000",
+    "queryClient": "0x9e81a7a0A234E6Ede4604DD7823018D0efE53b4b",
     "queryClientProxy": "0x5C189dC46c2c6136dBaFdAAa02Db46CD2dF683A3",
     "registryImpl": "0x7a9C8a9af98119249F1b8f4786Fa9aE1B5fBB60A",
     "registryProxy": "0x851Abc818275932215a345B7059d40a89939C074"
