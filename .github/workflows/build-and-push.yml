@@ -1,0 +1,99 @@
+name: Build and Publish Docker Images
+
+on:
+  push:
+    tags:
+      - '**'
+    branches:
+      - master
+      - holesky
+      - mainnet
+  pull_request:
+    branches:
+      - '**'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+permissions:
+  id-token: write   # This is required for requesting the JWT
+  contents: read    # This is required for actions/checkout
+
+jobs:
+  build:
+    name: build
+    runs-on: ['hostname:hetzner-dedicated-6']
+    outputs:
+     RUNNER: ${{ steps.get-label.outputs.runner_name }}
+    steps:
+      - name: Get Runner Label
+        id: get-label
+        run: |
+          if [[ "${{ runner.name }}" == *"@hetzner-dedicated-6" ]]; then
+            echo "runner_name=hostname:hetzner-dedicated-6" >> $GITHUB_OUTPUT
+          else
+            echo "runner_name=nix-128g" >> $GITHUB_OUTPUT
+          fi
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build docker
+        env:
+          DOCKER_BUILDKIT: 1
+        run: |
+          TAG=$(echo ${{ github.ref_name }} | tr "[]/" -)
+          docker build \
+                  -t contract-deployer:${{ github.sha }} \
+                  -f Dockerfile . \
+                  --platform linux/amd64 \
+                  --build-arg INSTRUCTION_SET="x86-64-v3"
+
+
+  private-push:
+    name: Push Docker Images to AWS
+    runs-on: ${{needs.build.outputs.RUNNER}}
+    needs:
+      - build
+    strategy:
+      fail-fast: false
+      matrix:
+        environment: [dev, test]
+        image: [contract-deployer]
+        include:
+          - environment: dev
+            aws_account_id: ${{ vars.ZKMR_DEV_AWS_ACCOUNT_ID }}
+          - environment: test
+            aws_account_id: ${{ vars.ZKMR_TEST_AWS_ACCOUNT_ID }}
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ matrix.aws_account_id }}:role/github-actions-ecr-access-role
+          role-session-name: github-actions-ecr-access-role
+          aws-region: ${{ vars.ZKMR_AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Push to ECR
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        run: |
+              TAG=$(echo ${{ github.ref_name }} | tr "[]/" -)
+              docker tag ${{ matrix.image }}:${{ github.sha }} $ECR_REGISTRY/${{ matrix.image }}:${{ github.sha }}
+              docker tag ${{ matrix.image }}:${{ github.sha }} $ECR_REGISTRY/${{ matrix.image }}:${TAG}
+              docker push $ECR_REGISTRY/${{ matrix.image }}:${{ github.sha }}
+              docker push $ECR_REGISTRY/${{ matrix.image }}:${TAG}
+
+              if [[ ${{ github.ref }} == 'refs/heads/master' ]]; then
+                docker tag ${{ matrix.image }}:${{ github.sha }} $ECR_REGISTRY/${{ matrix.image }}:latest
+                docker push $ECR_REGISTRY/${{ matrix.image }}:latest
+              fi
+
+              if [[ ${{ github.ref }} == 'refs/tags/v'* ]]; then
+                docker tag ${{ matrix.image }}:${{ github.sha }} $ECR_REGISTRY/${{ matrix.image }}:${TAG}
+                docker push $ECR_REGISTRY/${{ matrix.image }}:${TAG}
+              fi

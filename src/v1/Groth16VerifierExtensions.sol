@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity 0.8.25;
+pragma solidity ^0.8.25;
 
 import {Groth16Verifier} from "./Groth16Verifier.sol";
 import {isCDK} from "../utils/Constants.sol";
