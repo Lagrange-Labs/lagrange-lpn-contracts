@@ -3,7 +3,6 @@
 pragma solidity ^0.8.0;
 
 import {Verifier} from "./Verifier.sol";
-import {isCDK} from "../utils/Constants.sol";
 
 // The query input struct passed into the processQuery function
 struct QueryInput {
@@ -265,8 +264,7 @@ contract Groth16VerifierExtension is Verifier {
         virtual
     {
         require(
-            isCDK() || blockHash == expectedBlockHash,
-            "Block hash must equal as expected."
+            blockHash == expectedBlockHash, "Block hash must equal as expected."
         );
     }
 
