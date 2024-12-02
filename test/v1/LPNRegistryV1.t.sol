@@ -55,7 +55,7 @@ contract LPNRegistryV1Test is Test {
     ];
 
     function setUp() public {
-        vm.chainId(1); // pretend we're on ETH mainnet (must set before calling registry.gasFee())
+        vm.chainId(CHAIN_ID); // pretend we're on ETH mainnet
 
         owner = makeAddr("owner");
         stranger = makeAddr("stranger");
@@ -71,7 +71,7 @@ contract LPNRegistryV1Test is Test {
             bytes32(uint256(987)),
             bytes32(uint256(999))
         ];
-        FEE = registry.gasFee();
+        FEE = registry.GAS_FEE();
 
         vm.roll(TEST_START_BLOCK + registry.MAX_QUERY_RANGE() + 100); // fast-forward to ensure all queries in range are valid
 
@@ -84,33 +84,33 @@ contract LPNRegistryV1Test is Test {
         );
     }
 
-    function test_constructor_disablesBlockhashVerification_success() public {
+    function test_constructor_setsChainSpecificValues_success() public {
         // blockhash verification is enabled in tests
-        assertTrue(registry.BLOCKHASH_VERIFICATION_ENABLED());
+        assertTrue(registry.SUPPORTS_L1_BLOCKDATA());
         // Scroll mainnet
         vm.chainId(534352);
         LPNRegistryV1TestHelper scrollRegistry = new LPNRegistryV1TestHelper();
-        assertFalse(scrollRegistry.BLOCKHASH_VERIFICATION_ENABLED());
+        assertFalse(scrollRegistry.SUPPORTS_L1_BLOCKDATA());
         // Scroll testnet
         vm.chainId(534351);
         LPNRegistryV1TestHelper scrollTestnetRegistry =
             new LPNRegistryV1TestHelper();
-        assertFalse(scrollTestnetRegistry.BLOCKHASH_VERIFICATION_ENABLED());
+        assertFalse(scrollTestnetRegistry.SUPPORTS_L1_BLOCKDATA());
         // Polygon zkEVM mainnet
         vm.chainId(1101);
         LPNRegistryV1TestHelper polygonZkRegistry =
             new LPNRegistryV1TestHelper();
-        assertFalse(polygonZkRegistry.BLOCKHASH_VERIFICATION_ENABLED());
+        assertFalse(polygonZkRegistry.SUPPORTS_L1_BLOCKDATA());
         // Ethereum mainnet
         vm.chainId(1);
         LPNRegistryV1TestHelper ethMainnetRegistry =
             new LPNRegistryV1TestHelper();
-        assertTrue(ethMainnetRegistry.BLOCKHASH_VERIFICATION_ENABLED());
+        assertTrue(ethMainnetRegistry.SUPPORTS_L1_BLOCKDATA());
         // Ethereum Holesky testnet
         vm.chainId(17000);
         LPNRegistryV1TestHelper ethHoleskyRegistry =
             new LPNRegistryV1TestHelper();
-        assertTrue(ethHoleskyRegistry.BLOCKHASH_VERIFICATION_ENABLED());
+        assertTrue(ethHoleskyRegistry.SUPPORTS_L1_BLOCKDATA());
     }
 
     function test_initialize_duplicateAttempt_reverts() public {

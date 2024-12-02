@@ -20,7 +20,7 @@ function L1BlockHash() view returns (bytes32) {
         return IOptimismL1Block(OP_STACK_L1_BLOCK_PREDEPLOY_ADDR).hash();
     }
 
-    return bytes32(0); // TODO - we might want to revert here if we're on an unknown chain - "fail fast and loud"
+    return bytes32(0);
 }
 
 /// @notice The latest L1 block number.
@@ -36,5 +36,5 @@ function L1BlockNumber() view returns (uint256) {
             uint256(IOptimismL1Block(OP_STACK_L1_BLOCK_PREDEPLOY_ADDR).number());
     }
 
-    return 0; // TODO - we might want to revert here if we're on an unknown chain - "fail fast and loud"
+    return 0;
 }

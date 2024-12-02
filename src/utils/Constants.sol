@@ -49,6 +49,10 @@ function isEthereum() view returns (bool) {
         || block.chainid == ETH_HOLESKY;
 }
 
+function isL2() view returns (bool) {
+    return isMantle() || isOPStack() || isCDK() || isScroll();
+}
+
 function isOPStack() view returns (bool) {
     uint32 size;
     assembly {
@@ -63,6 +67,10 @@ function isCDK() view returns (bool) {
 
 function isMantle() view returns (bool) {
     return block.chainid == MANTLE_MAINNET || block.chainid == MANTLE_MAINNET;
+}
+
+function isScroll() view returns (bool) {
+    return block.chainid == SCROLL_MAINNET || block.chainid == SCROLL_SEPOLIA;
 }
 
 function isLocal() view returns (bool) {
@@ -93,9 +101,9 @@ function isMainnet() view returns (bool) {
     return chainMatches(mainnets);
 }
 
-/// @dev NOTE that Scroll plans to support blockhash verification in a future hardfork
+/// @dev NOTE that Scroll plans to add blockhash/block number support in a future hardfork
 /// https://github.com/scroll-tech/scroll-contracts/issues/66
-function supportsL1Blockhash() view returns (bool) {
+function supportsL1BlockData() view returns (bool) {
     uint256[3] memory noSupport =
         [POLYGON_ZKEVM_MAINNET, SCROLL_MAINNET, SCROLL_SEPOLIA];
     return !chainMatches(noSupport);
