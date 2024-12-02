@@ -7,7 +7,7 @@ import {
     QueryOutput
 } from "./Groth16VerifierExtension.sol";
 import {ILPNClientV1} from "./interfaces/ILPNClientV1.sol";
-import {isCDK} from "../utils/Constants.sol";
+import {supportsL1Blockhash} from "../utils/Constants.sol";
 import {L1BlockHash, L1BlockNumber} from "../utils/L1Block.sol";
 import {isEthereum, isOPStack, isMantle, isCDK} from "../utils/Constants.sol";
 import {IQueryManager} from "./interfaces/IQueryManager.sol";
@@ -28,6 +28,9 @@ abstract contract QueryManager is IQueryManager, Groth16VerifierExtension {
     /// @notice A counter that assigns unique ids for client requests.
     // TODO: Need to ensure this does not conflict with V0
     uint256 public requestId;
+
+    /// @dev not all L2s support reading the L1 blockhash. For those that can't we disable the blockhash verification
+    bool public immutable BLOCKHASH_VERIFICATION_ENABLED;
 
     struct QueryRequest {
         address client;
@@ -55,6 +58,9 @@ abstract contract QueryManager is IQueryManager, Groth16VerifierExtension {
     /// @notice Error thrown when gas fee is not paid.
     error InsufficientGasFee();
 
+    /// @notice Error thrown when blockhash verification fails.
+    error BlockhashMismatch();
+
     modifier requireGasFee() {
         if (msg.value < gasFee()) {
             revert InsufficientGasFee();
@@ -81,6 +87,10 @@ abstract contract QueryManager is IQueryManager, Groth16VerifierExtension {
             revert QueryGreaterThanMaxRange();
         }
         _;
+    }
+
+    constructor() {
+        BLOCKHASH_VERIFICATION_ENABLED = supportsL1Blockhash();
     }
 
     function request(
@@ -171,6 +181,17 @@ abstract contract QueryManager is IQueryManager, Groth16VerifierExtension {
         }
 
         revert("Chain not supported");
+    }
+
+    /// @inheritdoc Groth16VerifierExtension
+    function verifyBlockHash(bytes32 blockHash, bytes32 expectedBlockHash)
+        internal
+        view
+        override
+    {
+        if (BLOCKHASH_VERIFICATION_ENABLED && blockHash != expectedBlockHash) {
+            revert BlockhashMismatch();
+        }
     }
 
     /// @notice The relayer withdraws all fees accumulated

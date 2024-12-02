@@ -1,7 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.13;
-
-import {IOptimismL1Block} from "../interfaces/IOptimismL1Block.sol";
+pragma solidity 0.8.25;
 
 uint256 constant LOCAL = 1337;
 uint256 constant ANVIL = 31337;
@@ -42,6 +40,9 @@ uint256 constant LAGRANGE_LOONS_MAPPING_SLOT = 2;
 uint256 constant LAGRANGE_LOONS_LENGTH_SLOT = 8;
 
 uint256 constant TEST_ERC20_MAPPING_SLOT = 4;
+
+uint256 constant SCROLL_MAINNET = 534352;
+uint256 constant SCROLL_SEPOLIA = 534351;
 
 function isEthereum() view returns (bool) {
     return block.chainid == ETH_MAINNET || block.chainid == ETH_SEPOLIA
@@ -90,6 +91,19 @@ function isMainnet() view returns (bool) {
         SCROLL_MAINNET
     ];
     return chainMatches(mainnets);
+}
+
+function supportsL1Blockhash() view returns (bool) {
+    uint256[3] memory noSupport =
+        [POLYGON_ZKEVM_MAINNET, SCROLL_MAINNET, SCROLL_SEPOLIA];
+    return !chainMatches(noSupport);
+}
+
+function chainMatches(uint256[3] memory chains) view returns (bool) {
+    for (uint256 i = 0; i < chains.length; i++) {
+        if (chains[i] == block.chainid) return true;
+    }
+    return false;
 }
 
 function chainMatches(uint256[6] memory chains) view returns (bool) {
