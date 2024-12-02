@@ -84,6 +84,35 @@ contract LPNRegistryV1Test is Test {
         );
     }
 
+    function test_constructor_disablesBlockhashVerification_success() public {
+        // blockhash verification is enabled in tests
+        assertTrue(registry.BLOCKHASH_VERIFICATION_ENABLED());
+        // Scroll mainnet
+        vm.chainId(534352);
+        LPNRegistryV1TestHelper scrollRegistry = new LPNRegistryV1TestHelper();
+        assertFalse(scrollRegistry.BLOCKHASH_VERIFICATION_ENABLED());
+        // Scroll testnet
+        vm.chainId(534351);
+        LPNRegistryV1TestHelper scrollTestnetRegistry =
+            new LPNRegistryV1TestHelper();
+        assertFalse(scrollTestnetRegistry.BLOCKHASH_VERIFICATION_ENABLED());
+        // Polygon zkEVM mainnet
+        vm.chainId(1101);
+        LPNRegistryV1TestHelper polygonZkRegistry =
+            new LPNRegistryV1TestHelper();
+        assertFalse(polygonZkRegistry.BLOCKHASH_VERIFICATION_ENABLED());
+        // Ethereum mainnet
+        vm.chainId(1);
+        LPNRegistryV1TestHelper ethMainnetRegistry =
+            new LPNRegistryV1TestHelper();
+        assertTrue(ethMainnetRegistry.BLOCKHASH_VERIFICATION_ENABLED());
+        // Ethereum Holesky testnet
+        vm.chainId(17000);
+        LPNRegistryV1TestHelper ethHoleskyRegistry =
+            new LPNRegistryV1TestHelper();
+        assertTrue(ethHoleskyRegistry.BLOCKHASH_VERIFICATION_ENABLED());
+    }
+
     function test_initialize_duplicateAttempt_reverts() public {
         vm.expectRevert(Initializable.InvalidInitialization.selector);
         registry.initialize(stranger);
