@@ -93,6 +93,8 @@ function isMainnet() view returns (bool) {
     return chainMatches(mainnets);
 }
 
+/// @dev NOTE that Scroll plans to support blockhash verification in a future hardfork
+/// https://github.com/scroll-tech/scroll-contracts/issues/66
 function supportsL1Blockhash() view returns (bool) {
     uint256[3] memory noSupport =
         [POLYGON_ZKEVM_MAINNET, SCROLL_MAINNET, SCROLL_SEPOLIA];
