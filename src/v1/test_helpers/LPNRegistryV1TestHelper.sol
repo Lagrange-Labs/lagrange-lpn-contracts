@@ -17,10 +17,10 @@ contract LPNRegistryV1TestHelper is LPNRegistryV1 {
     {}
 
     /// @notice exposes the verifyBlockHash function for testing (it is internal)
-    function testVerifyBlockhash(bytes32 blockHash, bytes32 expectedBlockHash)
+    function verifyBlockhash(bytes32 blockHash, bytes32 expectedBlockHash)
         public
         view
     {
-        verifyBlockHash(blockHash, expectedBlockHash);
+        super.verifyBlockHash(blockHash, expectedBlockHash);
     }
 }

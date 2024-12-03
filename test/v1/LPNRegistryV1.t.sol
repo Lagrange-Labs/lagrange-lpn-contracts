@@ -338,43 +338,43 @@ contract LPNRegistryV1Test is BaseTest {
         imitateChain(1);
         registry = new LPNRegistryV1TestHelper();
         vm.expectRevert(QueryManager.BlockhashMismatch.selector);
-        registry.testVerifyBlockhash(randomBytes32(), randomBytes32());
+        registry.verifyBlockhash(randomBytes32(), randomBytes32());
         // Scroll mainnet
         imitateChain(534352);
         registry = new LPNRegistryV1TestHelper();
-        registry.testVerifyBlockhash(randomBytes32(), randomBytes32()); // should not revert
+        registry.verifyBlockhash(randomBytes32(), randomBytes32()); // should not revert
         // Scroll testnet
         imitateChain(534351);
         registry = new LPNRegistryV1TestHelper();
-        registry.testVerifyBlockhash(randomBytes32(), randomBytes32()); // should not revert
+        registry.verifyBlockhash(randomBytes32(), randomBytes32()); // should not revert
         // Polygon zkEVM mainnet
         imitateChain(1101);
         registry = new LPNRegistryV1TestHelper();
-        registry.testVerifyBlockhash(randomBytes32(), randomBytes32()); // should not revert
+        registry.verifyBlockhash(randomBytes32(), randomBytes32()); // should not revert
         // Ethereum Holesky testnet
         imitateChain(17000);
         registry = new LPNRegistryV1TestHelper();
         vm.expectRevert(QueryManager.BlockhashMismatch.selector);
-        registry.testVerifyBlockhash(randomBytes32(), randomBytes32());
+        registry.verifyBlockhash(randomBytes32(), randomBytes32());
         // Mantle mainnet
         imitateChain(5000);
         registry = new LPNRegistryV1TestHelper();
         vm.expectRevert(QueryManager.BlockhashMismatch.selector);
-        registry.testVerifyBlockhash(randomBytes32(), randomBytes32());
+        registry.verifyBlockhash(randomBytes32(), randomBytes32());
         // Mantle testnet
         imitateChain(5003);
         registry = new LPNRegistryV1TestHelper();
         vm.expectRevert(QueryManager.BlockhashMismatch.selector);
-        registry.testVerifyBlockhash(randomBytes32(), randomBytes32());
+        registry.verifyBlockhash(randomBytes32(), randomBytes32());
         // Base mainnet
         imitateChain(8453);
         registry = new LPNRegistryV1TestHelper();
         vm.expectRevert(QueryManager.BlockhashMismatch.selector);
-        registry.testVerifyBlockhash(randomBytes32(), randomBytes32());
+        registry.verifyBlockhash(randomBytes32(), randomBytes32());
         // Base sepolia
         imitateChain(84532);
         registry = new LPNRegistryV1TestHelper();
         vm.expectRevert(QueryManager.BlockhashMismatch.selector);
-        registry.testVerifyBlockhash(randomBytes32(), randomBytes32());
+        registry.verifyBlockhash(randomBytes32(), randomBytes32());
     }
 }
