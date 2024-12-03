@@ -8,15 +8,25 @@ uint256 constant ETH_MAINNET = 1;
 uint256 constant ETH_SEPOLIA = 11155111;
 uint256 constant ETH_HOLESKY = 17000;
 
+// OP Stack Chains
+
 uint256 constant BASE_MAINNET = 8453;
 uint256 constant BASE_SEPOLIA = 84532;
 
 uint256 constant FRAXTAL_MAINNET = 252;
 uint256 constant FRAXTAL_HOLESKY = 2522;
 
-uint256 constant MANTLE_SEPOLIA = 5003;
 uint256 constant MANTLE_MAINNET = 5000;
+uint256 constant MANTLE_SEPOLIA = 5003;
+
+// Other Chains
+
 uint256 constant POLYGON_ZKEVM_MAINNET = 1101;
+
+uint256 constant SCROLL_MAINNET = 534352;
+uint256 constant SCROLL_SEPOLIA = 534351;
+
+// Addresses & constants
 
 address constant OP_STACK_L1_BLOCK_PREDEPLOY_ADDR =
     0x4200000000000000000000000000000000000015;
@@ -41,16 +51,9 @@ uint256 constant LAGRANGE_LOONS_LENGTH_SLOT = 8;
 
 uint256 constant TEST_ERC20_MAPPING_SLOT = 4;
 
-uint256 constant SCROLL_MAINNET = 534352;
-uint256 constant SCROLL_SEPOLIA = 534351;
-
 function isEthereum() view returns (bool) {
     return block.chainid == ETH_MAINNET || block.chainid == ETH_SEPOLIA
         || block.chainid == ETH_HOLESKY;
-}
-
-function isL2() view returns (bool) {
-    return isMantle() || isOPStack() || isCDK() || isScroll();
 }
 
 function isOPStack() view returns (bool) {
@@ -66,7 +69,7 @@ function isCDK() view returns (bool) {
 }
 
 function isMantle() view returns (bool) {
-    return block.chainid == MANTLE_MAINNET || block.chainid == MANTLE_MAINNET;
+    return block.chainid == MANTLE_MAINNET || block.chainid == MANTLE_SEPOLIA;
 }
 
 function isScroll() view returns (bool) {

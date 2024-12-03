@@ -9,8 +9,15 @@ import {
 import {ILPNClientV1} from "./interfaces/ILPNClientV1.sol";
 import {supportsL1BlockData} from "../utils/Constants.sol";
 import {L1BlockHash, L1BlockNumber} from "../utils/L1Block.sol";
-import {isEthereum, isL2} from "../utils/Constants.sol";
 import {IQueryManager} from "./interfaces/IQueryManager.sol";
+import {
+    isEthereum,
+    isMantle,
+    isLocal,
+    isOPStack,
+    isCDK,
+    isScroll
+} from "../utils/Constants.sol";
 
 /// @title QueryManager
 /// @notice TODO
@@ -61,6 +68,9 @@ abstract contract QueryManager is IQueryManager, Groth16VerifierExtension {
     /// @notice Error thrown when blockhash verification fails.
     error BlockhashMismatch();
 
+    /// @notice Error thrown when deloyed to a chain with an unknown chainId.
+    error ChainNotSupported();
+
     modifier requireGasFee() {
         if (msg.value < GAS_FEE) {
             revert InsufficientGasFee();
@@ -91,12 +101,14 @@ abstract contract QueryManager is IQueryManager, Groth16VerifierExtension {
 
     constructor() {
         SUPPORTS_L1_BLOCKDATA = supportsL1BlockData();
-        if (isEthereum()) {
+        if (isEthereum() || isLocal()) {
             GAS_FEE = ETH_GAS_FEE;
-        } else if (isL2()) {
+        } else if (isMantle()) {
+            GAS_FEE = MANTLE_GAS_FEE;
+        } else if (isOPStack() || isCDK() || isScroll()) {
             GAS_FEE = L2_GAS_FEE;
         } else {
-            revert("Chain not supported");
+            revert ChainNotSupported();
         }
     }
 

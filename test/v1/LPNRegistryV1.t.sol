@@ -91,26 +91,43 @@ contract LPNRegistryV1Test is Test {
         vm.chainId(534352);
         LPNRegistryV1TestHelper scrollRegistry = new LPNRegistryV1TestHelper();
         assertFalse(scrollRegistry.SUPPORTS_L1_BLOCKDATA());
+        assertEq(scrollRegistry.GAS_FEE(), 0.001 ether);
         // Scroll testnet
         vm.chainId(534351);
         LPNRegistryV1TestHelper scrollTestnetRegistry =
             new LPNRegistryV1TestHelper();
         assertFalse(scrollTestnetRegistry.SUPPORTS_L1_BLOCKDATA());
+        assertEq(scrollTestnetRegistry.GAS_FEE(), 0.001 ether);
         // Polygon zkEVM mainnet
         vm.chainId(1101);
         LPNRegistryV1TestHelper polygonZkRegistry =
             new LPNRegistryV1TestHelper();
         assertFalse(polygonZkRegistry.SUPPORTS_L1_BLOCKDATA());
+        assertEq(polygonZkRegistry.GAS_FEE(), 0.001 ether);
         // Ethereum mainnet
         vm.chainId(1);
         LPNRegistryV1TestHelper ethMainnetRegistry =
             new LPNRegistryV1TestHelper();
         assertTrue(ethMainnetRegistry.SUPPORTS_L1_BLOCKDATA());
+        assertEq(ethMainnetRegistry.GAS_FEE(), 0.01 ether);
         // Ethereum Holesky testnet
         vm.chainId(17000);
         LPNRegistryV1TestHelper ethHoleskyRegistry =
             new LPNRegistryV1TestHelper();
         assertTrue(ethHoleskyRegistry.SUPPORTS_L1_BLOCKDATA());
+        assertEq(ethHoleskyRegistry.GAS_FEE(), 0.01 ether);
+        // Mantle mainnet
+        vm.chainId(5000);
+        LPNRegistryV1TestHelper mantleMainnetRegistry =
+            new LPNRegistryV1TestHelper();
+        assertTrue(mantleMainnetRegistry.SUPPORTS_L1_BLOCKDATA());
+        assertEq(mantleMainnetRegistry.GAS_FEE(), 4.0 ether);
+        // Mantle testnet
+        vm.chainId(5003);
+        LPNRegistryV1TestHelper mantleTestnetRegistry =
+            new LPNRegistryV1TestHelper();
+        assertTrue(mantleTestnetRegistry.SUPPORTS_L1_BLOCKDATA());
+        assertEq(mantleTestnetRegistry.GAS_FEE(), 4.0 ether);
     }
 
     function test_initialize_duplicateAttempt_reverts() public {
