@@ -15,4 +15,12 @@ contract LPNRegistryV1TestHelper is LPNRegistryV1 {
         override
         returns (QueryOutput memory)
     {}
+
+    /// @notice exposes the verifyBlockHash function for testing (it is internal)
+    function testVerifyBlockhash(bytes32 blockHash, bytes32 expectedBlockHash)
+        public
+        view
+    {
+        verifyBlockHash(blockHash, expectedBlockHash);
+    }
 }

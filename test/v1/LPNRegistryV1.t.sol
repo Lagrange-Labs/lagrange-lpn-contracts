@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.25;
 
-import {Test} from "forge-std/Test.sol";
+import {BaseTest} from "./BaseTest.t.sol";
 import {LPNRegistryV1TestHelper} from
     "../../src/v1/test_helpers/LPNRegistryV1TestHelper.sol";
 import {Initializable} from
@@ -18,7 +18,7 @@ import {QueryManager} from "../../src/v1/QueryManager.sol";
 import {IQueryManager} from "../../src/v1/interfaces/IQueryManager.sol";
 import {ILPNClientV1} from "../../src/v1/interfaces/ILPNClientV1.sol";
 
-contract LPNRegistryV1Test is Test {
+contract LPNRegistryV1Test is BaseTest {
     LPNRegistryV1TestHelper public registry;
     address public owner;
     address public stranger;
@@ -41,17 +41,17 @@ contract LPNRegistryV1Test is Test {
     uint256 constant TEST_END_BLOCK = 2000;
 
     bytes32[] responseData = [
-        keccak256(abi.encode(1)),
-        keccak256(abi.encode(2)),
-        keccak256(abi.encode(3)),
-        keccak256(abi.encode(4)),
-        keccak256(abi.encode(5)),
-        keccak256(abi.encode(6)),
-        keccak256(abi.encode(7)),
-        keccak256(abi.encode(8)),
-        keccak256(abi.encode(9)),
-        keccak256(abi.encode(10)),
-        keccak256(abi.encode(11))
+        randomBytes32(),
+        randomBytes32(),
+        randomBytes32(),
+        randomBytes32(),
+        randomBytes32(),
+        randomBytes32(),
+        randomBytes32(),
+        randomBytes32(),
+        randomBytes32(),
+        randomBytes32(),
+        randomBytes32()
     ];
 
     function setUp() public {
@@ -88,46 +88,50 @@ contract LPNRegistryV1Test is Test {
         // blockhash verification is enabled in tests
         assertTrue(registry.SUPPORTS_L1_BLOCKDATA());
         // Scroll mainnet
-        vm.chainId(534352);
-        LPNRegistryV1TestHelper scrollRegistry = new LPNRegistryV1TestHelper();
-        assertFalse(scrollRegistry.SUPPORTS_L1_BLOCKDATA());
-        assertEq(scrollRegistry.GAS_FEE(), 0.001 ether);
+        imitateChain(534352);
+        registry = new LPNRegistryV1TestHelper();
+        assertFalse(registry.SUPPORTS_L1_BLOCKDATA());
+        assertEq(registry.GAS_FEE(), 0.001 ether);
         // Scroll testnet
-        vm.chainId(534351);
-        LPNRegistryV1TestHelper scrollTestnetRegistry =
-            new LPNRegistryV1TestHelper();
-        assertFalse(scrollTestnetRegistry.SUPPORTS_L1_BLOCKDATA());
-        assertEq(scrollTestnetRegistry.GAS_FEE(), 0.001 ether);
+        imitateChain(534351);
+        registry = new LPNRegistryV1TestHelper();
+        assertFalse(registry.SUPPORTS_L1_BLOCKDATA());
+        assertEq(registry.GAS_FEE(), 0.001 ether);
         // Polygon zkEVM mainnet
-        vm.chainId(1101);
-        LPNRegistryV1TestHelper polygonZkRegistry =
-            new LPNRegistryV1TestHelper();
-        assertFalse(polygonZkRegistry.SUPPORTS_L1_BLOCKDATA());
-        assertEq(polygonZkRegistry.GAS_FEE(), 0.001 ether);
+        imitateChain(1101);
+        registry = new LPNRegistryV1TestHelper();
+        assertFalse(registry.SUPPORTS_L1_BLOCKDATA());
+        assertEq(registry.GAS_FEE(), 0.001 ether);
         // Ethereum mainnet
-        vm.chainId(1);
-        LPNRegistryV1TestHelper ethMainnetRegistry =
-            new LPNRegistryV1TestHelper();
-        assertTrue(ethMainnetRegistry.SUPPORTS_L1_BLOCKDATA());
-        assertEq(ethMainnetRegistry.GAS_FEE(), 0.01 ether);
+        imitateChain(1);
+        registry = new LPNRegistryV1TestHelper();
+        assertTrue(registry.SUPPORTS_L1_BLOCKDATA());
+        assertEq(registry.GAS_FEE(), 0.01 ether);
         // Ethereum Holesky testnet
-        vm.chainId(17000);
-        LPNRegistryV1TestHelper ethHoleskyRegistry =
-            new LPNRegistryV1TestHelper();
-        assertTrue(ethHoleskyRegistry.SUPPORTS_L1_BLOCKDATA());
-        assertEq(ethHoleskyRegistry.GAS_FEE(), 0.01 ether);
+        imitateChain(17000);
+        registry = new LPNRegistryV1TestHelper();
+        assertTrue(registry.SUPPORTS_L1_BLOCKDATA());
+        assertEq(registry.GAS_FEE(), 0.01 ether);
         // Mantle mainnet
-        vm.chainId(5000);
-        LPNRegistryV1TestHelper mantleMainnetRegistry =
-            new LPNRegistryV1TestHelper();
-        assertTrue(mantleMainnetRegistry.SUPPORTS_L1_BLOCKDATA());
-        assertEq(mantleMainnetRegistry.GAS_FEE(), 4.0 ether);
+        imitateChain(5000);
+        registry = new LPNRegistryV1TestHelper();
+        assertTrue(registry.SUPPORTS_L1_BLOCKDATA());
+        assertEq(registry.GAS_FEE(), 4.0 ether);
         // Mantle testnet
-        vm.chainId(5003);
-        LPNRegistryV1TestHelper mantleTestnetRegistry =
-            new LPNRegistryV1TestHelper();
-        assertTrue(mantleTestnetRegistry.SUPPORTS_L1_BLOCKDATA());
-        assertEq(mantleTestnetRegistry.GAS_FEE(), 4.0 ether);
+        imitateChain(5003);
+        registry = new LPNRegistryV1TestHelper();
+        assertTrue(registry.SUPPORTS_L1_BLOCKDATA());
+        assertEq(registry.GAS_FEE(), 4.0 ether);
+        // Base mainnet
+        imitateChain(8453);
+        registry = new LPNRegistryV1TestHelper();
+        assertTrue(registry.SUPPORTS_L1_BLOCKDATA());
+        assertEq(registry.GAS_FEE(), 0.001 ether);
+        // Base sepolia
+        imitateChain(84532);
+        registry = new LPNRegistryV1TestHelper();
+        assertTrue(registry.SUPPORTS_L1_BLOCKDATA());
+        assertEq(registry.GAS_FEE(), 0.001 ether);
     }
 
     function test_initialize_duplicateAttempt_reverts() public {
@@ -327,5 +331,50 @@ contract LPNRegistryV1Test is Test {
         vm.prank(stranger);
         // vm.expectRevert(QueryManager.UnknownRequestID.selector); // DNE
         registry.respond(invalidRequestId, data, blockNumber);
+    }
+
+    function test_verifyBlockhash_success() public {
+        // Ethereum mainnet
+        imitateChain(1);
+        registry = new LPNRegistryV1TestHelper();
+        vm.expectRevert(QueryManager.BlockhashMismatch.selector);
+        registry.testVerifyBlockhash(randomBytes32(), randomBytes32());
+        // Scroll mainnet
+        imitateChain(534352);
+        registry = new LPNRegistryV1TestHelper();
+        registry.testVerifyBlockhash(randomBytes32(), randomBytes32()); // should not revert
+        // Scroll testnet
+        imitateChain(534351);
+        registry = new LPNRegistryV1TestHelper();
+        registry.testVerifyBlockhash(randomBytes32(), randomBytes32()); // should not revert
+        // Polygon zkEVM mainnet
+        imitateChain(1101);
+        registry = new LPNRegistryV1TestHelper();
+        registry.testVerifyBlockhash(randomBytes32(), randomBytes32()); // should not revert
+        // Ethereum Holesky testnet
+        imitateChain(17000);
+        registry = new LPNRegistryV1TestHelper();
+        vm.expectRevert(QueryManager.BlockhashMismatch.selector);
+        registry.testVerifyBlockhash(randomBytes32(), randomBytes32());
+        // Mantle mainnet
+        imitateChain(5000);
+        registry = new LPNRegistryV1TestHelper();
+        vm.expectRevert(QueryManager.BlockhashMismatch.selector);
+        registry.testVerifyBlockhash(randomBytes32(), randomBytes32());
+        // Mantle testnet
+        imitateChain(5003);
+        registry = new LPNRegistryV1TestHelper();
+        vm.expectRevert(QueryManager.BlockhashMismatch.selector);
+        registry.testVerifyBlockhash(randomBytes32(), randomBytes32());
+        // Base mainnet
+        imitateChain(8453);
+        registry = new LPNRegistryV1TestHelper();
+        vm.expectRevert(QueryManager.BlockhashMismatch.selector);
+        registry.testVerifyBlockhash(randomBytes32(), randomBytes32());
+        // Base sepolia
+        imitateChain(84532);
+        registry = new LPNRegistryV1TestHelper();
+        vm.expectRevert(QueryManager.BlockhashMismatch.selector);
+        registry.testVerifyBlockhash(randomBytes32(), randomBytes32());
     }
 }

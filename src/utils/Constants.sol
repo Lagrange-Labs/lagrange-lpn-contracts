@@ -107,16 +107,7 @@ function isMainnet() view returns (bool) {
 /// @dev NOTE that Scroll plans to add blockhash/block number support in a future hardfork
 /// https://github.com/scroll-tech/scroll-contracts/issues/66
 function supportsL1BlockData() view returns (bool) {
-    uint256[3] memory noSupport =
-        [POLYGON_ZKEVM_MAINNET, SCROLL_MAINNET, SCROLL_SEPOLIA];
-    return !chainMatches(noSupport);
-}
-
-function chainMatches(uint256[3] memory chains) view returns (bool) {
-    for (uint256 i = 0; i < chains.length; i++) {
-        if (chains[i] == block.chainid) return true;
-    }
-    return false;
+    return isEthereum() || isOPStack();
 }
 
 function chainMatches(uint256[6] memory chains) view returns (bool) {
