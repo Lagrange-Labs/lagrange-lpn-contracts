@@ -1,7 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.13;
-
-import {IOptimismL1Block} from "../interfaces/IOptimismL1Block.sol";
+pragma solidity 0.8.25;
 
 uint256 constant LOCAL = 1337;
 uint256 constant ANVIL = 31337;
@@ -10,15 +8,25 @@ uint256 constant ETH_MAINNET = 1;
 uint256 constant ETH_SEPOLIA = 11155111;
 uint256 constant ETH_HOLESKY = 17000;
 
+// OP Stack Chains
+
 uint256 constant BASE_MAINNET = 8453;
 uint256 constant BASE_SEPOLIA = 84532;
 
 uint256 constant FRAXTAL_MAINNET = 252;
 uint256 constant FRAXTAL_HOLESKY = 2522;
 
-uint256 constant MANTLE_SEPOLIA = 5003;
 uint256 constant MANTLE_MAINNET = 5000;
+uint256 constant MANTLE_SEPOLIA = 5003;
+
+// Other Chains
+
 uint256 constant POLYGON_ZKEVM_MAINNET = 1101;
+
+uint256 constant SCROLL_MAINNET = 534352;
+uint256 constant SCROLL_SEPOLIA = 534351;
+
+// Addresses & constants
 
 address constant OP_STACK_L1_BLOCK_PREDEPLOY_ADDR =
     0x4200000000000000000000000000000000000015;
@@ -61,7 +69,11 @@ function isCDK() view returns (bool) {
 }
 
 function isMantle() view returns (bool) {
-    return block.chainid == MANTLE_MAINNET || block.chainid == MANTLE_MAINNET;
+    return block.chainid == MANTLE_MAINNET || block.chainid == MANTLE_SEPOLIA;
+}
+
+function isScroll() view returns (bool) {
+    return block.chainid == SCROLL_MAINNET || block.chainid == SCROLL_SEPOLIA;
 }
 
 function isLocal() view returns (bool) {
@@ -69,35 +81,36 @@ function isLocal() view returns (bool) {
 }
 
 function isTestnet() view returns (bool) {
-    uint256[5] memory testnets = [
+    uint256[6] memory testnets = [
         ETH_SEPOLIA,
         ETH_HOLESKY,
         BASE_SEPOLIA,
         FRAXTAL_HOLESKY,
-        MANTLE_SEPOLIA
+        MANTLE_SEPOLIA,
+        SCROLL_SEPOLIA
     ];
     return chainMatches(testnets);
 }
 
 function isMainnet() view returns (bool) {
-    uint256[5] memory mainnets = [
+    uint256[6] memory mainnets = [
         ETH_MAINNET,
         BASE_MAINNET,
         FRAXTAL_MAINNET,
         MANTLE_MAINNET,
-        POLYGON_ZKEVM_MAINNET
+        POLYGON_ZKEVM_MAINNET,
+        SCROLL_MAINNET
     ];
     return chainMatches(mainnets);
 }
 
-function chainMatches(uint256[4] memory chains) view returns (bool) {
-    for (uint256 i = 0; i < chains.length; i++) {
-        if (chains[i] == block.chainid) return true;
-    }
-    return false;
+/// @dev NOTE that Scroll plans to add blockhash/block number support in a future hardfork
+/// https://github.com/scroll-tech/scroll-contracts/issues/66
+function supportsL1BlockData() view returns (bool) {
+    return isEthereum() || isOPStack();
 }
 
-function chainMatches(uint256[5] memory chains) view returns (bool) {
+function chainMatches(uint256[6] memory chains) view returns (bool) {
     for (uint256 i = 0; i < chains.length; i++) {
         if (chains[i] == block.chainid) return true;
     }

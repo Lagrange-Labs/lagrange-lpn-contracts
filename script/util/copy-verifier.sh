@@ -35,17 +35,6 @@ mkdir -p $VERIFIER_FOLDER
 wget -O $VERIFIER_FILE $VERIFIER_SOL_URL
 wget -O $VERIFIER_EXTENSION_FILE $VERIFIER_EXTENSION_URL
 
-# TODO - remove all manual transformations... so close!
-awk '{
-  # Import verifier library with renamed filename
-  gsub(/import {Verifier} from ".\/Verifier.sol";/, "import {Verifier} from \".\/Verifier.sol\";\n   import {isCDK} from \"..\/utils\/Constants.sol\";");
-
-  # Patch `verifyQuery` function to skip blockhash verification for polygon CDK chains
-  gsub(/blockHash == expectedBlockHash/, "isCDK\(\) || blockHash == expectedBlockHash");
-
-  print;
-}' $VERIFIER_EXTENSION_FILE > $VERIFIER_EXTENSION_FILE.tmp && mv $VERIFIER_EXTENSION_FILE.tmp $VERIFIER_EXTENSION_FILE
-
 cp $VERIFIER_EXTENSION_FILE ./src/v1/Groth16VerifierExtension.sol
 cp $VERIFIER_FILE ./src/v1/Verifier.sol
 

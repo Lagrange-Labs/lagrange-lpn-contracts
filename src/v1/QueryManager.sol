@@ -7,10 +7,17 @@ import {
     QueryOutput
 } from "./Groth16VerifierExtension.sol";
 import {ILPNClientV1} from "./interfaces/ILPNClientV1.sol";
-import {isCDK} from "../utils/Constants.sol";
+import {supportsL1BlockData} from "../utils/Constants.sol";
 import {L1BlockHash, L1BlockNumber} from "../utils/L1Block.sol";
-import {isEthereum, isOPStack, isMantle, isCDK} from "../utils/Constants.sol";
 import {IQueryManager} from "./interfaces/IQueryManager.sol";
+import {
+    isEthereum,
+    isMantle,
+    isLocal,
+    isOPStack,
+    isCDK,
+    isScroll
+} from "../utils/Constants.sol";
 
 /// @title QueryManager
 /// @notice TODO
@@ -19,15 +26,18 @@ abstract contract QueryManager is IQueryManager, Groth16VerifierExtension {
     uint256 public constant MAX_QUERY_RANGE = 50_000;
 
     /// @notice A constant gas fee paid for each request to reimburse the relayer when it delivers the response
-    uint256 public constant ETH_GAS_FEE = 0.01 ether;
-    uint256 public constant OP_GAS_FEE = 0.001 ether;
-    uint256 public constant CDK_GAS_FEE = 0.001 ether;
+    uint256 public immutable GAS_FEE;
+    uint256 private constant ETH_GAS_FEE = 0.01 ether;
+    uint256 private constant L2_GAS_FEE = 0.001 ether;
     /// @dev Mantle uses a custom gas token
     uint256 public constant MANTLE_GAS_FEE = 4.0 ether;
 
     /// @notice A counter that assigns unique ids for client requests.
     // TODO: Need to ensure this does not conflict with V0
     uint256 public requestId;
+
+    /// @dev not all L2s support reading the L1 blockhash. For those that can't we disable the blockhash verification
+    bool public immutable SUPPORTS_L1_BLOCKDATA;
 
     struct QueryRequest {
         address client;
@@ -55,8 +65,14 @@ abstract contract QueryManager is IQueryManager, Groth16VerifierExtension {
     /// @notice Error thrown when gas fee is not paid.
     error InsufficientGasFee();
 
+    /// @notice Error thrown when blockhash verification fails.
+    error BlockhashMismatch();
+
+    /// @notice Error thrown when deloyed to a chain with an unknown chainId.
+    error ChainNotSupported();
+
     modifier requireGasFee() {
-        if (msg.value < gasFee()) {
+        if (msg.value < GAS_FEE) {
             revert InsufficientGasFee();
         }
         _;
@@ -70,7 +86,7 @@ abstract contract QueryManager is IQueryManager, Groth16VerifierExtension {
     ///      - QueryInvalidRange: If the starting block is greater than the ending block.
     ///      - QueryGreaterThanMaxRange: If the range (ending block - starting block) exceeds the maximum allowed range.
     modifier validateQueryRange(uint256 startBlock, uint256 endBlock) {
-        if (!isCDK() && endBlock > L1BlockNumber()) {
+        if (SUPPORTS_L1_BLOCKDATA && endBlock > L1BlockNumber()) {
             revert QueryAfterCurrentBlock();
         }
         if (startBlock > endBlock) {
@@ -81,6 +97,19 @@ abstract contract QueryManager is IQueryManager, Groth16VerifierExtension {
             revert QueryGreaterThanMaxRange();
         }
         _;
+    }
+
+    constructor() {
+        SUPPORTS_L1_BLOCKDATA = supportsL1BlockData();
+        if (isEthereum() || isLocal()) {
+            GAS_FEE = ETH_GAS_FEE;
+        } else if (isMantle()) {
+            GAS_FEE = MANTLE_GAS_FEE;
+        } else if (isOPStack() || isCDK() || isScroll()) {
+            GAS_FEE = L2_GAS_FEE;
+        } else {
+            revert ChainNotSupported();
+        }
     }
 
     function request(
@@ -153,24 +182,15 @@ abstract contract QueryManager is IQueryManager, Groth16VerifierExtension {
         emit NewResponse(requestId_, query.client, result);
     }
 
-    function gasFee() public view returns (uint256) {
-        if (isEthereum()) {
-            return ETH_GAS_FEE;
+    /// @inheritdoc Groth16VerifierExtension
+    function verifyBlockHash(bytes32 blockHash, bytes32 expectedBlockHash)
+        internal
+        view
+        override
+    {
+        if (SUPPORTS_L1_BLOCKDATA && blockHash != expectedBlockHash) {
+            revert BlockhashMismatch();
         }
-
-        if (isMantle()) {
-            return MANTLE_GAS_FEE;
-        }
-
-        if (isOPStack()) {
-            return OP_GAS_FEE;
-        }
-
-        if (isCDK()) {
-            return CDK_GAS_FEE;
-        }
-
-        revert("Chain not supported");
     }
 
     /// @notice The relayer withdraws all fees accumulated
