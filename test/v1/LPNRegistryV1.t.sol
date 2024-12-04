@@ -71,7 +71,7 @@ contract LPNRegistryV1Test is BaseTest {
             bytes32(uint256(987)),
             bytes32(uint256(999))
         ];
-        FEE = registry.GAS_FEE();
+        FEE = registry.gasFee();
 
         vm.roll(TEST_START_BLOCK + registry.MAX_QUERY_RANGE() + 100); // fast-forward to ensure all queries in range are valid
 
@@ -91,47 +91,47 @@ contract LPNRegistryV1Test is BaseTest {
         imitateChain(534352);
         registry = new LPNRegistryV1TestHelper();
         assertFalse(registry.SUPPORTS_L1_BLOCKDATA());
-        assertEq(registry.GAS_FEE(), 0.001 ether);
+        assertEq(registry.gasFee(), 0.001 ether);
         // Scroll testnet
         imitateChain(534351);
         registry = new LPNRegistryV1TestHelper();
         assertFalse(registry.SUPPORTS_L1_BLOCKDATA());
-        assertEq(registry.GAS_FEE(), 0.001 ether);
+        assertEq(registry.gasFee(), 0.001 ether);
         // Polygon zkEVM mainnet
         imitateChain(1101);
         registry = new LPNRegistryV1TestHelper();
         assertFalse(registry.SUPPORTS_L1_BLOCKDATA());
-        assertEq(registry.GAS_FEE(), 0.001 ether);
+        assertEq(registry.gasFee(), 0.001 ether);
         // Ethereum mainnet
         imitateChain(1);
         registry = new LPNRegistryV1TestHelper();
         assertTrue(registry.SUPPORTS_L1_BLOCKDATA());
-        assertEq(registry.GAS_FEE(), 0.01 ether);
+        assertEq(registry.gasFee(), 0.01 ether);
         // Ethereum Holesky testnet
         imitateChain(17000);
         registry = new LPNRegistryV1TestHelper();
         assertTrue(registry.SUPPORTS_L1_BLOCKDATA());
-        assertEq(registry.GAS_FEE(), 0.01 ether);
+        assertEq(registry.gasFee(), 0.01 ether);
         // Mantle mainnet
         imitateChain(5000);
         registry = new LPNRegistryV1TestHelper();
         assertTrue(registry.SUPPORTS_L1_BLOCKDATA());
-        assertEq(registry.GAS_FEE(), 4.0 ether);
+        assertEq(registry.gasFee(), 4.0 ether);
         // Mantle testnet
         imitateChain(5003);
         registry = new LPNRegistryV1TestHelper();
         assertTrue(registry.SUPPORTS_L1_BLOCKDATA());
-        assertEq(registry.GAS_FEE(), 4.0 ether);
+        assertEq(registry.gasFee(), 4.0 ether);
         // Base mainnet
         imitateChain(8453);
         registry = new LPNRegistryV1TestHelper();
         assertTrue(registry.SUPPORTS_L1_BLOCKDATA());
-        assertEq(registry.GAS_FEE(), 0.001 ether);
+        assertEq(registry.gasFee(), 0.001 ether);
         // Base sepolia
         imitateChain(84532);
         registry = new LPNRegistryV1TestHelper();
         assertTrue(registry.SUPPORTS_L1_BLOCKDATA());
-        assertEq(registry.GAS_FEE(), 0.001 ether);
+        assertEq(registry.gasFee(), 0.001 ether);
     }
 
     function test_initialize_duplicateAttempt_reverts() public {
