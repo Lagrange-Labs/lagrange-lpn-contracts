@@ -26,7 +26,7 @@ abstract contract QueryManager is IQueryManager, Groth16VerifierExtension {
     uint256 public constant MAX_QUERY_RANGE = 50_000;
 
     /// @notice A constant gas fee paid for each request to reimburse the relayer when it delivers the response
-    uint256 public immutable GAS_FEE;
+    uint256 private immutable GAS_FEE;
     uint256 private constant ETH_GAS_FEE = 0.01 ether;
     uint256 private constant L2_GAS_FEE = 0.001 ether;
     /// @dev Mantle uses a custom gas token
@@ -180,6 +180,10 @@ abstract contract QueryManager is IQueryManager, Groth16VerifierExtension {
         ILPNClientV1(query.client).lpnCallback(requestId_, result);
 
         emit NewResponse(requestId_, query.client, result);
+    }
+
+    function gasFee() public view returns (uint256) {
+        return GAS_FEE;
     }
 
     /// @inheritdoc Groth16VerifierExtension
