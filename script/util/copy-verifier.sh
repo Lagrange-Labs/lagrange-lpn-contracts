@@ -22,6 +22,9 @@ case "$ENV" in
   test)
     VERIFIER_SOL_URL="https://pub-fbb5db8dc9ee4e8da9daf13e07d27c24.r2.dev"
     ;;
+  prod)
+    VERIFIER_SOL_URL="https://pub-fbb5db8dc9ee4e8da9daf13e07d27c24.r2.dev"
+    ;;
   *)
     echo "Usage: $0 {dev-x|test}"
     exit 1
