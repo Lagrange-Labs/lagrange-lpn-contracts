@@ -73,13 +73,14 @@ contract WhitelistZKMR is WhitelistBase {
 ```
 
 ### Deployment / Upgrade
-0. (optional) If circuit / parameter changes are required ensure they are:
+0. (prerequisite) If deploying to a new chain, first confirm that an ERC1967Factory is deployed to the chain. See [here](https://github.com/Vectorized/solady/blob/a2f53c1f15ed07671d805e3a4a0e306b2a09d3bc/src/utils/ERC1967FactoryConstants.sol#L8:L18) for deployment instructions if needed.
+1. (optional) If circuit / parameter changes are required ensure they are:
     - Generated and uploaded to the appropriate bucket
     - The related circuit code changes are correctly versioned and scheduled for release
     - Operators for testnet + mainnet are notified of the update
     - The testnet / mainnet contract is upgraded during the release of the new code / circuits to the operators
-1. Ensure desired changes to [Groth16Verifier.sol](./src/v1/Groth16Verifier.sol) are in the main branch of [mapreduce-plonky2](https://github.com/Lagrange-Labs/mapreduce-plonky2/blob/main/groth16-framework/test_data/verifier.sol)
-2. Run the desired command:
+2. Ensure desired changes to [Groth16Verifier.sol](./src/v1/Groth16Verifier.sol) are in the main branch of [mapreduce-plonky2](https://github.com/Lagrange-Labs/mapreduce-plonky2/blob/main/groth16-framework/test_data/verifier.sol)
+3. Run the desired command:
 ```bash
 # Local development
 $ make DeployLPNRegistryV1_anvil
