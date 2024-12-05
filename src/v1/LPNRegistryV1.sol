@@ -34,6 +34,7 @@ contract LPNRegistryV1 is
 
     /// @notice The owner withdraws all fees accumulated
     function withdrawFees() external onlyOwner returns (bool) {
-        return _withdrawFees();
+        (bool sent,) = msg.sender.call{value: address(this).balance}("");
+        return sent;
     }
 }

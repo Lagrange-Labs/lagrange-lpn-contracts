@@ -59,13 +59,12 @@ contract LPNQueryV1 is LPNClientV1, Initializable {
         LPNClientV1._initialize(_lpnRegistry);
     }
 
-    /**
-     * @dev Function to submit a query to the Lagrange ZK Coprocessor.
-     * @param queryHash The hash of the query to be executed.
-     * @param placeholders An array of placeholder values for the query.
-     * @param startBlock The starting block number for the query range.
-     * @param endBlock The ending block number for the query range.
-     */
+    /// @dev Function to submit a query to the Lagrange ZK Coprocessor.
+    /// @param queryHash The hash of the query to be executed.
+    /// @param placeholders An array of placeholder values for the query.
+    /// @param startBlock The starting block number for the query range.
+    /// @param endBlock The ending block number for the query range.
+    // slither-disable-next-line arbitrary-send-eth
     function query(
         bytes32 queryHash,
         bytes32[] calldata placeholders,
