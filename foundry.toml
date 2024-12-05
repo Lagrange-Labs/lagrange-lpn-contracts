@@ -2,7 +2,12 @@
 src = "src"
 out = "out"
 libs = ["lib"]
-fs_permissions = [{ access = "read", path = "./test" }, { access = "read-write", path = "./script/output" }, { access = "read", path = "./config/holesky-operators.json" }, { access = "read", path = "./config/mainnet-operators.json" }]
+fs_permissions = [
+    { access = "read", path = "./test" },
+    { access = "read-write", path = "./script/output" },
+    { access = "read", path = "./config/holesky-operators.json" },
+    { access = "read", path = "./config/mainnet-operators.json" },
+]
 optimizer = true
 optimizer_runs = 200
 solc-version = "0.8.25"
@@ -28,7 +33,8 @@ sepolia = "${SEPOLIA_RPC_URL}"
 base_sepolia = "${BASE_SEPOLIA_RPC_URL}"
 fraxtal_testnet = "https://rpc.testnet.frax.com"
 mantle_sepolia = "https://rpc.sepolia.mantle.xyz"
-
+scroll_sepolia = "https://sepolia-rpc.scroll.io"
+# prod environment
 mainnet = "${MAINNET_RPC_URL}"
 base = "${BASE_RPC_URL}"
 fraxtal = "https://rpc.frax.com"
@@ -41,9 +47,11 @@ holesky = { key = "${MAINNET_ETHERSCAN_API_KEY}" }
 base_sepolia = { key = "${BASESCAN_API_KEY}" }
 fraxtal_testnet = { key = "${FRAXSCAN_API_KEY}" }
 mantle_sepolia = { key = "${MANTLESCAN_API_KEY}" }
+scroll-sepolia = { key = "${SCROLLSCAN_API_KEY}" }
 
 mainnet = { key = "${MAINNET_ETHERSCAN_API_KEY}" }
 base = { key = "${BASESCAN_API_KEY}" }
 fraxtal = { key = "${FRAXSCAN_API_KEY}" }
 mantle = { key = "${MANTLESCAN_API_KEY}" }
 polygon_zkevm = { key = "${POLYGONSCAN_API_KEY}" }
+scroll = { key = "${SCROLLSCAN_API_KEY}" }
