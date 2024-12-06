@@ -58,7 +58,7 @@ $(1)_$(2): CHAIN_FLAGS = $(call get-chain-flags,$(2))
 $(1)_$(2): DEPLOYER_FLAGS = $(call use-mainnet-deployer,$(2))
 $(1)_$(2):
 	$(if $(filter mantle%,$(2)),$(call switch-evm-version),)
-	$(if $(findstring dev-,$(2)),$(eval SALT=S2_$(2)),$(eval SALT=V1_REG_0))
+	$(if $(findstring dev-,$(2)),$(eval SALT=S3_$(2)),$(eval SALT=V1_REG_0))
 	
 	script/util/copy-verifier.sh $(2)
 	CHAIN_ALIAS=$(2) SALT=$(SALT) forge script $(1) --rpc-url $(2)  $${DEPLOY_FLAGS} $${CHAIN_FLAGS} $${DEPLOYER_FLAGS} $(ARGS)
