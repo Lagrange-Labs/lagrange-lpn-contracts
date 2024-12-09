@@ -80,6 +80,7 @@ clean           :; forge clean
 snapshot        :; forge snapshot
 fmt             :; forge fmt
 slither         :; docker run -ti --entrypoint=/home/ethsec/.local/bin/slither -v ./:/local/ --workdir=/local trailofbits/eth-security-toolbox:nightly .
+check-balances  :; forge script script/CheckDeploymentKeyBalances.s.sol --sig 'run(string)' $(env)
 
 # List available scripts
 list-scripts:
