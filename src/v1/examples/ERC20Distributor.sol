@@ -60,6 +60,7 @@ contract ERC20Distributor is MockERC20, LPNClientV1 {
     /// @param placeholders_ Optionally allow placeholders to be overridden for demo purposes
     /// @param startBlock_ Optionally allow startBlock to be overridden for demo purposes
     /// @param endBlock_ Optionally allow endBlock to be overridden for demo purposes
+    // slither-disable-next-line arbitrary-send-eth
     function initiateClaim(
         address holder,
         bytes32 queryHash_,
@@ -90,11 +91,12 @@ contract ERC20Distributor is MockERC20, LPNClientV1 {
             ? min(block.number, CAMPAIGN_END_BLOCK) - 1
             : endBlock_;
 
+        lastClaimed[holder] = endBlock;
+
         uint256 requestId = lpnRegistry.request{value: lpnRegistry.gasFee()}(
             queryHash, placeholders, startBlock, endBlock
         );
 
-        lastClaimed[holder] = endBlock;
         requestData[requestId] =
             RequestData({holder: holder, blockRange: endBlock - startBlock + 1});
     }

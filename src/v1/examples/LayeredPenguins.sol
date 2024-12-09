@@ -48,6 +48,7 @@ contract LayeredPenguins is LPNClientV1, ERC721Enumerable {
         mintRequests[requestId] = MintRequest({sender: msg.sender});
     }
 
+    // slither-disable-next-line arbitrary-send-eth
     function queryPudgyPenguins() private returns (uint256) {
         bytes32[] memory placeholders = new bytes32[](1);
         placeholders[0] = bytes32(bytes20(msg.sender));
