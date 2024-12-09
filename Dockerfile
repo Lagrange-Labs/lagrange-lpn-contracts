@@ -9,8 +9,4 @@ WORKDIR /app
 
 COPY . .
 
-# Make the script executable
-RUN chmod +x /app/entrypoint.sh
-
-# Set the entrypoint
-ENTRYPOINT ["./entrypoint.sh"]
+ENTRYPOINT ["make"]
