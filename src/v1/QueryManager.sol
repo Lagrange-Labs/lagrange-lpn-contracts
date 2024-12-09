@@ -196,10 +196,4 @@ abstract contract QueryManager is IQueryManager, Groth16VerifierExtension {
             revert BlockhashMismatch();
         }
     }
-
-    /// @notice The relayer withdraws all fees accumulated
-    function _withdrawFees() internal returns (bool) {
-        (bool sent,) = msg.sender.call{value: address(this).balance}("");
-        return sent;
-    }
 }

@@ -12,4 +12,4 @@ jobs:
         uses: crytic/slither-action@v0.4.0
         id: slither
         with:
-          fail-on: none # TODO - we should fail on any high findings, once existing ones are resolved
+          fail-on: high
