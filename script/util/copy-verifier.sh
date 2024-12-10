@@ -20,9 +20,6 @@ case "$ENV" in
   dev-3)
     VERIFIER_SOL_URL="https://pub-bca6985bd0e849b5b8840edc0b7f9e15.r2.dev"
     ;;
-  holesky)
-    VERIFIER_SOL_URL="https://pub-fbb5db8dc9ee4e8da9daf13e07d27c24.r2.dev"
-    ;;
   base_sepolia | fraxtal_testnet | holesky | scroll_sepolia)
     VERIFIER_SOL_URL="https://pub-fbb5db8dc9ee4e8da9daf13e07d27c24.r2.dev"
     ;;
