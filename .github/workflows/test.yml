@@ -25,3 +25,7 @@ jobs:
       - name: Run unit tests
         run: make test
         id: test
+
+      - name: Run deployment tests
+        run: forge script script/VerifyV1Deployments.s.sol --ffi
+        id: deployment-tests
