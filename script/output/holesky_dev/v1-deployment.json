@@ -1,8 +1,8 @@
 {
   "addresses": {
-    "queryClientImpl": "0xE1b71B57Ea95ae274018aE844ae7013F39Cb06Dc",
+    "queryClientImpl": "0x9e81a7a0A234E6Ede4604DD7823018D0efE53b4b",
     "queryClientProxy": "0x5C189dC46c2c6136dBaFdAAa02Db46CD2dF683A3",
-    "registryImpl": "0x4015A66c1a8f4C6bD93507290f6C5304c38a4c56",
+    "registryImpl": "0xd0fA8Ea6981894687DeFc1AAebf5804CDa7e654F",
     "registryProxy": "0xC9135b51c4DD04B6E082e2cB56a5C26b3a53Ee47"
   },
   "chainInfo": {
