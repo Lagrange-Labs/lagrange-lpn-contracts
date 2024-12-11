@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-import {BaseScript} from "../BaseScript.s.sol";
+import {BaseDeployer} from "../BaseDeployer.s.sol";
 import {LPNQueryV1} from "../../src/v1/client/LPNQueryV1.sol";
 import {ERC1967Factory} from "solady/utils/ERC1967Factory.sol";
 import {ERC1967FactoryConstants} from "solady/utils/ERC1967FactoryConstants.sol";
@@ -9,7 +9,7 @@ import {isLocal, isMainnet} from "../../src/utils/Constants.sol";
 import {stdJson} from "forge-std/StdJson.sol";
 import {ILPNRegistryV1} from "../../src/v1/interfaces/ILPNRegistryV1.sol";
 
-contract DeployLPNQueryV1 is BaseScript {
+contract DeployLPNQueryV1 is BaseDeployer {
     using stdJson for string;
 
     struct Deployment {

@@ -1,39 +1,23 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.25;
 
-import {Script, console2 as console} from "forge-std/Script.sol";
+import {console2 as console} from "forge-std/Script.sol";
+import {Script} from "forge-std/Script.sol";
+import {ChainConnections} from "../src/utils/ChainConnections.sol";
+import {Environments} from "../src/utils/Environments.sol";
 
 /// @dev Script to check the balance of the deployment key on all configured chains
-contract CheckDeploymentKeyBalances is Script {
+contract CheckDeploymentKeyBalances is
+    Script,
+    ChainConnections,
+    Environments
+{
     // Address to check balances for
     address constant DEPLOYER_ADDRESS =
         0x48211415Fc3e48b1aC5389fdDD4c1755783F6199;
 
     // Minimum balance to check for
     uint256 constant MIN_BALANCE = 1 ether;
-
-    mapping(string => string[]) internal chainsByEnv;
-
-    constructor() {
-        // Dev environment deloyments
-        chainsByEnv["dev-0"] = ["holesky"];
-        chainsByEnv["dev-1"] = ["holesky"];
-        chainsByEnv["dev-3"] = ["holesky"];
-
-        // Test environment deplolyments
-        chainsByEnv["test"] = [
-            "sepolia",
-            "holesky",
-            "base_sepolia",
-            "mantle_sepolia",
-            "scroll_sepolia",
-            "fraxtal_testnet"
-        ];
-
-        // Prod environment chains
-        chainsByEnv["prod"] =
-            ["mainnet", "base", "mantle", "polygon_zkevm", "scroll", "fraxtal"];
-    }
 
     /// @param env The environment to check balances for
     function run(string calldata env) external {
@@ -46,7 +30,7 @@ contract CheckDeploymentKeyBalances is Script {
             "Invalid environment. Must be 'dev-x', 'test', or 'prod'"
         );
 
-        string[] memory chains = chainsByEnv[env];
+        string[] memory chains = getChainsForEnv(env);
 
         console.log("\nChecking balances for environment:", env);
         console.log("");

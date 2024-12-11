@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-import {BaseScript} from "../BaseScript.s.sol";
+import {BaseDeployer} from "../BaseDeployer.s.sol";
 import {SafeToL2Migration} from
     "safe-smart-account/libraries/SafeToL2Migration.sol";
 
 /// @dev Deploy multsigs with the same address (0xE7cdA508FEB53713fB7C69bb891530C924980366)
 /// to various EVM chains (except for zkSync !)
-contract DeployMultisig is BaseScript {
+contract DeployMultisig is BaseDeployer {
     /// @dev Deploys a 3 / 5 multisig with signers
     /// Kashish 0xD1B55c3EAE5Fe41A48B23D6B0EdA462a204C745d
     /// Ismael 0xFBF21Db575E16c36f1433Dd0153E36FEc83E8a3a

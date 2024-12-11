@@ -1,19 +1,14 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.13;
+pragma solidity 0.8.25;
 
 import {Script, console2, StdChains} from "forge-std/Script.sol";
 import {stdJson} from "forge-std/StdJson.sol";
 import {BatchScript} from "forge-safe/BatchScript.sol";
 import {ISafe} from "safe-smart-account/interfaces/ISafe.sol";
+import {ChainConnections} from "../src/utils/ChainConnections.sol";
+import {isMainnet} from "../src/utils/Constants.sol";
 
-import {
-    MANTLE_MAINNET,
-    MANTLE_SEPOLIA,
-    isMainnet,
-    isTestnet
-} from "../src/utils/Constants.sol";
-
-abstract contract BaseScript is BatchScript {
+abstract contract BaseDeployer is BatchScript, ChainConnections {
     using stdJson for string;
 
     enum Version {
@@ -34,24 +29,6 @@ abstract contract BaseScript is BatchScript {
     }
 
     constructor() {
-        setChain(
-            "mantle",
-            ChainData("Mantle", MANTLE_MAINNET, "https://rpc.mantle.xyz")
-        );
-        setChain(
-            "mantle_sepolia",
-            ChainData(
-                "Mantle Sepolia",
-                MANTLE_SEPOLIA,
-                "https://rpc.sepolia.mantle.xyz"
-            )
-        );
-
-        setChain(
-            "polygon_zkevm",
-            ChainData("Polygon zkEVM", 1101, "https://zkevm-rpc.com")
-        );
-
         if (isMainnet()) {
             vm.startBroadcast();
             (, deployer,) = vm.readCallers();
