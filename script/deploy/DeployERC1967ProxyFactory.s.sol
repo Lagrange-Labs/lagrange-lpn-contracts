@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-import {BaseScript} from "../BaseScript.s.sol";
+import {BaseDeployer} from "../BaseDeployer.s.sol";
 import {ERC1967FactoryConstants} from "solady/utils/ERC1967FactoryConstants.sol";
 import {ERC1967Factory} from "solady/utils/ERC1967Factory.sol";
 
 import {isLocal} from "../../src/utils/Constants.sol";
 
-contract DeployERC1967ProxyFactory is BaseScript {
+contract DeployERC1967ProxyFactory is BaseDeployer {
     string constant KEYLESS_CREATE2_TX_DATA =
         "0xf87e8085174876e800830186a08080ad601f80600e600039806000f350fe60003681823780368234f58015156014578182fd5b80825250506014600cf31ba02222222222222222222222222222222222222222222222222222222222222222a02222222222222222222222222222222222222222222222222222222222222222";
     bytes constant INEFFECIENT_CREATE2_BYTECODE =

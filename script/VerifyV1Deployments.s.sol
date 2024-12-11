@@ -1,47 +1,22 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.25;
 
-import {Script, console2 as console} from "forge-std/Script.sol";
+import {console2 as console} from "forge-std/Script.sol";
 import {stdJson} from "forge-std/StdJson.sol";
 import {LPNQueryV1} from "../src/v1/client/LPNQueryV1.sol";
 import {ERC1967Proxy} from
     "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {LibString} from "solady/utils/LibString.sol";
-import {
-    MANTLE_MAINNET,
-    MANTLE_SEPOLIA,
-    isMainnet,
-    isTestnet
-} from "../src/utils/Constants.sol";
+import {Script} from "forge-std/Script.sol";
+import {ChainConnections} from "../src/utils/ChainConnections.sol";
+import {Environments} from "../src/utils/Environments.sol";
 
-contract VerifyV1Deployments is Script {
+contract VerifyV1Deployments is Script, ChainConnections, Environments {
     using stdJson for string;
     using LibString for string;
 
     bytes32 constant IMPLEMENTATION_SLOT =
         bytes32(uint256(keccak256("eip1967.proxy.implementation")) - 1);
-
-    constructor() {
-        setChain(
-            "mantle",
-            ChainData("Mantle", MANTLE_MAINNET, "https://rpc.mantle.xyz")
-        );
-        setChain(
-            "mantle_sepolia",
-            ChainData(
-                "Mantle Sepolia",
-                MANTLE_SEPOLIA,
-                "https://rpc.sepolia.mantle.xyz"
-            )
-        );
-
-        setChain(
-            "polygon_zkevm",
-            ChainData("Polygon zkEVM", 1101, "https://zkevm-rpc.com")
-        );
-
-        setChain("scroll_sepolia", ChainData("Scroll Sepolia", 534351, ""));
-    }
 
     /// @notice entrypoint for the script; verifies the arrangement of all deployed v1 contracts
     function run() public {

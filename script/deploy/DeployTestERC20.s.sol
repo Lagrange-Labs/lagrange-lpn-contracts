@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-import {BaseScript} from "../BaseScript.s.sol";
+import {BaseDeployer} from "../BaseDeployer.s.sol";
 import {TestERC20} from "../../src/mocks/TestERC20.sol";
 
 import {isMainnet, isEthereum} from "../../src/utils/Constants.sol";
 
-contract DeployTestERC20 is BaseScript {
+contract DeployTestERC20 is BaseDeployer {
     struct Deployment {
         address erc20;
     }

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-import {BaseScript} from "../BaseScript.s.sol";
+import {BaseDeployer} from "../BaseDeployer.s.sol";
 import {console} from "forge-std/console.sol";
 import {
     ETH_MAINNET, ETH_HOLESKY, isMainnet
@@ -12,7 +12,7 @@ interface IStakeRegistryZKMR {
     function addToWhitelist(address[] calldata operators) external;
 }
 
-abstract contract WhitelistBase is BaseScript {
+abstract contract WhitelistBase is BaseDeployer {
     function checkNetworkRequirement() internal virtual;
     function isOperatorWhitelisted(address operator)
         internal
