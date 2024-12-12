@@ -54,7 +54,9 @@ contract CheckDeploymentKeyBalances is
                     " (",
                     vm.toString(balance / 1 ether),
                     ".",
-                    vm.toString(((balance % 1 ether) * 1000) / 1 ether), // add 3 decimals
+                    vm.toString((((balance % 1 ether) * 10) / 1 ether) % 10), // add 3 decimal places
+                    vm.toString((((balance % 1 ether) * 100) / 1 ether) % 10),
+                    vm.toString((((balance % 1 ether) * 1000) / 1 ether) % 10),
                     " ETH)"
                 );
             } catch {
