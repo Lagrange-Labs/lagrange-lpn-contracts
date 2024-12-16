@@ -11,11 +11,6 @@ import {isMainnet} from "../src/utils/Constants.sol";
 abstract contract BaseDeployer is BatchScript, ChainConnections {
     using stdJson for string;
 
-    enum Version {
-        V0,
-        V1
-    }
-
     /// @dev The address of Lagrange's Multisig
     ISafe SAFE = ISafe(0xE7cdA508FEB53713fB7C69bb891530C924980366);
 
@@ -39,8 +34,8 @@ abstract contract BaseDeployer is BatchScript, ChainConnections {
 
         print("deployer", deployer);
 
-        if (!vm.exists(outputPath(Version.V1))) {
-            initJson(Version.V1);
+        if (!vm.exists(outputPath())) {
+            initJson();
         }
     }
 
@@ -59,11 +54,6 @@ abstract contract BaseDeployer is BatchScript, ChainConnections {
 
     function getDeployedRegistry() internal returns (address) {
         string memory json = vm.readFile(outputPath());
-        return json.readAddress(".addresses.registryProxy");
-    }
-
-    function getDeployedRegistry(Version version_) internal returns (address) {
-        string memory json = vm.readFile(outputPath(version_));
         return json.readAddress(".addresses.registryProxy");
     }
 
@@ -93,14 +83,6 @@ abstract contract BaseDeployer is BatchScript, ChainConnections {
 
     function getDeployedQueryClient() internal returns (address) {
         string memory json = vm.readFile(outputPath());
-        return json.readAddress(".addresses.queryClientProxy");
-    }
-
-    function getDeployedQueryClient(Version version_)
-        internal
-        returns (address)
-    {
-        string memory json = vm.readFile(outputPath(version_));
         return json.readAddress(".addresses.queryClientProxy");
     }
 
@@ -139,7 +121,7 @@ abstract contract BaseDeployer is BatchScript, ChainConnections {
     }
 
     function outputPath() internal returns (string memory) {
-        return outputPath(Version.V1);
+        return outputPath(getChainAlias());
     }
 
     function outputPath(string memory chainName)
@@ -148,22 +130,6 @@ abstract contract BaseDeployer is BatchScript, ChainConnections {
         returns (string memory)
     {
         return string.concat(outputDir(chainName), "/deployment.json");
-    }
-
-    function outputPath(Version version_) internal returns (string memory) {
-        string memory chainName = getChainAlias();
-        return outputPath(chainName, version_);
-    }
-
-    function outputPath(string memory chainName, Version version_)
-        internal
-        pure
-        returns (string memory)
-    {
-        string memory version = version_ == Version.V0 ? "v0" : "v1";
-        return string.concat(
-            outputDir(chainName), "/", version, "-", "deployment.json"
-        );
     }
 
     function mkdir(string memory dirPath) internal {
@@ -175,10 +141,6 @@ abstract contract BaseDeployer is BatchScript, ChainConnections {
     }
 
     function initJson() private {
-        initJson(Version.V0);
-    }
-
-    function initJson(Version version_) private {
         mkdir(outputDir());
 
         string memory json = "deploymentArtifact";
@@ -188,22 +150,8 @@ abstract contract BaseDeployer is BatchScript, ChainConnections {
         chainInfo.serialize("chainId", uint256(0));
         chainInfo = chainInfo.serialize("deploymentBlock", uint256(0));
 
-        if (version_ == Version.V0) {
-            addresses.serialize("queryClient", address(0));
-
-            string memory storageContracts = "storageContracts";
-            storageContracts.serialize("erc721Enumerable", address(0));
-            storageContracts.serialize("erc20ProportionateBalance", address(0));
-            storageContracts =
-                storageContracts.serialize("erc20AvgBalance", address(0));
-
-            json.serialize("storageContracts", storageContracts);
-        } else if (version_ == Version.V1) {
-            addresses.serialize("queryClientImpl", address(0));
-            addresses.serialize("queryClientProxy", address(0));
-        } else {
-            require(false, "Unsupported Contract Version");
-        }
+        addresses.serialize("queryClientImpl", address(0));
+        addresses.serialize("queryClientProxy", address(0));
 
         addresses.serialize("registryImpl", address(0));
         addresses = addresses.serialize("registryProxy", address(0));
@@ -211,6 +159,6 @@ abstract contract BaseDeployer is BatchScript, ChainConnections {
         json.serialize("addresses", addresses);
         json = json.serialize("chainInfo", chainInfo);
 
-        json.write(outputPath(version_));
+        json.write(outputPath());
     }
 }

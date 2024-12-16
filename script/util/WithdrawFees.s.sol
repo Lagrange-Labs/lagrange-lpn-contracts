@@ -9,7 +9,7 @@ contract WithdrawFees is BaseDeployer {
         bytes memory txn =
             abi.encodeWithSelector(LPNRegistryV1.withdrawFees.selector);
 
-        addToBatch(getDeployedRegistry(Version.V1), txn);
+        addToBatch(getDeployedRegistry(), txn);
 
         executeBatch(true);
     }
