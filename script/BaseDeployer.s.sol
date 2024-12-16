@@ -7,8 +7,13 @@ import {BatchScript} from "forge-safe/BatchScript.sol";
 import {ISafe} from "safe-smart-account/interfaces/ISafe.sol";
 import {ChainConnections} from "../src/utils/ChainConnections.sol";
 import {isMainnet} from "../src/utils/Constants.sol";
+import {ReferenceJSON} from "../src/utils/ReferenceJSON.sol";
 
-abstract contract BaseDeployer is BatchScript, ChainConnections {
+abstract contract BaseDeployer is
+    BatchScript,
+    ChainConnections,
+    ReferenceJSON
+{
     using stdJson for string;
 
     /// @dev The address of Lagrange's Multisig
@@ -53,8 +58,7 @@ abstract contract BaseDeployer is BatchScript, ChainConnections {
     }
 
     function getDeployedRegistry() internal returns (address) {
-        string memory json = vm.readFile(outputPath());
-        return json.readAddress(".addresses.registryProxy");
+        return getLPNRegistryProxyAddress(getChainAlias());
     }
 
     function getDeployedStorageContract(string memory contractType)
@@ -112,24 +116,8 @@ abstract contract BaseDeployer is BatchScript, ChainConnections {
         return outputDir(chainName);
     }
 
-    function outputDir(string memory chainName)
-        internal
-        pure
-        returns (string memory)
-    {
-        return string.concat("./script/output/", chainName);
-    }
-
     function outputPath() internal returns (string memory) {
         return outputPath(getChainAlias());
-    }
-
-    function outputPath(string memory chainName)
-        internal
-        pure
-        returns (string memory)
-    {
-        return string.concat(outputDir(chainName), "/deployment.json");
     }
 
     function mkdir(string memory dirPath) internal {

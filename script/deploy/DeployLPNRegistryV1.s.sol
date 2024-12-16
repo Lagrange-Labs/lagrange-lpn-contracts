@@ -39,7 +39,9 @@ contract DeployLPNRegistryV1 is BaseDeployer {
                 LPNRegistryV1(getDeployedRegistry()), deployment.registryImpl
             );
 
-            writeToJson(deployment.registryImpl);
+            updateLPNRegistryImplAddress(
+                getChainAlias(), deployment.registryImpl
+            );
         }
 
         return deployment;
@@ -142,13 +144,5 @@ contract DeployLPNRegistryV1 is BaseDeployer {
         json = json.serialize("chainInfo", chainInfo);
 
         json.write(outputPath());
-    }
-
-    function writeToJson(address updatedRegistryImpl) private {
-        vm.writeJson(
-            vm.toString(updatedRegistryImpl),
-            outputPath(),
-            ".addresses.registryImpl"
-        );
     }
 }
