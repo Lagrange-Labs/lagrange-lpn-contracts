@@ -40,7 +40,7 @@ contract DeployLPNRegistryV1 is BaseDeployer {
             );
 
             updateLPNRegistryImplAddress(
-                getChainAlias(), deployment.registryImpl
+                getDeploymentEnv(), getChainAlias(), deployment.registryImpl
             );
         }
 

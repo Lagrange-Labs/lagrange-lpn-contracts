@@ -86,13 +86,16 @@ contract WhitelistZKMR is WhitelistBase {
 $ make DeployLPNRegistryV1_anvil
 $ make DeployLPNQueryV1_anvil
 
-# Deploy / Upgrade Devnet
-$ make DeployLPNRegistryV1_holesky_dev
+# Deploy / Upgrade Devnetk
+$ export ENV=dev-0
+$ make DeployLPNRegistryV1_dev-0
 
 # Deploy / Upgrade Testnet
+$ export ENV=test
 $ make DeployLPNRegistryV1_holesky
 
 # Deploy / Upgrade Mainnet
+$ export ENV=prod
 $ make DeployLPNRegistryV1_mainnet
 $ make DeployLPNRegistryV1_base
 $ make DeployLPNRegistryV1_fraxtal
