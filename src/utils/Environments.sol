@@ -27,6 +27,18 @@ abstract contract Environments {
             ["mainnet", "base", "mantle", "polygon_zkevm", "scroll", "fraxtal"];
     }
 
+    modifier validEnv(string memory env) {
+        require(
+            keccak256(bytes(env)) == keccak256(bytes("dev-0"))
+                || keccak256(bytes(env)) == keccak256(bytes("dev-1"))
+                || keccak256(bytes(env)) == keccak256(bytes("dev-3"))
+                || keccak256(bytes(env)) == keccak256(bytes("test"))
+                || keccak256(bytes(env)) == keccak256(bytes("prod")),
+            "Invalid environment. Must be 'dev-x', 'test', or 'prod'"
+        );
+        _;
+    }
+
     /// @notice Get the chains that are configured for a given environment
     /// @param env The environment to get chains for
     /// @return chains the list of chain names that are configured for the given environment
