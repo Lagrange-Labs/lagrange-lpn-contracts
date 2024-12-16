@@ -44,9 +44,7 @@ contract DeployTestERC20 is BaseDeployer {
         for (uint256 i = 0; i < 20; i++) {
             erc20.mint(deployer, 100_000 ether);
             if (i % 2 == 0) {
-                erc20.transfer(
-                    getDeployedQueryClient(Version.V1), 100_000 ether
-                );
+                erc20.transfer(getDeployedQueryClient(), 100_000 ether);
             }
         }
     }
@@ -54,7 +52,7 @@ contract DeployTestERC20 is BaseDeployer {
     function writeToJson() private {
         vm.writeJson(
             vm.toString(address(deployment.erc20)),
-            outputPath(Version.V1),
+            outputPath(),
             ".addresses.testERC20"
         );
     }

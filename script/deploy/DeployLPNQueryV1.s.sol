@@ -23,7 +23,7 @@ contract DeployLPNQueryV1 is BaseDeployer {
         ERC1967Factory(ERC1967FactoryConstants.ADDRESS);
 
     function run() external returns (Deployment memory) {
-        if (getDeployedQueryClient(Version.V1) == address(0)) {
+        if (getDeployedQueryClient() == address(0)) {
             deployment.queryImpl = deployImplementation();
 
             address owner = isMainnet() ? address(SAFE) : deployer;
@@ -36,10 +36,7 @@ contract DeployLPNQueryV1 is BaseDeployer {
             writeToJson();
         } else {
             deployment.queryImpl = deployImplementation();
-            upgrade(
-                LPNQueryV1(getDeployedQueryClient(Version.V1)),
-                deployment.queryImpl
-            );
+            upgrade(LPNQueryV1(getDeployedQueryClient()), deployment.queryImpl);
 
             writeToJson(deployment.queryImpl);
         }
@@ -73,7 +70,7 @@ contract DeployLPNQueryV1 is BaseDeployer {
             salt_,
             abi.encodeWithSelector(
                 LPNQueryV1.initialize.selector,
-                ILPNRegistryV1(getDeployedRegistry(Version.V1))
+                ILPNRegistryV1(getDeployedRegistry())
             )
         );
 
@@ -122,13 +119,13 @@ contract DeployLPNQueryV1 is BaseDeployer {
     function writeToJson() private {
         vm.writeJson(
             vm.toString(address(deployment.queryProxy)),
-            outputPath(Version.V1),
+            outputPath(),
             ".addresses.queryClientProxy"
         );
 
         vm.writeJson(
             vm.toString(deployment.queryImpl),
-            outputPath(Version.V1),
+            outputPath(),
             ".addresses.queryClientImpl"
         );
     }
@@ -136,7 +133,7 @@ contract DeployLPNQueryV1 is BaseDeployer {
     function writeToJson(address updatedQueryImpl) private {
         vm.writeJson(
             vm.toString(updatedQueryImpl),
-            outputPath(Version.V1),
+            outputPath(),
             ".addresses.queryClientImpl"
         );
     }

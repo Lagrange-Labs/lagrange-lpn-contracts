@@ -25,9 +25,8 @@ contract DeployERC20Distributor is BaseDeployer {
     /// @notice Deploys TestERC20 on Anvil, Sepolia, Holesky
     /// @return Deployment address of TestERC20
     function deploy() public returns (Deployment memory) {
-        ERC20Distributor erc20 = new ERC20Distributor(
-            ILPNRegistryV1(getDeployedRegistry(Version.V1))
-        );
+        ERC20Distributor erc20 =
+            new ERC20Distributor(ILPNRegistryV1(getDeployedRegistry()));
         print("ERC20Distributor", address(erc20));
 
         return Deployment({erc20: address(erc20)});

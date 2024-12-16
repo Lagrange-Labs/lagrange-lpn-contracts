@@ -22,7 +22,7 @@ contract DeployLPNRegistryV1 is BaseDeployer {
         ERC1967Factory(ERC1967FactoryConstants.ADDRESS);
 
     function run() external returns (Deployment memory) {
-        if (getDeployedRegistry(Version.V1) == address(0)) {
+        if (getDeployedRegistry() == address(0)) {
             deployment.registryImpl = deployImplementation();
 
             address owner = isMainnet() ? address(SAFE) : deployer;
@@ -36,11 +36,12 @@ contract DeployLPNRegistryV1 is BaseDeployer {
         } else {
             deployment.registryImpl = deployImplementation();
             upgrade(
-                LPNRegistryV1(getDeployedRegistry(Version.V1)),
-                deployment.registryImpl
+                LPNRegistryV1(getDeployedRegistry()), deployment.registryImpl
             );
 
-            writeToJson(deployment.registryImpl);
+            updateLPNRegistryImplAddress(
+                getChainAlias(), deployment.registryImpl
+            );
         }
 
         return deployment;
@@ -142,14 +143,6 @@ contract DeployLPNRegistryV1 is BaseDeployer {
         json.serialize("storageContracts", storageContracts);
         json = json.serialize("chainInfo", chainInfo);
 
-        json.write(outputPath(Version.V1));
-    }
-
-    function writeToJson(address updatedRegistryImpl) private {
-        vm.writeJson(
-            vm.toString(updatedRegistryImpl),
-            outputPath(Version.V1),
-            ".addresses.registryImpl"
-        );
+        json.write(outputPath());
     }
 }
