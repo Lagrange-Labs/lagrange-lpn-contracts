@@ -38,10 +38,10 @@ contract VerifyV1Deployments is Script, ChainConnections, Environments {
         shellCommandInputs[0] = "/bin/sh";
         shellCommandInputs[1] = "-c";
         shellCommandInputs[2] = "find . -name v1-deployment.json | sort";
-
         bytes memory output = vm.ffi(shellCommandInputs);
         string[] memory files = string(output).split("\n");
 
+        // we only fail at the end of the script to ensure all chains are checked
         bool shouldFail;
 
         for (uint256 i = 0; i < files.length; i++) {

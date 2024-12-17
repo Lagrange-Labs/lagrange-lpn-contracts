@@ -70,17 +70,18 @@ $(foreach chain,${CHAINS},$(foreach script,${SCRIPT_NAMES},$(eval $(call make-co
 .PHONY: test
 
 # Other non-generic rules
-install         :; forge install
-update          :; forge update
-build           :; forge build
-test            :; forge test -vvv
-coverage        :; forge coverage -v --no-match-coverage "(script|test|examples|v0|mocks)"
-coverage-report :; forge coverage -v --no-match-coverage "(script|test|examples|v0|mocks)" --report lcov
-clean           :; forge clean
-snapshot        :; forge snapshot
-fmt             :; forge fmt
-slither         :; docker run -ti --entrypoint=/home/ethsec/.local/bin/slither -v ./:/local/ --workdir=/local trailofbits/eth-security-toolbox:nightly .
-check-balances  :; forge script script/CheckDeploymentKeyBalances.s.sol --sig 'run(string)' $(env)
+install            :; forge install
+update             :; forge update
+build              :; forge build
+test               :; forge test -vvv
+coverage           :; forge coverage -v --no-match-coverage "(script|test|examples|v0|mocks)"
+coverage-report    :; forge coverage -v --no-match-coverage "(script|test|examples|v0|mocks)" --report lcov
+clean              :; forge clean
+snapshot           :; forge snapshot
+fmt                :; forge fmt
+slither            :; docker run -ti --entrypoint=/home/ethsec/.local/bin/slither -v ./:/local/ --workdir=/local trailofbits/eth-security-toolbox:nightly .
+check-balances     :; forge script script/CheckDeploymentKeyBalances.s.sol --sig 'run(string)' $(env)
+upgrade-registries :; forge script ./script/UpgradeLPNRegistry.s.sol --sig "run(string)" --verify --slow --broadcast --ffi $(env)
 
 # List available scripts
 list-scripts:

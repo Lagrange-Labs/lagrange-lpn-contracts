@@ -20,16 +20,16 @@ case "$ENV" in
     VERIFIER_SOL_URL="https://pub-bca6985bd0e849b5b8840edc0b7f9e15.r2.dev"
     ENV_FOLDER_NAME="dev-3"
     ;;
-  base_sepolia | fraxtal_testnet | holesky | scroll_sepolia)
+  test | base_sepolia | fraxtal_testnet | holesky | scroll_sepolia)
     VERIFIER_SOL_URL="https://pub-fbb5db8dc9ee4e8da9daf13e07d27c24.r2.dev"
     ENV_FOLDER_NAME="test"
     ;;
-  base | fraxtal | mantle | polygon_zkevm | scroll | mainnet)
+  prod | base | fraxtal | mantle | polygon_zkevm | scroll | mainnet)
     VERIFIER_SOL_URL="https://pub-fbb5db8dc9ee4e8da9daf13e07d27c24.r2.dev"
     ENV_FOLDER_NAME="prod"
     ;;
   *)
-    echo "Usage: $0 {dev-x|chain-name}"
+    echo "Usage: $0 {env|chain-name}"
     exit 1
     ;;
 esac
