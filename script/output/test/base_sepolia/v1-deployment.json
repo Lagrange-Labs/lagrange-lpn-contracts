@@ -6,7 +6,7 @@
     "registryProxy": "0x0000000000000000000000000000000000000000"
   },
   "chainInfo": {
-    "chainId": 0,
+    "chainId": 84532,
     "deploymentBlock": 0
   },
   "storageContracts": {
