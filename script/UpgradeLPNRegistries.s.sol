@@ -14,7 +14,7 @@ import {console} from "forge-std/console.sol";
 
 /// @notice Script to upgrade the LPNRegistry on all chains for a given environment (ex dev-0, test, or prod)
 /// @dev This script *doed not* deploy new LPNRegistry contracts, it only upgrades existing ones
-contract UpgradeLPNRegistry is
+contract UpgradeLPNRegistries is
     Script,
     ChainConnections,
     Environments,

@@ -81,7 +81,7 @@ snapshot           :; forge snapshot
 fmt                :; forge fmt
 slither            :; docker run -ti --entrypoint=/home/ethsec/.local/bin/slither -v ./:/local/ --workdir=/local trailofbits/eth-security-toolbox:nightly .
 check-balances     :; forge script script/CheckDeploymentKeyBalances.s.sol --sig 'run(string)' $(env)
-upgrade-registries :; forge script ./script/UpgradeLPNRegistry.s.sol --sig "run(string)" --verify --slow --broadcast --ffi $(env)
+upgrade-registries :; forge script ./script/UpgradeLPNRegistries.s.sol --sig "run(string)" --verify --slow --broadcast --ffi $(env)
 
 # List available scripts
 list-scripts:
