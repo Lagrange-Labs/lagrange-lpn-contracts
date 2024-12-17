@@ -58,7 +58,7 @@ abstract contract BaseDeployer is
     }
 
     function getDeployedRegistry() internal returns (address) {
-        return getLPNRegistryProxyAddress(getChainAlias());
+        return getLPNRegistryProxyAddress(getDeploymentEnv(), getChainAlias());
     }
 
     function getDeployedStorageContract(string memory contractType)
@@ -76,8 +76,9 @@ abstract contract BaseDeployer is
     function getDeployedStorageContract(
         string memory contractType,
         string memory chainName
-    ) internal view returns (address) {
-        string memory json = vm.readFile(outputPath(chainName));
+    ) internal returns (address) {
+        string memory json =
+            vm.readFile(outputPath(getDeploymentEnv(), chainName));
         return json.readAddress(
             string(
                 abi.encodePacked(".addresses.storageContracts.", contractType)
@@ -111,13 +112,22 @@ abstract contract BaseDeployer is
         return getChain(block.chainid).chainAlias;
     }
 
+    function getDeploymentEnv() internal returns (string memory) {
+        string memory env = vm.envString("ENV");
+
+        if (bytes(env).length == 0) {
+            revert("ENV is not set");
+        }
+
+        return env;
+    }
+
     function outputDir() internal returns (string memory) {
-        string memory chainName = getChainAlias();
-        return outputDir(chainName);
+        return outputDir(getDeploymentEnv(), getChainAlias());
     }
 
     function outputPath() internal returns (string memory) {
-        return outputPath(getChainAlias());
+        return outputPath(getDeploymentEnv(), getChainAlias());
     }
 
     function mkdir(string memory dirPath) internal {
