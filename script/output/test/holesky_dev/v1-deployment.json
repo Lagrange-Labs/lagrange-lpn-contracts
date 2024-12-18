@@ -1,0 +1,17 @@
+{
+  "addresses": {
+    "queryClientImpl": "0x9e81a7a0A234E6Ede4604DD7823018D0efE53b4b",
+    "queryClientProxy": "0x5C189dC46c2c6136dBaFdAAa02Db46CD2dF683A3",
+    "registryImpl": "0xd0fA8Ea6981894687DeFc1AAebf5804CDa7e654F",
+    "registryProxy": "0xC9135b51c4DD04B6E082e2cB56a5C26b3a53Ee47"
+  },
+  "chainInfo": {
+    "chainId": 17000,
+    "deploymentBlock": 2166099
+  },
+  "storageContracts": {
+    "lagrangeLoonsERC721Enumerable": "0x46c93c8813c3daaa0dc9159094d2b7a8f0885b48",
+    "simpleMapping": "0x458398c1b29eaf50edf6d63d1ec368802e0d16ae",
+    "testERC20": "0x41Cb19D0Aa2e7Ea16F75030F25163D4184f26b7d"
+  }
+}
