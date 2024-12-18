@@ -76,7 +76,7 @@ abstract contract BaseDeployer is
     function getDeployedStorageContract(
         string memory contractType,
         string memory chainName
-    ) internal returns (address) {
+    ) internal view returns (address) {
         string memory json =
             vm.readFile(outputPath(getDeploymentEnv(), chainName));
         return json.readAddress(
@@ -112,7 +112,7 @@ abstract contract BaseDeployer is
         return getChain(block.chainid).chainAlias;
     }
 
-    function getDeploymentEnv() internal returns (string memory) {
+    function getDeploymentEnv() internal view returns (string memory) {
         string memory env = vm.envString("ENV");
 
         if (bytes(env).length == 0) {

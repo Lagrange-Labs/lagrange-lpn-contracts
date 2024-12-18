@@ -20,6 +20,18 @@ abstract contract ReferenceJSON is Script {
         return json.readAddress(".addresses.registryProxy");
     }
 
+    /// @notice Get the LPN Registry implementation address for a given environment and chain
+    /// @param env The environment to get the address for
+    /// @param chainName The chain name to get the address for
+    /// @return The LPN Registry implementation address
+    function getLPNRegistryImplAddress(
+        string memory env,
+        string memory chainName
+    ) internal view returns (address) {
+        string memory json = vm.readFile(outputPath(env, chainName));
+        return json.readAddress(".addresses.registryImpl");
+    }
+
     /// @notice Update the LPN Registry implementation address for a given environment and chain
     /// @param env The environment to update the address for
     /// @param chainName The chain name to update the address for

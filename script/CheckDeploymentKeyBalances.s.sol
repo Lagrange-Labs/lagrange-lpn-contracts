@@ -20,16 +20,7 @@ contract CheckDeploymentKeyBalances is
     uint256 constant MIN_BALANCE = 1 ether;
 
     /// @param env The environment to check balances for
-    function run(string calldata env) external {
-        require(
-            keccak256(bytes(env)) == keccak256(bytes("dev-0"))
-                || keccak256(bytes(env)) == keccak256(bytes("dev-1"))
-                || keccak256(bytes(env)) == keccak256(bytes("dev-3"))
-                || keccak256(bytes(env)) == keccak256(bytes("test"))
-                || keccak256(bytes(env)) == keccak256(bytes("prod")),
-            "Invalid environment. Must be 'dev-x', 'test', or 'prod'"
-        );
-
+    function run(string calldata env) external validEnv(env) {
         string[] memory chains = getChainsForEnv(env);
 
         console.log("\nChecking balances for environment:", env);
