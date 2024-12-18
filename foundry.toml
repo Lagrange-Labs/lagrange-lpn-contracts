@@ -22,7 +22,6 @@ line_length = 80
 # used for local development
 anvil = "http://localhost:8545"
 # used for `dev` environment
-holesky_dev = "https://holesky.gateway.tenderly.co"
 dev-0 = "https://holesky.gateway.tenderly.co"
 dev-1 = "https://holesky.gateway.tenderly.co"
 dev-2 = "https://holesky.gateway.tenderly.co"
