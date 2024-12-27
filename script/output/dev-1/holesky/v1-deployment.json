@@ -2,7 +2,7 @@
   "addresses": {
     "queryClientImpl": "0x214982c3055d3204ce9D6AD0d73F64d5Ea51eFDe",
     "queryClientProxy": "0xB434eCFeF24dEaf1ffF7afa304f5B8cDa546f850",
-    "registryImpl": "0x4518766481E2517822fd0d9e4c30fBa10Ebb4550",
+    "registryImpl": "0xDeA1020bafF59c9da975eB3Aa3F07f111B3735c2",
     "registryProxy": "0xa03b2924Dcb629Aa0Efc0Bb1e1Fc8758b31A2bf3"
   },
   "chainInfo": {
