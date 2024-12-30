@@ -136,7 +136,7 @@ contract Groth16VerifierExtension is Verifier {
         // Ensure the sha256 hash equals to the last Groth16 input.
         require(
             inputs[0] == uint256(CIRCUIT_DIGEST),
-            "The first Groth16 input must be equal to the circuit digest"
+            "dev1: The first Groth16 input must be equal to the circuit digest"
         );
 
         // Verify the Groth16 proof.
