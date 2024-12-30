@@ -34,7 +34,7 @@ case "$ENV" in
     ;;
 esac
 
-VERIFIER_SOL_URL="$VERIFIER_SOL_URL/groth16_assets/verifier.sol"
+VERIFIER_SOL_URL="$VERIFIER_SOL_URL/groth16_assets/Verifier.sol"
 VERIFIER_FOLDER="./script/output/$ENV_FOLDER_NAME"
 VERIFIER_FILE=$VERIFIER_FOLDER/Verifier.sol.ignore
 VERIFIER_EXTENSION_FILE=$VERIFIER_FOLDER/Groth16VerifierExtension.sol.ignore
