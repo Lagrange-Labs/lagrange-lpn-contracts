@@ -113,7 +113,11 @@ contract Groth16VerifierExtension is Verifier {
         QueryErrorCode error = verifyQuery(data, query);
 
         // 4. Parse and return the query output.
-        return parseOutput(data, error);
+        QueryOutput memory output = parseOutput(data, error);
+
+        revert("processQuery is successful!");
+
+        return output;
     }
 
     // Parse the Groth16 proofs and inputs, do verification, and returns the Groth16 inputs.
