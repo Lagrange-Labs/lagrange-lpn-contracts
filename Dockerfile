@@ -9,4 +9,6 @@ WORKDIR /app
 
 COPY . .
 
+RUN forge install
+
 ENTRYPOINT ["make"]
