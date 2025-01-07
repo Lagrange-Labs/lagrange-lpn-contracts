@@ -14,6 +14,7 @@ import {console} from "forge-std/console.sol";
 
 /// @notice Script to upgrade the LPNRegistry on all chains for a given environment (ex dev-0, test, or prod)
 /// @dev This script *doed not* deploy new LPNRegistry contracts, it only upgrades existing ones
+/// @dev This scripts assumes that the copy-verifier.sh script has already been run, and that the latest source code is available
 contract UpgradeLPNRegistries is
     Script,
     ChainConnections,
@@ -30,7 +31,6 @@ contract UpgradeLPNRegistries is
     /// @notice Main entrypoint: Upgrades the LPNRegistry on all chains for the given environment
     /// @param env The environment name to upgrade
     function run(string calldata env) external onlyDevOrTest(env) {
-        copyVerifier(env);
         string[] memory chains = getChainsForEnv(env);
         for (uint256 i = 0; i < chains.length; i++) {
             upgradeChain(env, chains[i]);
@@ -78,15 +78,5 @@ contract UpgradeLPNRegistries is
         );
 
         updateLPNRegistryImplAddress(env, chain, newImplementation);
-    }
-
-    /// @notice Runs the copy-verifier script
-    /// @param env The environment to run the script with
-    function copyVerifier(string memory env) public {
-        string[] memory inputs = new string[](2);
-        inputs[0] =
-            string.concat(vm.projectRoot(), "/script/util/copy-verifier.sh");
-        inputs[1] = env;
-        vm.ffi(inputs);
     }
 }
