@@ -170,7 +170,7 @@ abstract contract QueryManager is IQueryManager, Groth16VerifierExtension {
     function respond(
         uint256 requestId_,
         bytes32[] calldata data,
-        uint256 blockNumber // TODO - remove
+        uint256 // TODO - remove
     ) external {
         QueryRequest memory query = requests[requestId_];
         delete requests[requestId_];
