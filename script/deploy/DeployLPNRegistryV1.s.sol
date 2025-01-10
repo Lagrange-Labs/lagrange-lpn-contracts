@@ -23,6 +23,10 @@ contract DeployLPNRegistryV1 is BaseDeployer {
 
     function run() external returns (Deployment memory) {
         if (getDeployedRegistry() == address(0)) {
+            if (ERC1967FactoryConstants.ADDRESS.code.length == 0) {
+                revert("ERC1967Factory not deployed");
+            }
+
             deployment.registryImpl = deployImplementation();
 
             address owner = isMainnet() ? address(SAFE) : deployer;

@@ -2,12 +2,12 @@
   "addresses": {
     "queryClientImpl": "0x0000000000000000000000000000000000000000",
     "queryClientProxy": "0x0000000000000000000000000000000000000000",
-    "registryImpl": "0x0000000000000000000000000000000000000000",
-    "registryProxy": "0x0000000000000000000000000000000000000000"
+    "registryImpl": "0xED4b45b1171C36dA9D3552B5Dba8602d2870b9b5",
+    "registryProxy": "0xC9135b51c4DD04B6E082e2cB56a5C26b3a53Ee47"
   },
   "chainInfo": {
     "chainId": 84532,
-    "deploymentBlock": 0
+    "deploymentBlock": 20301643
   },
   "storageContracts": {
     "erc20AvgBalance": "0x0000000000000000000000000000000000000000",
