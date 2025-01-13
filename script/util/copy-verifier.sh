@@ -41,7 +41,14 @@ VERIFIER_EXTENSION_FILE=$VERIFIER_FOLDER/Groth16VerifierExtension.sol.ignore
 
 mkdir -p $VERIFIER_FOLDER
 
-wget -O $VERIFIER_FILE $VERIFIER_SOL_URL
+# TODO - once all environments have upgraded to latest MRP2, we will no longer need to support
+# both Verifier.sol and verifier.sol and can standardize on the uppercase version.
+wget -O $VERIFIER_FILE $VERIFIER_SOL_URL || {
+    # If it fails, try with lowercase v
+    echo "Failed to download Verifier.sol, falling back to verifier.sol"
+    VERIFIER_SOL_URL="${VERIFIER_SOL_URL/Verifier.sol/verifier.sol}"
+    wget -O $VERIFIER_FILE $VERIFIER_SOL_URL
+}
 wget -O $VERIFIER_EXTENSION_FILE $VERIFIER_EXTENSION_URL
 
 cp $VERIFIER_EXTENSION_FILE ./src/v1/Groth16VerifierExtension.sol
