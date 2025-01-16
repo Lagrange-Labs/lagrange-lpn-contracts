@@ -22,12 +22,12 @@ line_length = 80
 # used for local development
 anvil = "http://localhost:8545"
 # used for `dev` environment
-dev-0 = "https://holesky.gateway.tenderly.co"
-dev-1 = "https://holesky.gateway.tenderly.co"
-dev-2 = "https://holesky.gateway.tenderly.co"
-dev-3 = "https://holesky.gateway.tenderly.co"
+dev-0 = "https://ethereum-holesky-rpc.publicnode.com"
+dev-1 = "https://ethereum-holesky-rpc.publicnode.com"
+dev-2 = "https://ethereum-holesky-rpc.publicnode.com"
+dev-3 = "https://ethereum-holesky-rpc.publicnode.com"
 # used for `test` environment
-holesky = "https://holesky.gateway.tenderly.co"
+holesky = "https://ethereum-holesky-rpc.publicnode.com"
 sepolia = "https://ethereum-sepolia-rpc.publicnode.com"
 base_sepolia = "https://base-sepolia-rpc.publicnode.com"
 fraxtal_testnet = "https://rpc.testnet.frax.com"
