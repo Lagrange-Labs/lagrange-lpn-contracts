@@ -36,6 +36,7 @@ contract LPNQueryV1 is LPNClientV1, Initializable {
      * @param placeholders An array of placeholder values for the query.
      */
     event Query(
+        uint256 indexed requestId,
         address indexed sender,
         bytes32 indexed queryHash,
         bytes32[] placeholders
@@ -83,7 +84,7 @@ contract LPNQueryV1 is LPNClientV1, Initializable {
             placeholders: placeholders
         });
 
-        emit Query(msg.sender, queryHash, placeholders);
+        emit Query(requestId, msg.sender, queryHash, placeholders);
     }
 
     /**
