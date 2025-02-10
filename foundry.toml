@@ -1,7 +1,7 @@
 [profile.default]
 src = "src"
 out = "out"
-libs = ["lib"]
+libs = ["lib, dependencies"]
 fs_permissions = [
     { access = "read", path = "./test" },
     { access = "read-write", path = "./script/output" },
@@ -54,3 +54,7 @@ fraxtal = { key = "${FRAXSCAN_API_KEY}" }
 mantle = { key = "${MANTLESCAN_API_KEY}" }
 polygon_zkevm = { key = "${POLYGONSCAN_API_KEY}" }
 scroll = { key = "${SCROLLSCAN_API_KEY}" }
+
+[dependencies]
+"@openzeppelin-contracts-upgradeable" = "5.2.0"
+"@openzeppelin-contracts" = "5.2.0"
