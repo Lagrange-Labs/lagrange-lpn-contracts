@@ -21,7 +21,11 @@ jobs:
         uses: foundry-rs/foundry-toolchain@v1
         with:
           version: nightly
-  
+
+      - name: Install dependencies
+        run: forge soldeer install
+        id: install-dependencies
+    
       - name: Run forge fmt
         run: forge fmt --check
         id: fmt

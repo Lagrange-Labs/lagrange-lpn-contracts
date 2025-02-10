@@ -21,6 +21,7 @@ Be sure to include a `.env` file and export the environment variables shown in `
 Install dependencies:
 ```bash
 $ forge install
+$ forge soldeer install
 $ forge update
 ```
 
