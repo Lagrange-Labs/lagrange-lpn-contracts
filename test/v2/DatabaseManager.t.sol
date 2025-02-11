@@ -24,6 +24,10 @@ contract DatabaseManagerTest is BaseTest {
         dbManager.initialize(owner);
     }
 
+    function test_Constructor() public {
+        assertEq(dbManager.version(), "1.0.0");
+    }
+
     function test_Initialize() public {
         assertTrue(dbManager.hasRole(keccak256("OWNER_ROLE"), owner));
         assertFalse(dbManager.hasRole(keccak256("OWNER_ROLE"), stranger));
