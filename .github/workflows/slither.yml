@@ -7,6 +7,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+
+      - name: Install dependencies
+        run: forge soldeer install
+        id: install-dependencies
 
       - name: Run Slither
         uses: crytic/slither-action@v0.4.0

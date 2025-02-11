@@ -22,6 +22,10 @@ jobs:
         with:
           version: nightly
 
+      - name: Install dependencies
+        run: forge soldeer install
+        id: install-dependencies
+
       - name: Install LCOV
         uses: hrishikesh-kadam/setup-lcov@f5da1b26b0dcf5d893077a3c4f29cf78079c841d # v1.0.0
 

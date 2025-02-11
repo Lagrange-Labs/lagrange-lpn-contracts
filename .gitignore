@@ -1,3 +1,6 @@
+# Soldeer dependencies
+dependencies/
+
 # Compiler files
 cache/
 out/

@@ -70,7 +70,7 @@ $(foreach chain,${CHAINS},$(foreach script,${SCRIPT_NAMES},$(eval $(call make-co
 .PHONY: test
 
 # Other non-generic rules
-install            :; forge install
+install            :; forge install; forge soldeer install
 update             :; forge update
 build              :; forge build
 test               :; forge test -vvv

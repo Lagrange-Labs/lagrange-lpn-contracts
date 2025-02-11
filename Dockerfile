@@ -10,5 +10,6 @@ WORKDIR /app
 COPY . .
 
 RUN forge install
+RUN forge soldeer install
 
 ENTRYPOINT ["make"]
