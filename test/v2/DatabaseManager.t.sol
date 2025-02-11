@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.25;
+pragma solidity ^0.8.0;
 
 import {DatabaseManager} from "../../src/v2/DatabaseManager.sol";
 import {BaseTest} from "./BaseTest.t.sol";
@@ -22,6 +22,10 @@ contract DatabaseManagerTest is BaseTest {
 
         dbManager = new DatabaseManager();
         dbManager.initialize(owner);
+    }
+
+    function test_Constructor() public {
+        assertEq(dbManager.version(), "1.0.0");
     }
 
     function test_Initialize() public {
