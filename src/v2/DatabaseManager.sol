@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.25;
 
+import {IVersioned} from "../interfaces/IVersioned.sol";
 import {AccessControlUpgradeable} from
     "@openzeppelin-contracts-upgradeable-5.2.0/access/AccessControlUpgradeable.sol";
 import {Initializable} from
@@ -10,7 +11,14 @@ import {Initializable} from
 /// @notice Manages the registration of tables and queries for the system
 /// @dev This contract is upgradable
 /// @dev AccessControl is used instead of Ownable for better upgradability in case future roles are required
-contract DatabaseManager is Initializable, AccessControlUpgradeable {
+contract DatabaseManager is
+    Initializable,
+    AccessControlUpgradeable,
+    IVersioned
+{
+    /// @notice The semantic version of the contract
+    string public constant version = "1.0.0";
+
     bytes32 private constant OWNER_ROLE = keccak256("OWNER_ROLE");
 
     /// @notice Mapping to track registered tables
