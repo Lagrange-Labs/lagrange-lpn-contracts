@@ -5,8 +5,13 @@ import {DatabaseManager} from "../../src/v2/DatabaseManager.sol";
 import {BaseTest} from "./BaseTest.t.sol";
 
 import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
+import {Initializable} from
+    "@openzeppelin-contracts-upgradeable-5.2.0/proxy/utils/Initializable.sol";
+import {TransparentUpgradeableProxy} from
+    "@openzeppelin-contracts-5.2.0/proxy/transparent/TransparentUpgradeableProxy.sol";
 
 contract DatabaseManagerTest is BaseTest {
+    DatabaseManager public implementation;
     DatabaseManager public dbManager;
     address public owner;
     address public stranger;
@@ -20,8 +25,15 @@ contract DatabaseManagerTest is BaseTest {
         owner = makeAddr("owner");
         stranger = makeAddr("stranger");
 
-        dbManager = new DatabaseManager();
-        dbManager.initialize(owner);
+        implementation = new DatabaseManager();
+        TransparentUpgradeableProxy proxy = new TransparentUpgradeableProxy(
+            address(implementation),
+            owner,
+            abi.encodeWithSelector(DatabaseManager.initialize.selector, owner)
+        );
+
+        // cast the proxy to as the DatabaseManager contract, the base test suite will do the rest!
+        dbManager = DatabaseManager(address(proxy));
     }
 
     function test_Constructor() public view {
@@ -31,6 +43,22 @@ contract DatabaseManagerTest is BaseTest {
     function test_Initialize() public view {
         assertTrue(dbManager.hasRole(keccak256("OWNER_ROLE"), owner));
         assertFalse(dbManager.hasRole(keccak256("OWNER_ROLE"), stranger));
+    }
+
+    function test_Initialize_RevertsIf_DuplicateAttempt() public {
+        vm.expectRevert(
+            abi.encodeWithSelector(Initializable.InvalidInitialization.selector)
+        );
+        dbManager.initialize(stranger);
+    }
+
+    function test_Initialize_RevertsIf_CalledDirectlyOnImplementation()
+        public
+    {
+        vm.expectRevert(
+            abi.encodeWithSelector(Initializable.InvalidInitialization.selector)
+        );
+        implementation.initialize(stranger);
     }
 
     function test_RegisterTable_Success() public {
