@@ -103,4 +103,11 @@ contract DatabaseManager is
         queries[hash] = tableHash;
         emit NewQueryRegistration(hash, tableHash, sql);
     }
+
+    /// @notice Checks if a query is queryable
+    /// @param hash The hash of the query
+    /// @return True if the query is queryable, false otherwise
+    function isQueryActive(bytes32 hash) public view returns (bool) {
+        return tables[queries[hash]];
+    }
 }

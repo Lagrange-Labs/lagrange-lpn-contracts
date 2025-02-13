@@ -9,6 +9,8 @@ import {
 import {supportsL1BlockData} from "../utils/Constants.sol";
 import {IQueryExecutor} from "./interfaces/IQueryExecutor.sol";
 import {L1BlockHash, L1BlockNumber} from "../utils/L1Block.sol";
+import {DatabaseManager} from "./DatabaseManager.sol";
+import {FeeCollector} from "./FeeCollector.sol";
 import {
     isEthereum,
     isMantle,
@@ -45,8 +47,10 @@ contract QueryExecutor is
     /// @dev not all L2s support reading the L1 blockhash. For those that can't we disable the blockhash verification
     bool public immutable SUPPORTS_L1_BLOCKDATA;
 
-    /// @notice The address of the router contract that can make requests and responses
+    /// @notice other contracts in the system
     address public immutable router;
+    DatabaseManager public immutable dbManager;
+    FeeCollector public immutable feeCollector;
 
     /// @notice A nonce for constructing new requestIDs
     uint256 private requestIDNonce;
@@ -70,6 +74,9 @@ contract QueryExecutor is
     /// @notice Error thrown when attempting to query an invalid range.
     /// @dev startBlock > endBlock
     error QueryInvalidRange();
+
+    /// @notice Error thrown when attempting to query an invalid query.
+    error InvalidQuery();
 
     /// @notice Error thrown when gas fee is not paid.
     error InsufficientGasFee();
@@ -118,8 +125,18 @@ contract QueryExecutor is
         _;
     }
 
-    constructor(address _router) Ownable(msg.sender) {
+    /// @notice Constructor for the QueryExecutor contract
+    /// @param _router The address of the router contract
+    /// @param _dbManager The address of the database manager contract
+    /// @param _feeCollector The address of the fee collector contract
+    constructor(
+        address _router,
+        DatabaseManager _dbManager,
+        FeeCollector _feeCollector
+    ) Ownable(msg.sender) {
         router = _router;
+        dbManager = _dbManager;
+        feeCollector = _feeCollector;
         SUPPORTS_L1_BLOCKDATA = supportsL1BlockData();
         if (isEthereum() || isLocal()) {
             GAS_FEE = ETH_GAS_FEE;
@@ -149,6 +166,10 @@ contract QueryExecutor is
         validateQueryRange(startBlock, endBlock)
         returns (uint256)
     {
+        if (!dbManager.isQueryActive(queryHash)) {
+            revert InvalidQuery();
+        }
+
         // requestId is formatted as follows:
         // 2 bytes of entropy
         // 20 bytes of contract address

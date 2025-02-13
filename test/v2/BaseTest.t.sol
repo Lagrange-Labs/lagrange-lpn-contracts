@@ -41,6 +41,13 @@ abstract contract BaseTest is Test {
         }
     }
 
+    /// @notice Creates a labeled address with non-empty bytecode for use as a contract mock
+    function makeMock(string memory name) internal returns (address) {
+        address mock = makeAddr(name);
+        vm.etch(mock, hex"00");
+        return mock;
+    }
+
     /// @dev this is a brute-force implementation of isOPStack, and intentionally different from the one in Constants.sol.
     /// We need this in tests because OP_STACK_L1_BLOCK_PREDEPLOY_ADDR doesn't exist on the test chain
     function _isOPStack(uint256 chainId) private pure returns (bool) {
