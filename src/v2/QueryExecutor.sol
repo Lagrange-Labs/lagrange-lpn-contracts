@@ -90,6 +90,9 @@ contract QueryExecutor is
     /// @notice Error thrown when a non-router address calls a router-only function
     error OnlyRouter();
 
+    /// @notice Error thrown when a transfer fails.
+    error TransferFailed();
+
     modifier requireGasFee() {
         if (msg.value < GAS_FEE) {
             revert InsufficientGasFee();
@@ -198,6 +201,13 @@ contract QueryExecutor is
             }),
             client: client
         });
+
+        // Forward fee to fee collector
+        (bool success,) =
+            payable(address(feeCollector)).call{value: msg.value}("");
+        if (!success) {
+            revert TransferFailed();
+        }
 
         return requestId;
     }
