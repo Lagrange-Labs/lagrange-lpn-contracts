@@ -14,11 +14,11 @@ import {FeeCollector} from "../../../src/v2/FeeCollector.sol";
 /// @dev XXX testing purposes only XXX
 /// @dev we want to mock as few functions as possible here to get us as close to the real deal as possible in testing
 contract QueryExecutorTestHelper is QueryExecutor {
-    constructor(address _router, address _dbManager, address _feeCollector)
+    constructor(address router, address dbManager, address feeCollector)
         QueryExecutor(
-            _router,
-            DatabaseManager(_dbManager),
-            FeeCollector(payable(_feeCollector))
+            router,
+            DatabaseManager(dbManager),
+            FeeCollector(payable(feeCollector))
         )
     {}
 
