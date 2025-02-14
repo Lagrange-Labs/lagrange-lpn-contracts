@@ -23,8 +23,7 @@ contract FeeCollectorTest is Test {
 
         vm.deal(stranger, INITIAL_BALANCE);
 
-        vm.prank(owner);
-        feeCollector = new FeeCollector();
+        feeCollector = new FeeCollector(owner);
 
         token = new TestERC20();
         token.mint(stranger, INITIAL_BALANCE);
