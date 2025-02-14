@@ -152,6 +152,11 @@ contract QueryExecutorTest is BaseTest {
         address encodedAddress = address(bytes20(bytes32(id) << (8 * 2)));
         assertEq(address(executor), encodedAddress);
 
+        // Entire fee should be forwarded to fee collector
+        assertEq(feeCollector.balance, FEE);
+        assertEq(address(executor).balance, 0);
+
+        // Make a 2nd request
         vm.prank(router);
         uint256 id2 = executor.request{value: FEE}(
             client,
