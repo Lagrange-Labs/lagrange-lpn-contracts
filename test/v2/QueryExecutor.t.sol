@@ -8,11 +8,15 @@ import {QueryExecutor} from "../../src/v2/QueryExecutor.sol";
 import {
     QueryInput, QueryOutput
 } from "../../src/v2/Groth16VerifierExtension.sol";
+import {DatabaseManager} from "../../src/v2/DatabaseManager.sol";
+import {FeeCollector} from "../../src/v2/FeeCollector.sol";
 
 contract QueryExecutorTest is BaseTest {
     QueryExecutorTestHelper public executor;
     address public owner;
     address public router;
+    address public dbManager;
+    address public feeCollector;
     address public stranger;
     address public client;
 
@@ -29,11 +33,13 @@ contract QueryExecutorTest is BaseTest {
 
         owner = makeAddr("owner");
         router = makeAddr("router");
+        dbManager = makeMock("dbManager");
+        feeCollector = makeAddr("feeCollector");
         stranger = makeAddr("stranger");
         client = makeAddr("client");
 
         vm.prank(owner);
-        executor = new QueryExecutorTestHelper(router);
+        executor = new QueryExecutorTestHelper(router, dbManager, feeCollector);
 
         vm.deal(router, 1 ether);
         vm.deal(stranger, 1 ether);
@@ -51,6 +57,13 @@ contract QueryExecutorTest is BaseTest {
 
         // Fast-forward to ensure all queries in range are valid
         vm.roll(TEST_START_BLOCK + executor.MAX_QUERY_RANGE() + 100);
+
+        // Mock the dbManager to return true for all queries
+        vm.mockCall(
+            address(dbManager),
+            abi.encodeWithSelector(DatabaseManager.isQueryActive.selector),
+            abi.encode(true)
+        );
     }
 
     function test_Constructor_SetsChainSpecificValues() public {
@@ -58,53 +71,54 @@ contract QueryExecutorTest is BaseTest {
         assertTrue(executor.SUPPORTS_L1_BLOCKDATA());
         // Scroll mainnet
         imitateChain(534352);
-        QueryExecutorTestHelper exec = new QueryExecutorTestHelper(router);
+        QueryExecutorTestHelper exec =
+            new QueryExecutorTestHelper(router, dbManager, feeCollector);
         assertFalse(exec.SUPPORTS_L1_BLOCKDATA());
         assertEq(exec.GAS_FEE(), 0.001 ether);
         // Scroll testnet
         imitateChain(534351);
-        exec = new QueryExecutorTestHelper(router);
+        exec = new QueryExecutorTestHelper(router, dbManager, feeCollector);
         assertFalse(exec.SUPPORTS_L1_BLOCKDATA());
         assertEq(exec.GAS_FEE(), 0.001 ether);
         // Polygon zkEVM mainnet
         imitateChain(1101);
-        exec = new QueryExecutorTestHelper(router);
+        exec = new QueryExecutorTestHelper(router, dbManager, feeCollector);
         assertFalse(exec.SUPPORTS_L1_BLOCKDATA());
         assertEq(exec.GAS_FEE(), 0.001 ether);
         // Ethereum mainnet
         imitateChain(1);
-        exec = new QueryExecutorTestHelper(router);
+        exec = new QueryExecutorTestHelper(router, dbManager, feeCollector);
         assertTrue(exec.SUPPORTS_L1_BLOCKDATA());
         assertEq(exec.GAS_FEE(), 0.01 ether);
         // Ethereum Holesky testnet
         imitateChain(17000);
-        exec = new QueryExecutorTestHelper(router);
+        exec = new QueryExecutorTestHelper(router, dbManager, feeCollector);
         assertTrue(exec.SUPPORTS_L1_BLOCKDATA());
         assertEq(exec.GAS_FEE(), 0.01 ether);
         // Mantle mainnet
         imitateChain(5000);
-        exec = new QueryExecutorTestHelper(router);
+        exec = new QueryExecutorTestHelper(router, dbManager, feeCollector);
         assertTrue(exec.SUPPORTS_L1_BLOCKDATA());
         assertEq(exec.GAS_FEE(), 4.0 ether);
         // Mantle testnet
         imitateChain(5003);
-        exec = new QueryExecutorTestHelper(router);
+        exec = new QueryExecutorTestHelper(router, dbManager, feeCollector);
         assertTrue(exec.SUPPORTS_L1_BLOCKDATA());
         assertEq(exec.GAS_FEE(), 4.0 ether);
         // Base mainnet
         imitateChain(8453);
-        exec = new QueryExecutorTestHelper(router);
+        exec = new QueryExecutorTestHelper(router, dbManager, feeCollector);
         assertTrue(exec.SUPPORTS_L1_BLOCKDATA());
         assertEq(exec.GAS_FEE(), 0.001 ether);
         // Base sepolia
         imitateChain(84532);
-        exec = new QueryExecutorTestHelper(router);
+        exec = new QueryExecutorTestHelper(router, dbManager, feeCollector);
         assertTrue(exec.SUPPORTS_L1_BLOCKDATA());
         assertEq(exec.GAS_FEE(), 0.001 ether);
         // Unknown chain
         imitateChain(999999);
         vm.expectRevert(QueryExecutor.ChainNotSupported.selector);
-        new QueryExecutorTestHelper(router);
+        new QueryExecutorTestHelper(router, dbManager, feeCollector);
     }
 
     function test_Request_Success() public {
@@ -229,6 +243,28 @@ contract QueryExecutorTest is BaseTest {
         );
     }
 
+    function test_Request_RevertIf_QueryNotRegistered() public {
+        // Mock the dbManager to return false for all queries
+        vm.mockCall(
+            address(dbManager),
+            abi.encodeWithSelector(DatabaseManager.isQueryActive.selector),
+            abi.encode(false)
+        );
+
+        vm.expectRevert(QueryExecutor.InvalidQuery.selector);
+        vm.prank(router);
+
+        executor.request{value: FEE}(
+            client,
+            QUERY_HASH,
+            PLACEHOLDERS,
+            TEST_START_BLOCK,
+            TEST_END_BLOCK,
+            0,
+            0
+        );
+    }
+
     function test_Respond_Success() public {
         // Make request
         vm.startPrank(router);
@@ -276,44 +312,44 @@ contract QueryExecutorTest is BaseTest {
     function test_VerifyBlockhash_Success() public {
         // Ethereum mainnet
         imitateChain(1);
-        executor = new QueryExecutorTestHelper(router);
+        executor = new QueryExecutorTestHelper(router, dbManager, feeCollector);
         vm.expectRevert(QueryExecutor.BlockhashMismatch.selector);
         executor.verifyBlockhash(randomBytes32(), randomBytes32());
         // Scroll mainnet
         imitateChain(534352);
-        executor = new QueryExecutorTestHelper(router);
+        executor = new QueryExecutorTestHelper(router, dbManager, feeCollector);
         executor.verifyBlockhash(randomBytes32(), randomBytes32()); // should not revert
         // Scroll testnet
         imitateChain(534351);
-        executor = new QueryExecutorTestHelper(router);
+        executor = new QueryExecutorTestHelper(router, dbManager, feeCollector);
         executor.verifyBlockhash(randomBytes32(), randomBytes32()); // should not revert
         // Polygon zkEVM mainnet
         imitateChain(1101);
-        executor = new QueryExecutorTestHelper(router);
+        executor = new QueryExecutorTestHelper(router, dbManager, feeCollector);
         executor.verifyBlockhash(randomBytes32(), randomBytes32()); // should not revert
         // Ethereum Holesky testnet
         imitateChain(17000);
-        executor = new QueryExecutorTestHelper(router);
+        executor = new QueryExecutorTestHelper(router, dbManager, feeCollector);
         vm.expectRevert(QueryExecutor.BlockhashMismatch.selector);
         executor.verifyBlockhash(randomBytes32(), randomBytes32());
         // Mantle mainnet
         imitateChain(5000);
-        executor = new QueryExecutorTestHelper(router);
+        executor = new QueryExecutorTestHelper(router, dbManager, feeCollector);
         vm.expectRevert(QueryExecutor.BlockhashMismatch.selector);
         executor.verifyBlockhash(randomBytes32(), randomBytes32());
         // Mantle testnet
         imitateChain(5003);
-        executor = new QueryExecutorTestHelper(router);
+        executor = new QueryExecutorTestHelper(router, dbManager, feeCollector);
         vm.expectRevert(QueryExecutor.BlockhashMismatch.selector);
         executor.verifyBlockhash(randomBytes32(), randomBytes32());
         // Base mainnet
         imitateChain(8453);
-        executor = new QueryExecutorTestHelper(router);
+        executor = new QueryExecutorTestHelper(router, dbManager, feeCollector);
         vm.expectRevert(QueryExecutor.BlockhashMismatch.selector);
         executor.verifyBlockhash(randomBytes32(), randomBytes32());
         // Base sepolia
         imitateChain(84532);
-        executor = new QueryExecutorTestHelper(router);
+        executor = new QueryExecutorTestHelper(router, dbManager, feeCollector);
         vm.expectRevert(QueryExecutor.BlockhashMismatch.selector);
         executor.verifyBlockhash(randomBytes32(), randomBytes32());
     }

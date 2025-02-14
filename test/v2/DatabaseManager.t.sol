@@ -176,4 +176,33 @@ contract DatabaseManagerTest is BaseTest {
 
         vm.stopPrank();
     }
+
+    function test_IsQueryActive() public {
+        vm.startPrank(owner);
+
+        // Register table and query
+        dbManager.registerTable(
+            TEST_TABLE_HASH, address(0x123), 1, 100, "test_table", TEST_SQL
+        );
+        dbManager.registerQuery(TEST_QUERY_HASH, TEST_TABLE_HASH, TEST_SQL);
+
+        // Query should be active
+        assertTrue(dbManager.isQueryActive(TEST_QUERY_HASH));
+
+        // Delete table
+        dbManager.deleteTable(TEST_TABLE_HASH);
+
+        // Query should no longer be active
+        assertFalse(dbManager.isQueryActive(TEST_QUERY_HASH));
+
+        // Re-activate the table
+        dbManager.registerTable(
+            TEST_TABLE_HASH, address(0x123), 1, 100, "test_table", TEST_SQL
+        );
+
+        // Query should now be active again
+        assertTrue(dbManager.isQueryActive(TEST_QUERY_HASH));
+
+        vm.stopPrank();
+    }
 }
