@@ -51,6 +51,11 @@ contract DatabaseManager is
     /// @notice Error thrown when attempting to register a query more than once
     error QueryAlreadyRegistered();
 
+    /// @notice We disable initializers to prevent the initializer from being called directly on the implementation contract
+    constructor() {
+        _disableInitializers();
+    }
+
     /// @notice Initializes the contract
     function initialize(address initialOwner) public initializer {
         __AccessControl_init();
