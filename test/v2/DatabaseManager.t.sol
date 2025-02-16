@@ -4,11 +4,12 @@ pragma solidity ^0.8.0;
 import {DatabaseManager} from "../../src/v2/DatabaseManager.sol";
 import {BaseTest} from "./BaseTest.t.sol";
 
-import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
 import {Initializable} from
     "@openzeppelin-contracts-upgradeable-5.2.0/proxy/utils/Initializable.sol";
 import {TransparentUpgradeableProxy} from
     "@openzeppelin-contracts-5.2.0/proxy/transparent/TransparentUpgradeableProxy.sol";
+import {OwnableUpgradeable} from
+    "@openzeppelin-contracts-upgradeable-5.2.0/access/OwnableUpgradeable.sol";
 
 contract DatabaseManagerTest is BaseTest {
     DatabaseManager public implementation;
@@ -41,8 +42,7 @@ contract DatabaseManagerTest is BaseTest {
     }
 
     function test_Initialize() public view {
-        assertTrue(dbManager.hasRole(keccak256("OWNER_ROLE"), owner));
-        assertFalse(dbManager.hasRole(keccak256("OWNER_ROLE"), stranger));
+        assertEq(dbManager.owner(), owner);
     }
 
     function test_Initialize_RevertsIf_DuplicateAttempt() public {
@@ -79,9 +79,7 @@ contract DatabaseManagerTest is BaseTest {
         vm.prank(stranger);
         vm.expectRevert(
             abi.encodeWithSelector(
-                IAccessControl.AccessControlUnauthorizedAccount.selector,
-                stranger,
-                keccak256("OWNER_ROLE")
+                OwnableUpgradeable.OwnableUnauthorizedAccount.selector, stranger
             )
         );
         dbManager.registerTable(
@@ -132,9 +130,7 @@ contract DatabaseManagerTest is BaseTest {
 
         vm.expectRevert(
             abi.encodeWithSelector(
-                IAccessControl.AccessControlUnauthorizedAccount.selector,
-                stranger,
-                keccak256("OWNER_ROLE")
+                OwnableUpgradeable.OwnableUnauthorizedAccount.selector, stranger
             )
         );
         dbManager.deleteTable(TEST_TABLE_HASH);

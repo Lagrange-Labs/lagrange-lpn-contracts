@@ -2,24 +2,21 @@
 pragma solidity 0.8.25;
 
 import {IVersioned} from "../interfaces/IVersioned.sol";
-import {AccessControlUpgradeable} from
-    "@openzeppelin-contracts-upgradeable-5.2.0/access/AccessControlUpgradeable.sol";
+import {Ownable2StepUpgradeable} from
+    "@openzeppelin-contracts-upgradeable-5.2.0/access/Ownable2StepUpgradeable.sol";
 import {Initializable} from
     "@openzeppelin-contracts-upgradeable-5.2.0/proxy/utils/Initializable.sol";
 
 /// @title DatabaseManager
 /// @notice Manages the registration of tables and queries for the system
 /// @dev This contract is upgradable
-/// @dev AccessControl is used instead of Ownable for better upgradability in case future roles are required
 contract DatabaseManager is
     Initializable,
-    AccessControlUpgradeable,
+    Ownable2StepUpgradeable,
     IVersioned
 {
     /// @notice The semantic version of the contract
     string public constant version = "1.0.0";
-
-    bytes32 private constant OWNER_ROLE = keccak256("OWNER_ROLE");
 
     /// @notice Mapping to track registered tables
     mapping(bytes32 tableHash => bool registered) public tables;
@@ -58,8 +55,8 @@ contract DatabaseManager is
 
     /// @notice Initializes the contract
     function initialize(address initialOwner) public initializer {
-        __AccessControl_init();
-        _grantRole(OWNER_ROLE, initialOwner);
+        __Ownable2Step_init();
+        _transferOwnership(initialOwner);
     }
 
     /// @notice Registers a new table
@@ -76,7 +73,7 @@ contract DatabaseManager is
         uint256 genesisBlock,
         string calldata name,
         string calldata schema
-    ) external onlyRole(OWNER_ROLE) {
+    ) external onlyOwner {
         if (tables[hash]) {
             revert TableAlreadyRegistered();
         }
@@ -88,7 +85,7 @@ contract DatabaseManager is
 
     /// @notice Deletes a registered table
     /// @param hash The hash of the table to delete
-    function deleteTable(bytes32 hash) external onlyRole(OWNER_ROLE) {
+    function deleteTable(bytes32 hash) external onlyOwner {
         delete tables[hash];
         emit TableDeleted(hash);
     }
