@@ -2,7 +2,8 @@
 pragma solidity 0.8.25;
 
 import {BaseTest} from "./BaseTest.t.sol";
-import {Deployer} from "../../src/v2/Deployer.sol";
+import {DeployerTestHelper as Deployer} from
+    "./test_helpers/DeployerTestHelper.sol";
 import {LagrangeQueryRouter} from "../../src/v2/LagrangeQueryRouter.sol";
 import {DatabaseManager} from "../../src/v2/DatabaseManager.sol";
 import {QueryExecutor} from "../../src/v2/QueryExecutor.sol";
@@ -15,6 +16,7 @@ import {
 import {Vm} from "forge-std/Vm.sol";
 import {console} from "forge-std/console.sol";
 
+/// @dev This test is used to test the E2E integration of the contracts
 contract IntegrationTest is BaseTest {
     // Core protocol contracts
     LagrangeQueryRouter public router;
@@ -38,7 +40,6 @@ contract IntegrationTest is BaseTest {
     uint256 public constant GAS_FEE = 1 ether;
     QueryOutput public EXPECTED_OUTPUT;
     bytes32[] public RESPONSE_DATA;
-
     uint256 public requestId;
 
     function setUp() public {

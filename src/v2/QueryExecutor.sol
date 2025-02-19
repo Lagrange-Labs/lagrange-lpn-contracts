@@ -129,17 +129,19 @@ contract QueryExecutor is
     }
 
     /// @notice Constructor for the QueryExecutor contract
+    /// @param initialOwner The address of the initial owner of the contract
     /// @param _router The address of the router contract
-    /// @param _dbManager The address of the database manager contract
+    /// @param _dbManager The address of the database manager (proxy) contract
     /// @param _feeCollector The address of the fee collector contract
     constructor(
+        address initialOwner,
         address _router,
-        DatabaseManager _dbManager,
-        FeeCollector _feeCollector
-    ) Ownable(msg.sender) {
+        address _dbManager,
+        address payable _feeCollector
+    ) Ownable(initialOwner) {
         router = _router;
-        dbManager = _dbManager;
-        feeCollector = _feeCollector;
+        dbManager = DatabaseManager(_dbManager);
+        feeCollector = FeeCollector(_feeCollector);
         SUPPORTS_L1_BLOCKDATA = supportsL1BlockData();
         if (isEthereum() || isLocal()) {
             GAS_FEE = ETH_GAS_FEE;

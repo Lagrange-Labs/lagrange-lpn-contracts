@@ -45,17 +45,15 @@ contract Deployer {
             )
         );
 
-        // Deploy non-upgradeable contracts
+        // Deploy FeeCollector
         FeeCollector feeCollector = new FeeCollector(financeMultisig);
-        // TODO - use the *real* QueryExecutor here
-        QueryExecutor queryExecutor = QueryExecutor(
-            address(
-                new QueryExecutorTestHelper(
-                    address(routerProxy),
-                    address(dbManagerProxy),
-                    address(feeCollector)
-                )
-            )
+
+        // Deploy QueryExecutor
+        QueryExecutor queryExecutor = deployQueryExecutor(
+            engMultisig,
+            address(routerProxy),
+            address(dbManagerProxy),
+            payable(address(feeCollector))
         );
 
         // Initialize Router, sets default queryExecutor
@@ -72,5 +70,23 @@ contract Deployer {
 
         // Self destruct
         selfdestruct(payable(msg.sender));
+    }
+
+    /// @notice Deploys new QueryExecutor contract
+    /// @param engMultisig The engineering multisig address that will own the contract
+    /// @param routerProxy The address of the router proxy contract
+    /// @param dbManagerProxy The address of the database manager proxy contract
+    /// @param feeCollector The address of the fee collector contract
+    /// @return QueryExecutor A new QueryExecutor instance
+    /// @dev this is separated into it's own function so that it can be overridden for testing
+    function deployQueryExecutor(
+        address engMultisig,
+        address routerProxy,
+        address dbManagerProxy,
+        address payable feeCollector
+    ) internal virtual returns (QueryExecutor) {
+        return new QueryExecutor(
+            engMultisig, routerProxy, dbManagerProxy, feeCollector
+        );
     }
 }
