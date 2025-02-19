@@ -38,7 +38,7 @@ contract FeeCollector is IVersioned, Ownable2Step {
     error TransferFailed();
 
     /// @notice Constructor to set initial owner
-    constructor() Ownable(msg.sender) {}
+    constructor(address initialOwner) Ownable(initialOwner) {}
 
     /// @notice Allows the contract to receive native tokens
     receive() external payable {
