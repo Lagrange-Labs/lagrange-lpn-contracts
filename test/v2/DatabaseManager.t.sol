@@ -72,7 +72,7 @@ contract DatabaseManagerTest is BaseTest {
             TEST_TABLE_HASH, address(0x123), 1, 100, "test_table", TEST_SQL
         );
 
-        assertTrue(dbManager.tables(TEST_TABLE_HASH));
+        assertTrue(dbManager.isTableActive(TEST_TABLE_HASH));
     }
 
     function test_RegisterTable_RevertIfNotOwner() public {
@@ -116,14 +116,14 @@ contract DatabaseManagerTest is BaseTest {
             TEST_TABLE_HASH, address(0x123), 1, 100, "test_table", TEST_SQL
         );
 
-        assertTrue(dbManager.tables(TEST_TABLE_HASH));
+        assertTrue(dbManager.isTableActive(TEST_TABLE_HASH));
 
         // Delete the table
         vm.expectEmit();
         emit DatabaseManager.TableDeleted(TEST_TABLE_HASH);
         dbManager.deleteTable(TEST_TABLE_HASH);
 
-        assertFalse(dbManager.tables(TEST_TABLE_HASH));
+        assertFalse(dbManager.isTableActive(TEST_TABLE_HASH));
         vm.stopPrank();
     }
 
@@ -155,7 +155,7 @@ contract DatabaseManagerTest is BaseTest {
         );
         vm.prank(stranger);
         dbManager.registerQuery(TEST_QUERY_HASH, TEST_TABLE_HASH, TEST_SQL);
-        assertEq(dbManager.queries(TEST_QUERY_HASH), TEST_TABLE_HASH);
+        assertEq(dbManager.getTableForQuery(TEST_QUERY_HASH), TEST_TABLE_HASH);
     }
 
     function test_RegisterQuery_RevertIfAlreadyRegistered() public {

@@ -27,11 +27,11 @@ contract LagrangeQueryRouter is
 
     /// @notice The default QueryExecutor contract
     /// @dev This is only used to route incoming requests, responses are routed by the address embedded in the requestId
-    IQueryExecutor private defaultQueryExecutor;
+    IQueryExecutor private s_defaultQueryExecutor;
 
     /// @notice Set of enabled query executors
     /// @dev The default query executor is always enabled, this set is used to disable/enable other executors that are used in tests, upgrades, etc
-    EnumerableSet.AddressSet private enabledExecutors;
+    EnumerableSet.AddressSet private s_enabledExecutors;
 
     /// @notice Event emitted when a new request is made.
     /// @param requestId The ID of the request.
@@ -99,7 +99,7 @@ contract LagrangeQueryRouter is
         uint256 endBlock
     ) external payable returns (uint256) {
         return _requestTo(
-            defaultQueryExecutor,
+            s_defaultQueryExecutor,
             queryHash,
             placeholders,
             startBlock,
@@ -125,7 +125,7 @@ contract LagrangeQueryRouter is
         uint32 offset
     ) external payable returns (uint256) {
         return _requestTo(
-            defaultQueryExecutor,
+            s_defaultQueryExecutor,
             queryHash,
             placeholders,
             startBlock,
@@ -153,7 +153,7 @@ contract LagrangeQueryRouter is
         uint32 limit,
         uint32 offset
     ) public payable returns (uint256) {
-        if (!enabledExecutors.contains(address(executor))) {
+        if (!s_enabledExecutors.contains(address(executor))) {
             revert ExecutorNotEnabled();
         }
 
@@ -216,7 +216,7 @@ contract LagrangeQueryRouter is
         IQueryExecutor executor =
             IQueryExecutor(address(bytes20(bytes32(requestId << 16))));
 
-        if (!enabledExecutors.contains(address(executor))) {
+        if (!s_enabledExecutors.contains(address(executor))) {
             revert ExecutorNotEnabled();
         }
 
@@ -245,13 +245,13 @@ contract LagrangeQueryRouter is
         external
         onlyOwner
     {
-        if (address(executor) == address(defaultQueryExecutor) && !enabled) {
+        if (address(executor) == address(s_defaultQueryExecutor) && !enabled) {
             revert CannotDisableDefaultExecutor();
         }
         if (enabled) {
-            enabledExecutors.add(address(executor));
+            s_enabledExecutors.add(address(executor));
         } else {
-            enabledExecutors.remove(address(executor));
+            s_enabledExecutors.remove(address(executor));
         }
     }
 
@@ -262,7 +262,7 @@ contract LagrangeQueryRouter is
         view
         returns (IQueryExecutor queryExecutor)
     {
-        return defaultQueryExecutor;
+        return s_defaultQueryExecutor;
     }
 
     /// @notice Returns the list of enabled query executors
@@ -272,7 +272,7 @@ contract LagrangeQueryRouter is
         view
         returns (address[] memory queryExecutors)
     {
-        return enabledExecutors.values();
+        return s_enabledExecutors.values();
     }
 
     /// @notice Updates the default QueryExecutor address
@@ -281,7 +281,7 @@ contract LagrangeQueryRouter is
         if (address(queryExecutor) == address(0)) {
             revert InvalidExecutorAddress();
         }
-        enabledExecutors.add(address(queryExecutor));
-        defaultQueryExecutor = queryExecutor;
+        s_enabledExecutors.add(address(queryExecutor));
+        s_defaultQueryExecutor = queryExecutor;
     }
 }
