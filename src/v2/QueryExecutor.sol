@@ -63,6 +63,35 @@ contract QueryExecutor is
     /// @notice Mapping to track requests and their associated clients.
     mapping(uint256 requestId => QueryRequest query) private s_requests;
 
+    /// @notice Event emitted when a new request is made.
+    /// @param requestId The ID of the request.
+    /// @param queryHash The identifier of the SQL query associated with the request.
+    /// @param client The address of the client who made this request.
+    /// @param placeholders Values for the numbered placeholders in the query.
+    /// @param startBlock The starting block for the computation.
+    /// @param endBlock The ending block for the computation.
+    /// @param fee The gas fee paid for the request.
+    /// @param proofBlock The requested block for the proof to be computed against.
+    ///                   Currently required for OP Stack chains
+    event NewRequest(
+        uint256 indexed requestId,
+        bytes32 indexed queryHash,
+        address indexed client,
+        bytes32[] placeholders,
+        uint256 startBlock,
+        uint256 endBlock,
+        uint256 fee,
+        uint256 proofBlock
+    );
+
+    /// @notice Event emitted when a response is received.
+    /// @param requestId The ID of the request.
+    /// @param client The address of the client who made the request.
+    /// @param result The computed results for the request.
+    event NewResponse(
+        uint256 indexed requestId, address indexed client, QueryOutput result
+    );
+
     /// @notice Error thrown when attempting to query a block number that is after the current block.
     /// @dev endBlock > block.number
     error QueryAfterCurrentBlock();
@@ -211,6 +240,17 @@ contract QueryExecutor is
             revert TransferFailed();
         }
 
+        emit NewRequest(
+            requestId,
+            queryHash,
+            client,
+            placeholders,
+            startBlock,
+            endBlock,
+            msg.value,
+            block.number
+        );
+
         return requestId;
     }
 
@@ -218,12 +258,16 @@ contract QueryExecutor is
     function respond(uint256 requestId, bytes32[] calldata data)
         external
         onlyRouter
-        returns (address client, QueryOutput memory result)
+        returns (address, QueryOutput memory)
     {
         QueryRequest memory query = s_requests[requestId];
         delete s_requests[requestId];
 
-        return (query.client, processQuery(data, query.input));
+        QueryOutput memory result = processQuery(data, query.input);
+
+        emit NewResponse(requestId, query.client, result);
+
+        return (query.client, result);
     }
 
     function gasFee() public view returns (uint256) {
