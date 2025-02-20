@@ -173,10 +173,6 @@ contract QueryExecutorTest is BaseTest {
             keccak256(abi.encode(PLACEHOLDERS))
         );
 
-        // QE Address should be embedded in bytes [2:21] of the requestId
-        address encodedAddress = address(bytes20(bytes32(id) << (8 * 2)));
-        assertEq(address(executor), encodedAddress);
-
         // Entire fee should be forwarded to fee collector
         assertEq(feeCollector.balance, FEE);
         assertEq(address(executor).balance, 0);

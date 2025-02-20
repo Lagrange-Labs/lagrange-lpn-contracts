@@ -125,7 +125,7 @@ contract IntegrationTest is BaseTest {
         );
 
         // Submit response
-        router.respond(requestId, RESPONSE_DATA);
+        router.respond(requestId, queryExecutor, RESPONSE_DATA);
 
         // Withdraw fee collector balance
         vm.prank(financeMultisig);

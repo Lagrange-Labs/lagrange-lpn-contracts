@@ -177,12 +177,13 @@ contract LagrangeQueryRouter is
 
     /// @notice Responds to a query request
     /// @param requestId The ID of the request to respond to
+    /// @param executor The executor that will handle the response
     /// @param data The response data
-    function respond(uint256 requestId, bytes32[] calldata data) external {
-        // Extract executor address from bytes 2-21 of requestId
-        IQueryExecutor executor =
-            IQueryExecutor(address(bytes20(bytes32(requestId << 16))));
-
+    function respond(
+        uint256 requestId,
+        IQueryExecutor executor,
+        bytes32[] calldata data
+    ) external {
         if (!s_enabledExecutors.contains(address(executor))) {
             revert ExecutorNotEnabled();
         }

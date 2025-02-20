@@ -202,7 +202,14 @@ contract LagrangeQueryRouterTest is BaseTest {
             )
         );
 
-        router.respond(REQUEST_ID_1, new bytes32[](0));
+        router.respond(REQUEST_ID_1, IQueryExecutor(executor), new bytes32[](0));
+    }
+
+    function test_Respond_RevertsIf_ExecutorNotEnabled() public {
+        vm.expectRevert(LagrangeQueryRouter.ExecutorNotEnabled.selector);
+        router.respond(
+            REQUEST_ID_1, IQueryExecutor(address(1)), new bytes32[](0)
+        );
     }
 
     function test_SetDefaultQueryExecutor_Success() public {
