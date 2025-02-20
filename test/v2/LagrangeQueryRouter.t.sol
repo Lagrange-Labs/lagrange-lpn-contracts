@@ -140,16 +140,7 @@ contract LagrangeQueryRouterTest is BaseTest {
     function test_Request_Aggregation_Success() public {
         vm.prank(client);
         vm.expectEmit();
-        emit LagrangeQueryRouter.NewRequest(
-            REQUEST_ID_1,
-            QUERY_HASH,
-            client,
-            PLACEHOLDERS,
-            START_BLOCK,
-            END_BLOCK,
-            GAS_FEE,
-            block.number
-        );
+        emit LagrangeQueryRouter.NewRequest(REQUEST_ID_1, address(executor));
         router.request{value: GAS_FEE}(
             QUERY_HASH, PLACEHOLDERS, START_BLOCK, END_BLOCK
         );
@@ -158,16 +149,7 @@ contract LagrangeQueryRouterTest is BaseTest {
     function test_Request_LimitOffset_Success() public {
         vm.prank(client);
         vm.expectEmit();
-        emit LagrangeQueryRouter.NewRequest(
-            REQUEST_ID_1,
-            QUERY_HASH,
-            client,
-            PLACEHOLDERS,
-            START_BLOCK,
-            END_BLOCK,
-            GAS_FEE,
-            block.number
-        );
+        emit LagrangeQueryRouter.NewRequest(REQUEST_ID_1, address(executor));
         router.request{value: GAS_FEE}(
             QUERY_HASH, PLACEHOLDERS, START_BLOCK, END_BLOCK, 10, 5
         );
@@ -181,16 +163,7 @@ contract LagrangeQueryRouterTest is BaseTest {
         // Make request
         vm.prank(client);
         vm.expectEmit();
-        emit LagrangeQueryRouter.NewRequest(
-            REQUEST_ID_2,
-            QUERY_HASH,
-            client,
-            PLACEHOLDERS,
-            START_BLOCK,
-            END_BLOCK,
-            GAS_FEE,
-            block.number
-        );
+        emit LagrangeQueryRouter.NewRequest(REQUEST_ID_2, address(executor2));
         uint256 requestId = router.requestTo{value: GAS_FEE}(
             IQueryExecutor(executor2),
             QUERY_HASH,
@@ -220,7 +193,7 @@ contract LagrangeQueryRouterTest is BaseTest {
 
     function test_Respond_Success() public {
         vm.expectEmit();
-        emit LagrangeQueryRouter.NewResponse(REQUEST_ID_1, client, QUERY_OUTPUT);
+        emit LagrangeQueryRouter.NewResponse(REQUEST_ID_1, address(executor));
 
         vm.expectCall(
             client,

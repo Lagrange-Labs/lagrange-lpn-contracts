@@ -6,7 +6,9 @@ import {QueryExecutorTestHelper} from
     "./test_helpers/QueryExecutorTestHelper.sol";
 import {QueryExecutor} from "../../src/v2/QueryExecutor.sol";
 import {
-    QueryInput, QueryOutput
+    QueryInput,
+    QueryOutput,
+    QueryErrorCode
 } from "../../src/v2/Groth16VerifierExtension.sol";
 import {DatabaseManager} from "../../src/v2/DatabaseManager.sol";
 import {FeeCollector} from "../../src/v2/FeeCollector.sol";
@@ -132,6 +134,20 @@ contract QueryExecutorTest is BaseTest {
 
     function test_Request_Success() public {
         vm.prank(router);
+
+        // Expect NewRequest event
+        vm.expectEmit(false, true, true, true); // IDs are pseudo-random so don't test it
+        emit QueryExecutor.NewRequest(
+            0,
+            QUERY_HASH,
+            client,
+            PLACEHOLDERS,
+            TEST_START_BLOCK,
+            TEST_END_BLOCK,
+            FEE,
+            block.number
+        );
+
         uint256 id = executor.request{value: FEE}(
             client,
             QUERY_HASH,
@@ -295,6 +311,18 @@ contract QueryExecutorTest is BaseTest {
         // Verify request exists
         QueryExecutor.QueryRequest memory request = executor.getRequest(id);
         assertEq(request.client, client);
+
+        // Expect NewResponse event
+        vm.expectEmit(true, true, true, true);
+        emit QueryExecutor.NewResponse(
+            id,
+            client,
+            QueryOutput({
+                totalMatchedRows: 0,
+                rows: new bytes[](0),
+                error: QueryErrorCode.NoError
+            })
+        );
 
         (address returnedClient,) = executor.respond(id, RESPONSE_DATA);
         assertEq(returnedClient, client);

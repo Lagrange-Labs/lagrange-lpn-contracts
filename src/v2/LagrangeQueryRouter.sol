@@ -33,33 +33,15 @@ contract LagrangeQueryRouter is
     /// @dev The default query executor is always enabled, this set is used to disable/enable other executors that are used in tests, upgrades, etc
     EnumerableSet.AddressSet private s_enabledExecutors;
 
-    /// @notice Event emitted when a new request is made.
-    /// @param requestId The ID of the request.
-    /// @param queryHash The identifier of the SQL query associated with the request.
-    /// @param client The address of the client who made this request.
-    /// @param placeholders Values for the numbered placeholders in the query.
-    /// @param startBlock The starting block for the computation.
-    /// @param endBlock The ending block for the computation.
-    /// @param proofBlock The requested block for the proof to be computed against.
-    ///                   Currently required for OP Stack chains
-    event NewRequest(
-        uint256 indexed requestId,
-        bytes32 indexed queryHash,
-        address indexed client,
-        bytes32[] placeholders,
-        uint256 startBlock,
-        uint256 endBlock,
-        uint256 gasFee,
-        uint256 proofBlock
-    );
+    /// @notice Event emitted when a new request is made
+    /// @param requestId The ID of the request
+    /// @param queryExecutor The address of the query executor that is handling the request
+    event NewRequest(uint256 indexed requestId, address indexed queryExecutor);
 
-    /// @notice Event emitted when a response is received.
-    /// @param requestId The ID of the request.
-    /// @param client The address of the client who made the matching request.
-    /// @param result The computed results for the request.
-    event NewResponse(
-        uint256 indexed requestId, address indexed client, QueryOutput result
-    );
+    /// @notice Event emitted when a response is received
+    /// @param requestId The ID of the request
+    /// @param queryExecutor The address of the query executor that is handling the response
+    event NewResponse(uint256 indexed requestId, address indexed queryExecutor);
 
     /// @notice Error thrown when a QueryExecutor address is invalid
     error InvalidExecutorAddress();
@@ -188,16 +170,7 @@ contract LagrangeQueryRouter is
             offset
         );
 
-        emit NewRequest(
-            requestId,
-            queryHash,
-            msg.sender,
-            placeholders,
-            startBlock,
-            endBlock,
-            msg.value,
-            block.number
-        );
+        emit NewRequest(requestId, address(executor));
 
         return requestId;
     }
@@ -205,13 +178,7 @@ contract LagrangeQueryRouter is
     /// @notice Responds to a query request
     /// @param requestId The ID of the request to respond to
     /// @param data The response data
-    /// @return client The address of the client who made the request
-    /// @return result The result of the query to be passed to the client
-    /// @dev We intentionally do not check if the executor is enabled here. If the
-    function respond(uint256 requestId, bytes32[] calldata data)
-        external
-        returns (address client, QueryOutput memory result)
-    {
+    function respond(uint256 requestId, bytes32[] calldata data) external {
         // Extract executor address from bytes 2-21 of requestId
         IQueryExecutor executor =
             IQueryExecutor(address(bytes20(bytes32(requestId << 16))));
@@ -220,12 +187,13 @@ contract LagrangeQueryRouter is
             revert ExecutorNotEnabled();
         }
 
-        (client, result) = executor.respond(requestId, data);
+        // TODO make response call more generic ex have executor.respond just return bytes
+        (address client, QueryOutput memory result) =
+            executor.respond(requestId, data);
 
         ILPNClient(client).lpnCallback(requestId, result);
 
-        emit NewResponse(requestId, client, result);
-        return (client, result);
+        emit NewResponse(requestId, address(executor));
     }
 
     /// @notice Updates the default QueryExecutor address
