@@ -204,18 +204,10 @@ contract QueryExecutor is
             revert InvalidQuery();
         }
 
-        // requestId is formatted as follows:
-        // 2 bytes of entropy
-        // 20 bytes of contract address
-        // 10 bytes of entropy
-        // we do this because identifiers are often shown as ABCD...1234 and we want the first 2 and last 2 bytes to be unique
-        bytes32 entropy = keccak256(abi.encodePacked(++s_requestIDNonce));
         uint256 requestId = uint256(
-            bytes32(
-                bytes.concat(
-                    bytes2(entropy), // first 2 bytes from entropy
-                    abi.encodePacked(address(this)), // 20 bytes of contract address
-                    bytes10(entropy << 22 * 8) // last 10 bytes from entropy
+            keccak256(
+                abi.encodePacked(
+                    ++s_requestIDNonce, address(this), block.chainid
                 )
             )
         );
