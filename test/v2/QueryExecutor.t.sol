@@ -143,17 +143,17 @@ contract QueryExecutorTest is BaseTest {
         );
 
         // Check request data
-        (address requestClient, QueryInput memory input) = executor.requests(id);
-        assertEq(requestClient, client);
-        assertEq(input.limit, 10);
-        assertEq(input.offset, 100);
-        assertEq(input.minBlockNumber, TEST_START_BLOCK);
-        assertEq(input.maxBlockNumber, TEST_END_BLOCK);
-        assertEq(input.blockHash, blockhash(block.number - 1));
-        assertNotEq(input.blockHash, bytes32(0));
-        assertEq(input.computationalHash, QUERY_HASH);
+        QueryExecutor.QueryRequest memory request = executor.getRequest(id);
+        assertEq(request.client, client);
+        assertEq(request.input.limit, 10);
+        assertEq(request.input.offset, 100);
+        assertEq(request.input.minBlockNumber, TEST_START_BLOCK);
+        assertEq(request.input.maxBlockNumber, TEST_END_BLOCK);
+        assertEq(request.input.blockHash, blockhash(block.number - 1));
+        assertNotEq(request.input.blockHash, bytes32(0));
+        assertEq(request.input.computationalHash, QUERY_HASH);
         assertEq(
-            keccak256(abi.encode(input.userPlaceholders)),
+            keccak256(abi.encode(request.input.userPlaceholders)),
             keccak256(abi.encode(PLACEHOLDERS))
         );
 
@@ -293,15 +293,15 @@ contract QueryExecutorTest is BaseTest {
         );
 
         // Verify request exists
-        (address requestClient,) = executor.requests(id);
-        assertEq(requestClient, client);
+        QueryExecutor.QueryRequest memory request = executor.getRequest(id);
+        assertEq(request.client, client);
 
         (address returnedClient,) = executor.respond(id, RESPONSE_DATA);
         assertEq(returnedClient, client);
 
         // Verify request was deleted
-        (requestClient,) = executor.requests(id);
-        assertEq(requestClient, address(0));
+        request = executor.getRequest(id);
+        assertEq(request.client, address(0));
 
         vm.stopPrank();
     }

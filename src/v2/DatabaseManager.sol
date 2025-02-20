@@ -22,10 +22,10 @@ contract DatabaseManager is
     bytes32 private constant OWNER_ROLE = keccak256("OWNER_ROLE");
 
     /// @notice Mapping to track registered tables
-    mapping(bytes32 tableHash => bool registered) public tables;
+    mapping(bytes32 tableHash => bool registered) private s_tables;
 
     /// @notice Mapping to track registered queries, and the tables they are registered to
-    mapping(bytes32 queryHash => bytes32 tableHash) public queries;
+    mapping(bytes32 queryHash => bytes32 tableHash) private s_queries;
 
     /// @notice Emitted when a new table is registered
     event NewTableRegistration(
@@ -77,10 +77,10 @@ contract DatabaseManager is
         string calldata name,
         string calldata schema
     ) external onlyRole(OWNER_ROLE) {
-        if (tables[hash]) {
+        if (s_tables[hash]) {
             revert TableAlreadyRegistered();
         }
-        tables[hash] = true;
+        s_tables[hash] = true;
         emit NewTableRegistration(
             hash, contractAddr, chainId, genesisBlock, name, schema
         );
@@ -89,7 +89,7 @@ contract DatabaseManager is
     /// @notice Deletes a registered table
     /// @param hash The hash of the table to delete
     function deleteTable(bytes32 hash) external onlyRole(OWNER_ROLE) {
-        delete tables[hash];
+        delete s_tables[hash];
         emit TableDeleted(hash);
     }
 
@@ -102,10 +102,10 @@ contract DatabaseManager is
     function registerQuery(bytes32 hash, bytes32 tableHash, string calldata sql)
         external
     {
-        if (queries[hash] != bytes32(0)) {
+        if (s_queries[hash] != bytes32(0)) {
             revert QueryAlreadyRegistered();
         }
-        queries[hash] = tableHash;
+        s_queries[hash] = tableHash;
         emit NewQueryRegistration(hash, tableHash, sql);
     }
 
@@ -113,6 +113,24 @@ contract DatabaseManager is
     /// @param hash The hash of the query
     /// @return True if the query is queryable, false otherwise
     function isQueryActive(bytes32 hash) public view returns (bool) {
-        return tables[queries[hash]];
+        return s_tables[s_queries[hash]];
+    }
+
+    /// @notice Checks if a table is registered
+    /// @param hash The hash of the table
+    /// @return bool Trueif the table is registered, false otherwise
+    function isTableActive(bytes32 hash) external view returns (bool) {
+        return s_tables[hash];
+    }
+
+    /// @notice Gets the table hash associated with a query
+    /// @param queryHash The hash of the query
+    /// @return bytes32 The id of the table the query is registered to
+    function getTableForQuery(bytes32 queryHash)
+        external
+        view
+        returns (bytes32)
+    {
+        return s_queries[queryHash];
     }
 }

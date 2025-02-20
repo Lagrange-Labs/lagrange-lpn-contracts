@@ -53,7 +53,7 @@ contract QueryExecutor is
     FeeCollector public immutable feeCollector;
 
     /// @notice A nonce for constructing new requestIDs
-    uint256 private requestIDNonce;
+    uint256 private s_requestIDNonce;
 
     struct QueryRequest {
         address client;
@@ -61,7 +61,7 @@ contract QueryExecutor is
     }
 
     /// @notice Mapping to track requests and their associated clients.
-    mapping(uint256 requestId => QueryRequest query) public requests;
+    mapping(uint256 requestId => QueryRequest query) private s_requests;
 
     /// @notice Error thrown when attempting to query a block number that is after the current block.
     /// @dev endBlock > block.number
@@ -180,7 +180,7 @@ contract QueryExecutor is
         // 20 bytes of contract address
         // 10 bytes of entropy
         // we do this because identifiers are often shown as ABCD...1234 and we want the first 2 and last 2 bytes to be unique
-        bytes32 entropy = keccak256(abi.encodePacked(++requestIDNonce));
+        bytes32 entropy = keccak256(abi.encodePacked(++s_requestIDNonce));
         uint256 requestId = uint256(
             bytes32(
                 bytes.concat(
@@ -191,7 +191,7 @@ contract QueryExecutor is
             )
         );
 
-        requests[requestId] = QueryRequest({
+        s_requests[requestId] = QueryRequest({
             input: QueryInput({
                 limit: limit,
                 offset: offset,
@@ -220,8 +220,8 @@ contract QueryExecutor is
         onlyRouter
         returns (address client, QueryOutput memory result)
     {
-        QueryRequest memory query = requests[requestId];
-        delete requests[requestId];
+        QueryRequest memory query = s_requests[requestId];
+        delete s_requests[requestId];
 
         return (query.client, processQuery(data, query.input));
     }
@@ -239,5 +239,13 @@ contract QueryExecutor is
         if (SUPPORTS_L1_BLOCKDATA && blockHash != expectedBlockHash) {
             revert BlockhashMismatch();
         }
+    }
+
+    function getRequest(uint256 requestId)
+        public
+        view
+        returns (QueryRequest memory)
+    {
+        return s_requests[requestId];
     }
 }
