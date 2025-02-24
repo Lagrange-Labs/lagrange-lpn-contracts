@@ -16,7 +16,7 @@ contract FeeCollector is IVersioned, Ownable2Step {
     using SafeERC20 for IERC20;
 
     /// @notice The semantic version of the contract
-    string public constant version = "1.0.0";
+    string public constant VERSION = "1.0.0";
 
     /// @notice Emitted when native tokens are received
     event NativeReceived(address indexed sender, uint256 amount);

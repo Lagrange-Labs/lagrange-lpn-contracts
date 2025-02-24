@@ -23,7 +23,7 @@ contract LagrangeQueryRouter is
 {
     using EnumerableSet for EnumerableSet.AddressSet;
 
-    string public constant version = "1.0.0";
+    string public constant VERSION = "1.0.0";
 
     /// @notice The default QueryExecutor contract
     /// @dev This is only used to route incoming requests, responses are routed by the address embedded in the requestId
