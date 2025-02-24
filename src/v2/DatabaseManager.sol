@@ -6,6 +6,7 @@ import {AccessControlUpgradeable} from
     "@openzeppelin-contracts-upgradeable-5.2.0/access/AccessControlUpgradeable.sol";
 import {Initializable} from
     "@openzeppelin-contracts-upgradeable-5.2.0/proxy/utils/Initializable.sol";
+import {IDatabaseManager} from "./interfaces/IDatabaseManager.sol";
 
 /// @title DatabaseManager
 /// @notice Manages the registration of tables and queries for the system
@@ -14,6 +15,7 @@ import {Initializable} from
 contract DatabaseManager is
     Initializable,
     AccessControlUpgradeable,
+    IDatabaseManager,
     IVersioned
 {
     /// @notice The semantic version of the contract
@@ -109,9 +111,7 @@ contract DatabaseManager is
         emit NewQueryRegistration(hash, tableHash, sql);
     }
 
-    /// @notice Checks if a query is queryable
-    /// @param hash The hash of the query
-    /// @return True if the query is queryable, false otherwise
+    /// @inheritdoc IDatabaseManager
     function isQueryActive(bytes32 hash) public view returns (bool) {
         return s_tables[s_queries[hash]];
     }
