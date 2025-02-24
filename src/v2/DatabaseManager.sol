@@ -19,7 +19,7 @@ contract DatabaseManager is
     IVersioned
 {
     /// @notice The semantic version of the contract
-    string public constant version = "1.0.0";
+    string public constant VERSION = "1.0.0";
 
     bytes32 private constant OWNER_ROLE = keccak256("OWNER_ROLE");
 

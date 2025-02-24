@@ -6,5 +6,5 @@ pragma solidity ^0.8.0;
 interface IVersioned {
     /// @notice Returns the semantic version of the contract
     /// @return version The version of the contract as a string, ex "1.2.3"
-    function version() external view returns (string memory);
+    function VERSION() external view returns (string memory);
 }

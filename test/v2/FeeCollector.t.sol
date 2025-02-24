@@ -31,7 +31,7 @@ contract FeeCollectorTest is Test {
 
     function test_Constructor() public view {
         assertEq(feeCollector.owner(), owner);
-        assertEq(feeCollector.version(), "1.0.0");
+        assertEq(feeCollector.VERSION(), "1.0.0");
     }
 
     function test_ReceiveNative_Success() public {

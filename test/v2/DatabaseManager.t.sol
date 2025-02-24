@@ -37,7 +37,7 @@ contract DatabaseManagerTest is BaseTest {
     }
 
     function test_Constructor() public view {
-        assertEq(dbManager.version(), "1.0.0");
+        assertEq(dbManager.VERSION(), "1.0.0");
     }
 
     function test_Initialize() public view {
