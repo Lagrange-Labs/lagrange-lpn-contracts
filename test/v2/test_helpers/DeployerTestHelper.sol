@@ -28,10 +28,10 @@ contract DeployerTestHelper is Deployer {
         address routerProxy,
         address dbManagerProxy,
         address payable feeCollector,
-        QueryExecutor.FeeParams memory feeParams
+        QueryExecutor.Config memory config
     ) internal override returns (QueryExecutor) {
         return new QueryExecutorTestHelper(
-            engMultisig, routerProxy, dbManagerProxy, feeCollector, feeParams
+            engMultisig, routerProxy, dbManagerProxy, feeCollector, config
         );
     }
 }
