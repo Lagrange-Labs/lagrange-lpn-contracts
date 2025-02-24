@@ -34,7 +34,7 @@ contract QueryExecutor is
         QueryInput input;
     }
 
-    struct FeeParams {
+    struct Config {
         // the percentage of the current base fee to use for fulfillment gas price
         // should be close to 100 for chains with low gas price volatility
         uint16 baseFeePercentage;
@@ -58,7 +58,7 @@ contract QueryExecutor is
     /// @notice A nonce for constructing new requestIDs
     uint256 private s_requestIDNonce;
 
-    FeeParams private s_feeParams;
+    Config private s_config;
 
     /// @notice Mapping to track requests and their associated clients.
     mapping(uint256 requestId => QueryRequest query) private s_requests;
@@ -156,12 +156,12 @@ contract QueryExecutor is
         address _router,
         address _dbManager,
         address payable _feeCollector,
-        FeeParams memory _feeParams
+        Config memory config
     ) Ownable(initialOwner) {
         router = _router;
         dbManager = DatabaseManager(_dbManager);
         feeCollector = _feeCollector;
-        s_feeParams = _feeParams;
+        s_config = config;
         SUPPORTS_L1_BLOCKDATA = supportsL1BlockData();
     }
 
@@ -252,8 +252,8 @@ contract QueryExecutor is
         return (query.client, uint256(query.callbackGasLimit), result);
     }
 
-    function setFeeParams(FeeParams memory feeParams) external onlyOwner {
-        s_feeParams = feeParams;
+    function setConfig(Config memory config) external onlyOwner {
+        s_config = config;
     }
 
     /// @inheritdoc Groth16VerifierExtension
@@ -278,10 +278,10 @@ contract QueryExecutor is
         return s_requests[requestId];
     }
 
-    /// @notice Get the current fee parameters
-    /// @return feeParams The current fee parameters
-    function getFeeParams() public view returns (FeeParams memory) {
-        return s_feeParams;
+    /// @notice Get the current configuration parameters
+    /// @return config The current configuration parameters
+    function getConfig() public view returns (Config memory) {
+        return s_config;
     }
 
     /// @notice Get the current fee for a query
@@ -297,7 +297,7 @@ contract QueryExecutor is
         if (!dbManager.isQueryActive(queryHash)) {
             revert InvalidQuery();
         }
-        FeeParams memory feeParams = s_feeParams;
+        Config memory config = s_config;
         // more human readable version of the fee calculation below:
         // paymentAmount =
         //                 (
@@ -310,13 +310,13 @@ contract QueryExecutor is
                 (
                     (
                         (
-                            block.basefee * feeParams.baseFeePercentage
-                                * (feeParams.verificationGas + callbackGasLimit)
+                            block.basefee * config.baseFeePercentage
+                                * (config.verificationGas + callbackGasLimit)
                         ) / 100
-                            + (feeParams.queryPricePerBlock * blockRange * 1 gwei)
-                    ) * (1_000 + feeParams.protocolFeePPT)
+                            + (config.queryPricePerBlock * blockRange * 1 gwei)
+                    ) * (1_000 + config.protocolFeePPT)
                 ) / 1_000
-            ) + feeParams.protocolFeeFixed
+            ) + config.protocolFeeFixed
         );
     }
 }

@@ -34,7 +34,7 @@ contract QueryExecutorTest is BaseTest {
 
     uint32 public constant CALLBACK_GAS_LIMIT = 100_000;
 
-    QueryExecutor.FeeParams public feeParams;
+    QueryExecutor.Config public config;
 
     function setUp() public {
         vm.chainId(1); // Ethereum mainnet
@@ -46,7 +46,7 @@ contract QueryExecutorTest is BaseTest {
         stranger = makeAddr("stranger");
         client = makeAddr("client");
 
-        feeParams = QueryExecutor.FeeParams({
+        config = QueryExecutor.Config({
             baseFeePercentage: 100,
             verificationGas: 0,
             protocolFeePPT: 0,
@@ -56,7 +56,7 @@ contract QueryExecutorTest is BaseTest {
 
         vm.prank(owner);
         executor = new QueryExecutorTestHelper(
-            owner, router, dbManager, feeCollector, feeParams
+            owner, router, dbManager, feeCollector, config
         );
 
         vm.deal(router, 1 ether);
@@ -97,55 +97,55 @@ contract QueryExecutorTest is BaseTest {
         // Scroll mainnet
         imitateChain(534352);
         QueryExecutorTestHelper exec = new QueryExecutorTestHelper(
-            owner, router, dbManager, feeCollector, feeParams
+            owner, router, dbManager, feeCollector, config
         );
         assertFalse(exec.SUPPORTS_L1_BLOCKDATA());
         // Scroll testnet
         imitateChain(534351);
         exec = new QueryExecutorTestHelper(
-            owner, router, dbManager, feeCollector, feeParams
+            owner, router, dbManager, feeCollector, config
         );
         assertFalse(exec.SUPPORTS_L1_BLOCKDATA());
         // Polygon zkEVM mainnet
         imitateChain(1101);
         exec = new QueryExecutorTestHelper(
-            owner, router, dbManager, feeCollector, feeParams
+            owner, router, dbManager, feeCollector, config
         );
         assertFalse(exec.SUPPORTS_L1_BLOCKDATA());
         // Ethereum mainnet
         imitateChain(1);
         exec = new QueryExecutorTestHelper(
-            owner, router, dbManager, feeCollector, feeParams
+            owner, router, dbManager, feeCollector, config
         );
         assertTrue(exec.SUPPORTS_L1_BLOCKDATA());
         // Ethereum Holesky testnet
         imitateChain(17000);
         exec = new QueryExecutorTestHelper(
-            owner, router, dbManager, feeCollector, feeParams
+            owner, router, dbManager, feeCollector, config
         );
         assertTrue(exec.SUPPORTS_L1_BLOCKDATA());
         // Mantle mainnet
         imitateChain(5000);
         exec = new QueryExecutorTestHelper(
-            owner, router, dbManager, feeCollector, feeParams
+            owner, router, dbManager, feeCollector, config
         );
         assertTrue(exec.SUPPORTS_L1_BLOCKDATA());
         // Mantle testnet
         imitateChain(5003);
         exec = new QueryExecutorTestHelper(
-            owner, router, dbManager, feeCollector, feeParams
+            owner, router, dbManager, feeCollector, config
         );
         assertTrue(exec.SUPPORTS_L1_BLOCKDATA());
         // Base mainnet
         imitateChain(8453);
         exec = new QueryExecutorTestHelper(
-            owner, router, dbManager, feeCollector, feeParams
+            owner, router, dbManager, feeCollector, config
         );
         assertTrue(exec.SUPPORTS_L1_BLOCKDATA());
         // Base sepolia
         imitateChain(84532);
         exec = new QueryExecutorTestHelper(
-            owner, router, dbManager, feeCollector, feeParams
+            owner, router, dbManager, feeCollector, config
         );
         assertTrue(exec.SUPPORTS_L1_BLOCKDATA());
     }
@@ -378,8 +378,8 @@ contract QueryExecutorTest is BaseTest {
         executor.respond(id, RESPONSE_DATA);
     }
 
-    function test_SetFeeParams_Success() public {
-        QueryExecutor.FeeParams memory newFeeParams = QueryExecutor.FeeParams({
+    function test_SetConfig_Success() public {
+        QueryExecutor.Config memory newConfig = QueryExecutor.Config({
             baseFeePercentage: 999,
             verificationGas: 123_456,
             protocolFeePPT: 22,
@@ -388,19 +388,19 @@ contract QueryExecutorTest is BaseTest {
         });
 
         vm.prank(owner);
-        executor.setFeeParams(newFeeParams);
+        executor.setConfig(newConfig);
 
-        assertEq(abi.encode(executor.getFeeParams()), abi.encode(newFeeParams));
+        assertEq(abi.encode(executor.getConfig()), abi.encode(newConfig));
     }
 
-    function test_SetFeeParams_RevertIf_NotOwner() public {
+    function test_SetConfig_RevertIf_NotOwner() public {
         vm.expectRevert(
             abi.encodeWithSelector(
                 Ownable.OwnableUnauthorizedAccount.selector, stranger
             )
         );
         vm.prank(stranger);
-        executor.setFeeParams(feeParams);
+        executor.setConfig(config);
     }
 
     function test_GetFee_BaseFeePercentage_IncreasesFee_Success() public {
@@ -408,10 +408,10 @@ contract QueryExecutorTest is BaseTest {
         assertGt(oldFee, 0);
 
         // Increase baseFeePercentage
-        QueryExecutor.FeeParams memory newParams = feeParams;
-        newParams.baseFeePercentage = 200; // Double the percentage
+        QueryExecutor.Config memory newConfig = config;
+        newConfig.baseFeePercentage = 200; // Double the percentage
         vm.prank(owner);
-        executor.setFeeParams(newParams);
+        executor.setConfig(newConfig);
 
         // Fee should double
         uint256 newFee = executor.getFee(QUERY_HASH, CALLBACK_GAS_LIMIT, 100);
@@ -423,10 +423,10 @@ contract QueryExecutorTest is BaseTest {
         assertGt(oldFee, 0);
 
         // Set verification gas
-        QueryExecutor.FeeParams memory newParams = feeParams;
-        newParams.verificationGas = uint24(CALLBACK_GAS_LIMIT); // this should double the price
+        QueryExecutor.Config memory newConfig = config;
+        newConfig.verificationGas = uint24(CALLBACK_GAS_LIMIT); // this should double the price
         vm.prank(owner);
-        executor.setFeeParams(newParams);
+        executor.setConfig(newConfig);
 
         // Fee should double
         uint256 newFee = executor.getFee(QUERY_HASH, CALLBACK_GAS_LIMIT, 100);
@@ -438,10 +438,10 @@ contract QueryExecutorTest is BaseTest {
         assertGt(oldFee, 0);
 
         // Set protocol fee PPT to 100 (10%)
-        QueryExecutor.FeeParams memory newParams = feeParams;
-        newParams.protocolFeePPT = 100;
+        QueryExecutor.Config memory newConfig = config;
+        newConfig.protocolFeePPT = 100;
         vm.prank(owner);
-        executor.setFeeParams(newParams);
+        executor.setConfig(newConfig);
 
         // Fee should increase by 10%
         uint256 newFee = executor.getFee(QUERY_HASH, CALLBACK_GAS_LIMIT, 100);
@@ -453,10 +453,10 @@ contract QueryExecutorTest is BaseTest {
         assertGt(oldFee, 0);
 
         // Set query price per block
-        QueryExecutor.FeeParams memory newParams = feeParams;
-        newParams.queryPricePerBlock = 3;
+        QueryExecutor.Config memory newConfig = config;
+        newConfig.queryPricePerBlock = 3;
         vm.prank(owner);
-        executor.setFeeParams(newParams);
+        executor.setConfig(newConfig);
 
         // Fee should increase by (blockRange * queryPricePerBlock * 1 gwei)
         uint256 newFee = executor.getFee(QUERY_HASH, CALLBACK_GAS_LIMIT, 100);
@@ -468,10 +468,10 @@ contract QueryExecutorTest is BaseTest {
         assertGt(oldFee, 0);
 
         // Set fixed protocol fee
-        QueryExecutor.FeeParams memory newParams = feeParams;
-        newParams.protocolFeeFixed = 1234;
+        QueryExecutor.Config memory newConfig = config;
+        newConfig.protocolFeeFixed = 1234;
         vm.prank(owner);
-        executor.setFeeParams(newParams);
+        executor.setConfig(newConfig);
 
         // Fee should increase by fixed amount
         uint256 newFee = executor.getFee(QUERY_HASH, CALLBACK_GAS_LIMIT, 100);
@@ -480,11 +480,11 @@ contract QueryExecutorTest is BaseTest {
 
     function test_GetFee_QueryRange_IncreasesFee_Success() public {
         // Set prices to only charge for the query (no gas charge)
-        QueryExecutor.FeeParams memory newParams = feeParams;
-        newParams.baseFeePercentage = 0;
-        newParams.queryPricePerBlock = 1;
+        QueryExecutor.Config memory newConfig = config;
+        newConfig.baseFeePercentage = 0;
+        newConfig.queryPricePerBlock = 1;
         vm.prank(owner);
-        executor.setFeeParams(newParams);
+        executor.setConfig(newConfig);
 
         uint256 oldFee = executor.getFee(QUERY_HASH, CALLBACK_GAS_LIMIT, 100);
         assertGt(oldFee, 0);
@@ -508,60 +508,60 @@ contract QueryExecutorTest is BaseTest {
         // Ethereum mainnet
         imitateChain(1);
         executor = new QueryExecutorTestHelper(
-            owner, router, dbManager, feeCollector, feeParams
+            owner, router, dbManager, feeCollector, config
         );
         vm.expectRevert(QueryExecutor.BlockhashMismatch.selector);
         executor.verifyBlockhash(randomBytes32(), randomBytes32());
         // Scroll mainnet
         imitateChain(534352);
         executor = new QueryExecutorTestHelper(
-            owner, router, dbManager, feeCollector, feeParams
+            owner, router, dbManager, feeCollector, config
         );
         executor.verifyBlockhash(randomBytes32(), randomBytes32()); // should not revert
         // Scroll testnet
         imitateChain(534351);
         executor = new QueryExecutorTestHelper(
-            owner, router, dbManager, feeCollector, feeParams
+            owner, router, dbManager, feeCollector, config
         );
         executor.verifyBlockhash(randomBytes32(), randomBytes32()); // should not revert
         // Polygon zkEVM mainnet
         imitateChain(1101);
         executor = new QueryExecutorTestHelper(
-            owner, router, dbManager, feeCollector, feeParams
+            owner, router, dbManager, feeCollector, config
         );
         executor.verifyBlockhash(randomBytes32(), randomBytes32()); // should not revert
         // Ethereum Holesky testnet
         imitateChain(17000);
         executor = new QueryExecutorTestHelper(
-            owner, router, dbManager, feeCollector, feeParams
+            owner, router, dbManager, feeCollector, config
         );
         vm.expectRevert(QueryExecutor.BlockhashMismatch.selector);
         executor.verifyBlockhash(randomBytes32(), randomBytes32());
         // Mantle mainnet
         imitateChain(5000);
         executor = new QueryExecutorTestHelper(
-            owner, router, dbManager, feeCollector, feeParams
+            owner, router, dbManager, feeCollector, config
         );
         vm.expectRevert(QueryExecutor.BlockhashMismatch.selector);
         executor.verifyBlockhash(randomBytes32(), randomBytes32());
         // Mantle testnet
         imitateChain(5003);
         executor = new QueryExecutorTestHelper(
-            owner, router, dbManager, feeCollector, feeParams
+            owner, router, dbManager, feeCollector, config
         );
         vm.expectRevert(QueryExecutor.BlockhashMismatch.selector);
         executor.verifyBlockhash(randomBytes32(), randomBytes32());
         // Base mainnet
         imitateChain(8453);
         executor = new QueryExecutorTestHelper(
-            owner, router, dbManager, feeCollector, feeParams
+            owner, router, dbManager, feeCollector, config
         );
         vm.expectRevert(QueryExecutor.BlockhashMismatch.selector);
         executor.verifyBlockhash(randomBytes32(), randomBytes32());
         // Base sepolia
         imitateChain(84532);
         executor = new QueryExecutorTestHelper(
-            owner, router, dbManager, feeCollector, feeParams
+            owner, router, dbManager, feeCollector, config
         );
         vm.expectRevert(QueryExecutor.BlockhashMismatch.selector);
         executor.verifyBlockhash(randomBytes32(), randomBytes32());

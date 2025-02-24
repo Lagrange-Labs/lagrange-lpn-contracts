@@ -85,15 +85,15 @@ contract Deployer {
         address routerProxy,
         address dbManagerProxy,
         address payable feeCollector,
-        QueryExecutor.FeeParams memory feeParams
+        QueryExecutor.Config memory config
     ) internal virtual returns (QueryExecutor) {
         return new QueryExecutor(
-            engMultisig, routerProxy, dbManagerProxy, feeCollector, feeParams
+            engMultisig, routerProxy, dbManagerProxy, feeCollector, config
         );
     }
 
     /// @notice Returns the default fee parameters for the current chain
-    /// @return feeParams The default fee parameters
+    /// @return config The default configuration parameters
     /// @dev by default, there are:
     ///                             * no protocol fees
     ///                             * gas fee is 150% of the block.basefee at request time
@@ -103,9 +103,9 @@ contract Deployer {
     function getDefaultFeeParams()
         private
         pure
-        returns (QueryExecutor.FeeParams memory)
+        returns (QueryExecutor.Config memory)
     {
-        return QueryExecutor.FeeParams({
+        return QueryExecutor.Config({
             baseFeePercentage: 150,
             verificationGas: 350_000,
             protocolFeePPT: 0,
