@@ -37,13 +37,14 @@ contract LagrangeQueryRouterTest is BaseTest {
 
     QueryOutput public QUERY_OUTPUT;
 
+    uint32 public constant CALLBACK_GAS_LIMIT = 100_000;
+
     function setUp() public {
         owner = makeAddr("owner");
         executor = makeMock("executor");
         executor2 = makeMock("executor2");
         client = makeMock("client");
         stranger = makeAddr("stranger");
-
         // Setup test values
         PLACEHOLDERS = new bytes32[](3);
         PLACEHOLDERS[0] = bytes32(uint256(1));
@@ -101,7 +102,7 @@ contract LagrangeQueryRouterTest is BaseTest {
         vm.mockCall(
             executor,
             abi.encodeWithSelector(IQueryExecutor.respond.selector),
-            abi.encode(client, QUERY_OUTPUT)
+            abi.encode(client, CALLBACK_GAS_LIMIT, QUERY_OUTPUT)
         );
         vm.mockCall(
             executor2,
@@ -111,7 +112,7 @@ contract LagrangeQueryRouterTest is BaseTest {
         vm.mockCall(
             executor2,
             abi.encodeWithSelector(IQueryExecutor.respond.selector),
-            abi.encode(client, QUERY_OUTPUT)
+            abi.encode(client, CALLBACK_GAS_LIMIT, QUERY_OUTPUT)
         );
     }
 
@@ -142,7 +143,7 @@ contract LagrangeQueryRouterTest is BaseTest {
         vm.expectEmit();
         emit LagrangeQueryRouter.NewRequest(REQUEST_ID_1, address(executor));
         router.request{value: GAS_FEE}(
-            QUERY_HASH, PLACEHOLDERS, START_BLOCK, END_BLOCK
+            QUERY_HASH, CALLBACK_GAS_LIMIT, PLACEHOLDERS, START_BLOCK, END_BLOCK
         );
     }
 
@@ -151,7 +152,13 @@ contract LagrangeQueryRouterTest is BaseTest {
         vm.expectEmit();
         emit LagrangeQueryRouter.NewRequest(REQUEST_ID_1, address(executor));
         router.request{value: GAS_FEE}(
-            QUERY_HASH, PLACEHOLDERS, START_BLOCK, END_BLOCK, 10, 5
+            QUERY_HASH,
+            CALLBACK_GAS_LIMIT,
+            PLACEHOLDERS,
+            START_BLOCK,
+            END_BLOCK,
+            10,
+            5
         );
     }
 
@@ -167,6 +174,7 @@ contract LagrangeQueryRouterTest is BaseTest {
         uint256 requestId = router.requestTo{value: GAS_FEE}(
             IQueryExecutor(executor2),
             QUERY_HASH,
+            CALLBACK_GAS_LIMIT,
             PLACEHOLDERS,
             START_BLOCK,
             END_BLOCK,
@@ -183,6 +191,7 @@ contract LagrangeQueryRouterTest is BaseTest {
         router.requestTo{value: GAS_FEE}(
             IQueryExecutor(address(1)),
             QUERY_HASH,
+            CALLBACK_GAS_LIMIT,
             PLACEHOLDERS,
             START_BLOCK,
             END_BLOCK,
@@ -264,5 +273,17 @@ contract LagrangeQueryRouterTest is BaseTest {
             LagrangeQueryRouter.CannotDisableDefaultExecutor.selector
         );
         router.setExecutorEnabled(IQueryExecutor(executor), false);
+    }
+
+    function test_GetFee_Success() public {
+        vm.mockCall(
+            executor,
+            abi.encodeWithSelector(IQueryExecutor.getFee.selector),
+            abi.encode(99)
+        );
+        uint256 fee = router.getFee(
+            QUERY_HASH, CALLBACK_GAS_LIMIT, END_BLOCK - START_BLOCK + 1
+        );
+        assertEq(fee, 99);
     }
 }

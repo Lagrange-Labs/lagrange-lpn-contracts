@@ -18,8 +18,9 @@ contract QueryExecutorTestHelper is QueryExecutor {
         address initialOwner,
         address router,
         address dbManager,
-        address payable feeCollector
-    ) QueryExecutor(initialOwner, router, dbManager, feeCollector) {}
+        address payable feeCollector,
+        FeeParams memory feeParams
+    ) QueryExecutor(initialOwner, router, dbManager, feeCollector, feeParams) {}
 
     function processQuery(bytes32[] calldata data, QueryInput memory query)
         public

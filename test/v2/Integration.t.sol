@@ -42,6 +42,8 @@ contract IntegrationTest is BaseTest {
     bytes32[] public RESPONSE_DATA;
     uint256 public requestId;
 
+    uint32 public constant CALLBACK_GAS_LIMIT = 100_000;
+
     function setUp() public {
         // Setup test accounts
         engMultisig = makeAddr("engMultisig");
@@ -113,7 +115,7 @@ contract IntegrationTest is BaseTest {
         // Make request from client
         vm.prank(client);
         requestId = router.request{value: GAS_FEE}(
-            QUERY_HASH, PLACEHOLDERS, START_BLOCK, END_BLOCK
+            QUERY_HASH, CALLBACK_GAS_LIMIT, PLACEHOLDERS, START_BLOCK, END_BLOCK
         );
 
         // Expect client callback to be called

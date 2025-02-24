@@ -10,7 +10,6 @@ import {supportsL1BlockData} from "../utils/Constants.sol";
 import {IQueryExecutor} from "./interfaces/IQueryExecutor.sol";
 import {L1BlockHash, L1BlockNumber} from "../utils/L1Block.sol";
 import {DatabaseManager} from "./DatabaseManager.sol";
-import {FeeCollector} from "./FeeCollector.sol";
 import {
     isEthereum,
     isMantle,
@@ -34,15 +33,24 @@ contract QueryExecutor is
     Ownable2Step,
     IQueryExecutor
 {
+    struct QueryRequest {
+        address client;
+        uint32 callbackGasLimit;
+        QueryInput input;
+    }
+
+    struct FeeParams {
+        // the percentage of the current base fee to use for fulfillment gas price
+        // should be close to 100 for chains with low gas price volatility
+        uint16 baseFeePercentage;
+        uint24 verificationGas; // the static gas cost of verifying the snark and other accounting logic
+        uint8 protocolFeePPT; // an optional fraction of the gas & query fee to charge for the protocol (in parts per thousand)
+        uint24 queryPricePerBlock; // the price of a query per block
+        uint24 protocolFeeFixed; // an optional fixed fee to charge for the protocol, in wei
+    }
+
     /// @notice The maximum number of blocks a query can be computed over
     uint256 public constant MAX_QUERY_RANGE = 50_000; // TODO should this be configurable per query? Or is one global parameter okay?
-
-    /// @notice A constant gas fee paid for each request to reimburse the relayer when it delivers the response
-    uint256 public immutable GAS_FEE;
-    uint256 private constant ETH_GAS_FEE = 0.01 ether;
-    uint256 private constant L2_GAS_FEE = 0.001 ether;
-    /// @dev Mantle uses a custom gas token
-    uint256 private constant MANTLE_GAS_FEE = 4.0 ether;
 
     /// @dev not all L2s support reading the L1 blockhash. For those that can't we disable the blockhash verification
     bool public immutable SUPPORTS_L1_BLOCKDATA;
@@ -50,15 +58,12 @@ contract QueryExecutor is
     /// @notice other contracts in the system
     address public immutable router;
     DatabaseManager public immutable dbManager;
-    FeeCollector public immutable feeCollector;
+    address payable public immutable feeCollector;
 
     /// @notice A nonce for constructing new requestIDs
     uint256 private s_requestIDNonce;
 
-    struct QueryRequest {
-        address client;
-        QueryInput input;
-    }
+    FeeParams private s_feeParams;
 
     /// @notice Mapping to track requests and their associated clients.
     mapping(uint256 requestId => QueryRequest query) private s_requests;
@@ -108,26 +113,16 @@ contract QueryExecutor is
     error InvalidQuery();
 
     /// @notice Error thrown when gas fee is not paid.
-    error InsufficientGasFee();
+    error InsufficientFee();
 
     /// @notice Error thrown when blockhash verification fails.
     error BlockhashMismatch();
-
-    /// @notice Error thrown when deloyed to a chain with an unknown chainId.
-    error ChainNotSupported();
 
     /// @notice Error thrown when a non-router address calls a router-only function
     error OnlyRouter();
 
     /// @notice Error thrown when a transfer fails.
     error TransferFailed();
-
-    modifier requireGasFee() {
-        if (msg.value < GAS_FEE) {
-            revert InsufficientGasFee();
-        }
-        _;
-    }
 
     modifier onlyRouter() {
         if (msg.sender != router) {
@@ -151,7 +146,6 @@ contract QueryExecutor is
             revert QueryInvalidRange();
         }
         if (endBlock - startBlock + 1 > MAX_QUERY_RANGE) {
-            // NOTE: technically the max range is MAX_QUERY_RANGE-1 :facepalm:
             revert QueryGreaterThanMaxRange();
         }
         _;
@@ -166,42 +160,41 @@ contract QueryExecutor is
         address initialOwner,
         address _router,
         address _dbManager,
-        address payable _feeCollector
+        address payable _feeCollector,
+        FeeParams memory _feeParams
     ) Ownable(initialOwner) {
         router = _router;
         dbManager = DatabaseManager(_dbManager);
-        feeCollector = FeeCollector(_feeCollector);
+        feeCollector = _feeCollector;
+        s_feeParams = _feeParams;
         SUPPORTS_L1_BLOCKDATA = supportsL1BlockData();
-        if (isEthereum() || isLocal()) {
-            GAS_FEE = ETH_GAS_FEE;
-        } else if (isMantle()) {
-            GAS_FEE = MANTLE_GAS_FEE;
-        } else if (isOPStack() || isCDK() || isScroll()) {
-            GAS_FEE = L2_GAS_FEE;
-        } else {
-            revert ChainNotSupported();
-        }
     }
 
     /// @inheritdoc IQueryExecutor
     function request(
         address client,
         bytes32 queryHash,
+        uint32 callbackGasLimit,
         bytes32[] calldata placeholders,
         uint256 startBlock,
         uint256 endBlock,
         uint32 limit,
         uint32 offset
     )
-        public
+        external
         payable
         onlyRouter
-        requireGasFee
         validateQueryRange(startBlock, endBlock)
         returns (uint256)
     {
-        if (!dbManager.isQueryActive(queryHash)) {
-            revert InvalidQuery();
+        {
+            // Note: getFee will also verify that the query hash is valid
+            uint256 fee =
+                getFee(queryHash, callbackGasLimit, endBlock - startBlock + 1);
+
+            if (msg.value < fee) {
+                revert InsufficientFee();
+            }
         }
 
         uint256 requestId = uint256(
@@ -222,14 +215,16 @@ contract QueryExecutor is
                 computationalHash: queryHash,
                 userPlaceholders: placeholders
             }),
+            callbackGasLimit: callbackGasLimit,
             client: client
         });
 
         // Forward fee to fee collector
-        (bool success,) =
-            payable(address(feeCollector)).call{value: msg.value}("");
-        if (!success) {
-            revert TransferFailed();
+        {
+            (bool success,) = feeCollector.call{value: msg.value}("");
+            if (!success) {
+                revert TransferFailed();
+            }
         }
 
         emit NewRequest(
@@ -250,7 +245,7 @@ contract QueryExecutor is
     function respond(uint256 requestId, bytes32[] calldata data)
         external
         onlyRouter
-        returns (address, QueryOutput memory)
+        returns (address, uint256, QueryOutput memory)
     {
         QueryRequest memory query = s_requests[requestId];
         delete s_requests[requestId];
@@ -259,11 +254,11 @@ contract QueryExecutor is
 
         emit NewResponse(requestId, query.client, result);
 
-        return (query.client, result);
+        return (query.client, uint256(query.callbackGasLimit), result);
     }
 
-    function gasFee() public view returns (uint256) {
-        return GAS_FEE;
+    function setFeeParams(FeeParams memory feeParams) external onlyOwner {
+        s_feeParams = feeParams;
     }
 
     /// @inheritdoc Groth16VerifierExtension
@@ -277,11 +272,56 @@ contract QueryExecutor is
         }
     }
 
+    /// @notice Get a request by the request ID
+    /// @param requestId The unique ID of the request
+    /// @return query The request information
     function getRequest(uint256 requestId)
         public
         view
         returns (QueryRequest memory)
     {
         return s_requests[requestId];
+    }
+
+    /// @notice Get the current fee parameters
+    /// @return feeParams The current fee parameters
+    function getFeeParams() public view returns (FeeParams memory) {
+        return s_feeParams;
+    }
+
+    /// @notice Get the current fee for a query
+    /// @param queryHash The hash of the query
+    /// @param callbackGasLimit The gas limit for the callback
+    /// @param blockRange The range of blocks to query
+    /// @return fee The fee, in wei, for the query
+    function getFee(
+        bytes32 queryHash,
+        uint32 callbackGasLimit,
+        uint256 blockRange
+    ) public view returns (uint256) {
+        if (!dbManager.isQueryActive(queryHash)) {
+            revert InvalidQuery();
+        }
+        FeeParams memory feeParams = s_feeParams;
+        // more human readable version of the fee calculation below:
+        // paymentAmount =
+        //                 (
+        //                   gasPrice * (verificationGas + callbackGas)
+        //                   + blockRange * queryPricePerBlock
+        //                 ) * (1 + protocolFeePercent)
+        //                 + flatFee
+        return (
+            (
+                (
+                    (
+                        (
+                            block.basefee * feeParams.baseFeePercentage
+                                * (feeParams.verificationGas + callbackGasLimit)
+                        ) / 100
+                            + (feeParams.queryPricePerBlock * blockRange * 1 gwei)
+                    ) * (1_000 + feeParams.protocolFeePPT)
+                ) / 1_000
+            ) + feeParams.protocolFeeFixed
+        );
     }
 }
