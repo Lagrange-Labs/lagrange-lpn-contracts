@@ -11,17 +11,10 @@ import {IQueryExecutor} from "./interfaces/IQueryExecutor.sol";
 import {L1BlockHash, L1BlockNumber} from "../utils/L1Block.sol";
 import {DatabaseManager} from "./DatabaseManager.sol";
 import {
-    isEthereum,
-    isMantle,
-    isLocal,
-    isOPStack,
-    isCDK,
-    isScroll
-} from "../utils/Constants.sol";
-import {
     Ownable2Step,
     Ownable
 } from "@openzeppelin-contracts-5.2.0/access/Ownable2Step.sol";
+import {SafeCast} from "@openzeppelin-contracts-5.2.0/utils/math/SafeCast.sol";
 
 /// @title QueryExecutor
 /// @notice The contract that handles requesting and responding to queries
@@ -33,6 +26,8 @@ contract QueryExecutor is
     Ownable2Step,
     IQueryExecutor
 {
+    using SafeCast for uint256;
+
     struct QueryRequest {
         address client;
         uint32 callbackGasLimit;
@@ -174,12 +169,12 @@ contract QueryExecutor is
     function request(
         address client,
         bytes32 queryHash,
-        uint32 callbackGasLimit,
+        uint256 callbackGasLimit,
         bytes32[] calldata placeholders,
         uint256 startBlock,
         uint256 endBlock,
-        uint32 limit,
-        uint32 offset
+        uint256 limit,
+        uint256 offset
     )
         external
         payable
@@ -207,15 +202,15 @@ contract QueryExecutor is
 
         s_requests[requestId] = QueryRequest({
             input: QueryInput({
-                limit: limit,
-                offset: offset,
-                minBlockNumber: uint64(startBlock),
-                maxBlockNumber: uint64(endBlock),
+                limit: limit.toUint32(),
+                offset: offset.toUint32(),
+                minBlockNumber: startBlock.toUint64(),
+                maxBlockNumber: endBlock.toUint64(),
                 blockHash: L1BlockHash(),
                 computationalHash: queryHash,
                 userPlaceholders: placeholders
             }),
-            callbackGasLimit: callbackGasLimit,
+            callbackGasLimit: callbackGasLimit.toUint32(),
             client: client
         });
 
@@ -296,7 +291,7 @@ contract QueryExecutor is
     /// @return fee The fee, in wei, for the query
     function getFee(
         bytes32 queryHash,
-        uint32 callbackGasLimit,
+        uint256 callbackGasLimit,
         uint256 blockRange
     ) public view returns (uint256) {
         if (!dbManager.isQueryActive(queryHash)) {

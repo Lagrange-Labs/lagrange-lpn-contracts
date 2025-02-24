@@ -77,7 +77,7 @@ contract LagrangeQueryRouter is
     /// @param endBlock The ending block number for the query range
     function request(
         bytes32 queryHash,
-        uint32 callbackGasLimit,
+        uint256 callbackGasLimit,
         bytes32[] calldata placeholders,
         uint256 startBlock,
         uint256 endBlock
@@ -104,12 +104,12 @@ contract LagrangeQueryRouter is
     /// @param offset The number of rows to skip
     function request(
         bytes32 queryHash,
-        uint32 callbackGasLimit,
+        uint256 callbackGasLimit,
         bytes32[] calldata placeholders,
         uint256 startBlock,
         uint256 endBlock,
-        uint32 limit,
-        uint32 offset
+        uint256 limit,
+        uint256 offset
     ) external payable returns (uint256) {
         return _requestTo(
             s_defaultQueryExecutor,
@@ -136,12 +136,12 @@ contract LagrangeQueryRouter is
     function requestTo(
         IQueryExecutor executor,
         bytes32 queryHash,
-        uint32 callbackGasLimit,
+        uint256 callbackGasLimit,
         bytes32[] calldata placeholders,
         uint256 startBlock,
         uint256 endBlock,
-        uint32 limit,
-        uint32 offset
+        uint256 limit,
+        uint256 offset
     ) public payable returns (uint256) {
         if (!s_enabledExecutors.contains(address(executor))) {
             revert ExecutorNotEnabled();
@@ -163,12 +163,12 @@ contract LagrangeQueryRouter is
     function _requestTo(
         IQueryExecutor executor,
         bytes32 queryHash,
-        uint32 callbackGasLimit,
+        uint256 callbackGasLimit,
         bytes32[] calldata placeholders,
         uint256 startBlock,
         uint256 endBlock,
-        uint32 limit,
-        uint32 offset
+        uint256 limit,
+        uint256 offset
     ) private returns (uint256) {
         uint256 requestId = executor.request{value: msg.value}(
             msg.sender,
@@ -214,7 +214,7 @@ contract LagrangeQueryRouter is
     /// @return fee The fee for the query
     function getFee(
         bytes32 queryHash,
-        uint32 callbackGasLimit,
+        uint256 callbackGasLimit,
         uint256 blockRange
     ) external view returns (uint256) {
         return s_defaultQueryExecutor.getFee(

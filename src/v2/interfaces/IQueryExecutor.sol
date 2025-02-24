@@ -19,12 +19,12 @@ interface IQueryExecutor {
     function request(
         address client,
         bytes32 queryHash,
-        uint32 callbackGasLimit,
+        uint256 callbackGasLimit,
         bytes32[] calldata placeholders,
         uint256 startBlock,
         uint256 endBlock,
-        uint32 limit,
-        uint32 offset
+        uint256 limit,
+        uint256 offset
     ) external payable returns (uint256);
 
     /// @notice Responds to a query request
@@ -48,7 +48,7 @@ interface IQueryExecutor {
     /// @return fee The fee for the query
     function getFee(
         bytes32 queryHash,
-        uint32 callbackGasLimit,
+        uint256 callbackGasLimit,
         uint256 blockRange
     ) external view returns (uint256);
 }

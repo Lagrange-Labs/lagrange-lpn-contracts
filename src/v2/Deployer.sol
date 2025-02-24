@@ -102,7 +102,7 @@ contract Deployer {
     /// @dev if the native fee is not ETH, then the queryPricePerBlock needs to be adjusted!!
     function getDefaultFeeParams()
         private
-        view
+        pure
         returns (QueryExecutor.FeeParams memory)
     {
         return QueryExecutor.FeeParams({
