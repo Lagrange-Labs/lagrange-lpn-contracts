@@ -106,6 +106,7 @@ contract Deployer {
         returns (QueryExecutor.Config memory)
     {
         return QueryExecutor.Config({
+            maxQueryRange: 50_000,
             baseFeePercentage: 150,
             verificationGas: 350_000,
             protocolFeePPT: 0,

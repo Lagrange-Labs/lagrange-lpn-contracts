@@ -47,6 +47,7 @@ contract QueryExecutorTest is BaseTest {
         client = makeAddr("client");
 
         config = QueryExecutor.Config({
+            maxQueryRange: 50_000,
             baseFeePercentage: 100,
             verificationGas: 0,
             protocolFeePPT: 0,
@@ -72,7 +73,7 @@ contract QueryExecutorTest is BaseTest {
             [bytes32(uint256(1)), bytes32(uint256(2)), bytes32(uint256(3))];
 
         // Fast-forward to ensure all queries in range are valid
-        vm.roll(TEST_START_BLOCK + executor.MAX_QUERY_RANGE() + 100);
+        vm.roll(TEST_START_BLOCK + executor.getConfig().maxQueryRange + 100);
 
         // Mock the dbManager to return true for all queries
         vm.mockCall(
@@ -260,7 +261,7 @@ contract QueryExecutorTest is BaseTest {
     }
 
     function test_Request_RevertIf_ExceedsMaxRange() public {
-        uint256 maxRange = executor.MAX_QUERY_RANGE();
+        uint256 maxRange = executor.getConfig().maxQueryRange;
         vm.startPrank(router);
 
         // Max range + 1 should revert
@@ -380,6 +381,7 @@ contract QueryExecutorTest is BaseTest {
 
     function test_SetConfig_Success() public {
         QueryExecutor.Config memory newConfig = QueryExecutor.Config({
+            maxQueryRange: 50_000,
             baseFeePercentage: 999,
             verificationGas: 123_456,
             protocolFeePPT: 22,

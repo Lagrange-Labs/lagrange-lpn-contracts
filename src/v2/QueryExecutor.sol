@@ -35,17 +35,14 @@ contract QueryExecutor is
     }
 
     struct Config {
-        // the percentage of the current base fee to use for fulfillment gas price
-        // should be close to 100 for chains with low gas price volatility
-        uint16 baseFeePercentage;
-        uint24 verificationGas; // the static gas cost of verifying the snark and other accounting logic
         uint8 protocolFeePPT; // an optional fraction of the gas & query fee to charge for the protocol (in parts per thousand)
+        uint16 baseFeePercentage; // the percentage of the current base fee to use for fulfillment gas price
+            // should be close to 100 for chains with low gas price volatility
+        uint24 verificationGas; // the static gas cost of verifying the snark and other accounting logic
         uint24 queryPricePerBlock; // the price of a query per block
         uint24 protocolFeeFixed; // an optional fixed fee to charge for the protocol, in wei
+        uint24 maxQueryRange; // the maximum number of blocks a query can be computed over
     }
-
-    /// @notice The maximum number of blocks a query can be computed over
-    uint256 public constant MAX_QUERY_RANGE = 50_000; // TODO should this be configurable per query? Or is one global parameter okay?
 
     /// @dev not all L2s support reading the L1 blockhash. For those that can't we disable the blockhash verification
     bool public immutable SUPPORTS_L1_BLOCKDATA;
@@ -126,26 +123,6 @@ contract QueryExecutor is
         _;
     }
 
-    /// @notice Validates the query range for a storage contract.
-    /// @param startBlock The starting block number of the query range.
-    /// @param endBlock The ending block number of the query range.
-    /// @dev Reverts with appropriate errors if the query range is invalid:
-    ///      - QueryAfterCurrentBlock: If the ending block is after the current block number.
-    ///      - QueryInvalidRange: If the starting block is greater than the ending block.
-    ///      - QueryGreaterThanMaxRange: If the range (ending block - starting block) exceeds the maximum allowed range.
-    modifier validateQueryRange(uint256 startBlock, uint256 endBlock) {
-        if (SUPPORTS_L1_BLOCKDATA && endBlock > L1BlockNumber()) {
-            revert QueryAfterCurrentBlock();
-        }
-        if (startBlock > endBlock) {
-            revert QueryInvalidRange();
-        }
-        if (endBlock - startBlock + 1 > MAX_QUERY_RANGE) {
-            revert QueryGreaterThanMaxRange();
-        }
-        _;
-    }
-
     /// @notice Constructor for the QueryExecutor contract
     /// @param initialOwner The address of the initial owner of the contract
     /// @param _router The address of the router contract
@@ -175,13 +152,11 @@ contract QueryExecutor is
         uint256 endBlock,
         uint256 limit,
         uint256 offset
-    )
-        external
-        payable
-        onlyRouter
-        validateQueryRange(startBlock, endBlock)
-        returns (uint256)
-    {
+    ) external payable onlyRouter returns (uint256) {
+        Config memory config = s_config;
+
+        _validateQueryRange(startBlock, endBlock, config.maxQueryRange);
+
         {
             // Note: getFee will also verify that the query hash is valid
             uint256 fee =
@@ -318,5 +293,29 @@ contract QueryExecutor is
                 ) / 1_000
             ) + config.protocolFeeFixed
         );
+    }
+
+    /// @notice Private function to validate the query range
+    /// @param startBlock The starting block number of the query range
+    /// @param endBlock The ending block number of the query range
+    /// @param maxQueryRange The maximum allowed range between start and end blocks
+    /// @dev Reverts with appropriate errors if the query range is invalid:
+    ///      - QueryAfterCurrentBlock: If the ending block is after the current block number
+    ///      - QueryInvalidRange: If the starting block is greater than the ending block
+    ///      - QueryGreaterThanMaxRange: If the range exceeds the maximum allowed range
+    function _validateQueryRange(
+        uint256 startBlock,
+        uint256 endBlock,
+        uint256 maxQueryRange
+    ) private view {
+        if (SUPPORTS_L1_BLOCKDATA && endBlock > L1BlockNumber()) {
+            revert QueryAfterCurrentBlock();
+        }
+        if (startBlock > endBlock) {
+            revert QueryInvalidRange();
+        }
+        if (endBlock - startBlock + 1 > maxQueryRange) {
+            revert QueryGreaterThanMaxRange();
+        }
     }
 }
