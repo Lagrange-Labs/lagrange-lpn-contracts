@@ -9,12 +9,12 @@ import {
 import {supportsL1BlockData} from "../utils/Constants.sol";
 import {IQueryExecutor} from "./interfaces/IQueryExecutor.sol";
 import {L1BlockHash, L1BlockNumber} from "../utils/L1Block.sol";
-import {DatabaseManager} from "./DatabaseManager.sol";
 import {
     Ownable2Step,
     Ownable
 } from "@openzeppelin-contracts-5.2.0/access/Ownable2Step.sol";
 import {SafeCast} from "@openzeppelin-contracts-5.2.0/utils/math/SafeCast.sol";
+import {IDatabaseManager} from "./interfaces/IDatabaseManager.sol";
 
 /// @title QueryExecutor
 /// @notice The contract that handles requesting and responding to queries
@@ -49,7 +49,7 @@ contract QueryExecutor is
 
     /// @notice other contracts in the system
     address public immutable router;
-    DatabaseManager public immutable dbManager;
+    IDatabaseManager public immutable dbManager;
     address payable public immutable feeCollector;
 
     /// @notice A nonce for constructing new requestIDs
@@ -136,7 +136,7 @@ contract QueryExecutor is
         Config memory config
     ) Ownable(initialOwner) {
         router = _router;
-        dbManager = DatabaseManager(_dbManager);
+        dbManager = IDatabaseManager(_dbManager);
         feeCollector = _feeCollector;
         s_config = config;
         SUPPORTS_L1_BLOCKDATA = supportsL1BlockData();
