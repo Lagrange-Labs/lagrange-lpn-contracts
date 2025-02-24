@@ -53,7 +53,8 @@ contract Deployer {
             engMultisig,
             address(routerProxy),
             address(dbManagerProxy),
-            payable(address(feeCollector))
+            payable(address(feeCollector)),
+            getDefaultFeeParams()
         );
 
         // Initialize Router, sets default queryExecutor
@@ -83,10 +84,33 @@ contract Deployer {
         address engMultisig,
         address routerProxy,
         address dbManagerProxy,
-        address payable feeCollector
+        address payable feeCollector,
+        QueryExecutor.FeeParams memory feeParams
     ) internal virtual returns (QueryExecutor) {
         return new QueryExecutor(
-            engMultisig, routerProxy, dbManagerProxy, feeCollector
+            engMultisig, routerProxy, dbManagerProxy, feeCollector, feeParams
         );
+    }
+
+    /// @notice Returns the default fee parameters for the current chain
+    /// @return feeParams The default fee parameters
+    /// @dev by default, there are:
+    ///                             * no protocol fees
+    ///                             * gas fee is 150% of the block.basefee at request time
+    ///                             * verification gas is 350k
+    ///                             * query price is 1,000 gwei / block, (around $135 for a 50K block query on mainnet with ETH at $2.6K)
+    /// @dev if the native fee is not ETH, then the queryPricePerBlock needs to be adjusted!!
+    function getDefaultFeeParams()
+        private
+        pure
+        returns (QueryExecutor.FeeParams memory)
+    {
+        return QueryExecutor.FeeParams({
+            baseFeePercentage: 150,
+            verificationGas: 350_000,
+            protocolFeePPT: 0,
+            queryPricePerBlock: 1_000,
+            protocolFeeFixed: 0
+        });
     }
 }

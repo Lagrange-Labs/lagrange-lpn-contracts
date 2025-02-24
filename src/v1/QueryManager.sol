@@ -93,7 +93,6 @@ abstract contract QueryManager is IQueryManager, Groth16VerifierExtension {
             revert QueryInvalidRange();
         }
         if (endBlock - startBlock + 1 > MAX_QUERY_RANGE) {
-            // NOTE: technically the max range is MAX_QUERY_RANGE-1 :facepalm:
             revert QueryGreaterThanMaxRange();
         }
         _;

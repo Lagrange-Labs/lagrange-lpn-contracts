@@ -71,11 +71,13 @@ contract LagrangeQueryRouter is
 
     /// @notice Makes an aggregation query request to the default QueryExecutor
     /// @param queryHash The hash of the query to execute
+    /// @param callbackGasLimit The gas limit for the callback
     /// @param placeholders The placeholder values for the query
     /// @param startBlock The starting block number for the query range
     /// @param endBlock The ending block number for the query range
     function request(
         bytes32 queryHash,
+        uint256 callbackGasLimit,
         bytes32[] calldata placeholders,
         uint256 startBlock,
         uint256 endBlock
@@ -83,6 +85,7 @@ contract LagrangeQueryRouter is
         return _requestTo(
             s_defaultQueryExecutor,
             queryHash,
+            callbackGasLimit,
             placeholders,
             startBlock,
             endBlock,
@@ -93,6 +96,7 @@ contract LagrangeQueryRouter is
 
     /// @notice Makes a query request to the default QueryExecutor
     /// @param queryHash The hash of the query to execute
+    /// @param callbackGasLimit The gas limit for the callback
     /// @param placeholders The placeholder values for the query
     /// @param startBlock The starting block number for the query range
     /// @param endBlock The ending block number for the query range
@@ -100,15 +104,17 @@ contract LagrangeQueryRouter is
     /// @param offset The number of rows to skip
     function request(
         bytes32 queryHash,
+        uint256 callbackGasLimit,
         bytes32[] calldata placeholders,
         uint256 startBlock,
         uint256 endBlock,
-        uint32 limit,
-        uint32 offset
+        uint256 limit,
+        uint256 offset
     ) external payable returns (uint256) {
         return _requestTo(
             s_defaultQueryExecutor,
             queryHash,
+            callbackGasLimit,
             placeholders,
             startBlock,
             endBlock,
@@ -120,6 +126,7 @@ contract LagrangeQueryRouter is
     /// @notice Makes a request to a specific QueryExecutor
     /// @param executor The address of the QueryExecutor to use
     /// @param queryHash The hash of the query to execute
+    /// @param callbackGasLimit The gas limit for the callback
     /// @param placeholders The placeholder values for the query
     /// @param startBlock The starting block number for the query range
     /// @param endBlock The ending block number for the query range
@@ -129,11 +136,12 @@ contract LagrangeQueryRouter is
     function requestTo(
         IQueryExecutor executor,
         bytes32 queryHash,
+        uint256 callbackGasLimit,
         bytes32[] calldata placeholders,
         uint256 startBlock,
         uint256 endBlock,
-        uint32 limit,
-        uint32 offset
+        uint256 limit,
+        uint256 offset
     ) public payable returns (uint256) {
         if (!s_enabledExecutors.contains(address(executor))) {
             revert ExecutorNotEnabled();
@@ -142,6 +150,7 @@ contract LagrangeQueryRouter is
         return _requestTo(
             executor,
             queryHash,
+            callbackGasLimit,
             placeholders,
             startBlock,
             endBlock,
@@ -154,15 +163,17 @@ contract LagrangeQueryRouter is
     function _requestTo(
         IQueryExecutor executor,
         bytes32 queryHash,
+        uint256 callbackGasLimit,
         bytes32[] calldata placeholders,
         uint256 startBlock,
         uint256 endBlock,
-        uint32 limit,
-        uint32 offset
+        uint256 limit,
+        uint256 offset
     ) private returns (uint256) {
         uint256 requestId = executor.request{value: msg.value}(
             msg.sender,
             queryHash,
+            callbackGasLimit,
             placeholders,
             startBlock,
             endBlock,
@@ -188,13 +199,27 @@ contract LagrangeQueryRouter is
             revert ExecutorNotEnabled();
         }
 
-        // TODO make response call more generic ex have executor.respond just return bytes
-        (address client, QueryOutput memory result) =
+        (address client, uint256 callbackGasLimit, QueryOutput memory result) =
             executor.respond(requestId, data);
 
-        ILPNClient(client).lpnCallback(requestId, result);
+        ILPNClient(client).lpnCallback{gas: callbackGasLimit}(requestId, result);
 
         emit NewResponse(requestId, address(executor));
+    }
+
+    /// @notice Returns the fee for a query
+    /// @param queryHash The hash of the query
+    /// @param callbackGasLimit The gas limit for the callback
+    /// @param blockRange The number of blocks to query
+    /// @return fee The fee for the query
+    function getFee(
+        bytes32 queryHash,
+        uint256 callbackGasLimit,
+        uint256 blockRange
+    ) external view returns (uint256) {
+        return s_defaultQueryExecutor.getFee(
+            queryHash, callbackGasLimit, blockRange
+        );
     }
 
     /// @notice Updates the default QueryExecutor address
