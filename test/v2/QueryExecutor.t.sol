@@ -163,6 +163,8 @@ contract QueryExecutorTest is BaseTest {
             PLACEHOLDERS,
             TEST_START_BLOCK,
             TEST_END_BLOCK,
+            10,
+            100,
             FEE,
             block.number
         );

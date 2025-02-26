@@ -67,6 +67,8 @@ contract QueryExecutor is
     /// @param placeholders Values for the numbered placeholders in the query.
     /// @param startBlock The starting block for the computation.
     /// @param endBlock The ending block for the computation.
+    /// @param limit The limit for the query. (0 = no limit)
+    /// @param offset The offset for the query. (0 = no offset)
     /// @param fee The gas fee paid for the request.
     /// @param proofBlock The requested block for the proof to be computed against.
     ///                   Currently required for OP Stack chains
@@ -77,6 +79,8 @@ contract QueryExecutor is
         bytes32[] placeholders,
         uint256 startBlock,
         uint256 endBlock,
+        uint256 limit,
+        uint256 offset,
         uint256 fee,
         uint256 proofBlock
     );
@@ -204,6 +208,8 @@ contract QueryExecutor is
             placeholders,
             startBlock,
             endBlock,
+            limit,
+            offset,
             msg.value,
             block.number
         );
