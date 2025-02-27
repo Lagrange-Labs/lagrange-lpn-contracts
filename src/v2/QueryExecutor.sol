@@ -19,7 +19,6 @@ import {IDatabaseManager} from "./interfaces/IDatabaseManager.sol";
 /// @title QueryExecutor
 /// @notice The contract that handles requesting and responding to queries
 /// @dev Requests & responses are forwarded to this contract from the router contract
-/// @dev This contract does not emit events - that is handled by the router
 /// @dev Although this contract collects fees, it does not store them. The fees are transferred to the FeeCollector contract.
 contract QueryExecutor is
     Groth16VerifierExtension,
@@ -29,9 +28,9 @@ contract QueryExecutor is
     using SafeCast for uint256;
 
     struct QueryRequest {
-        address client;
-        uint32 callbackGasLimit;
-        QueryInput input;
+        address client; // the address of the client who made the request
+        uint32 callbackGasLimit; // the gas limit for the callback
+        QueryInput input; // the input for the query
     }
 
     struct Config {
@@ -48,16 +47,17 @@ contract QueryExecutor is
     bool public immutable SUPPORTS_L1_BLOCKDATA;
 
     /// @notice other contracts in the system
-    address public immutable router;
-    IDatabaseManager public immutable dbManager;
-    address payable public immutable feeCollector;
+    address private immutable ROUTER;
+    IDatabaseManager private immutable DB_MANAGER;
+    address payable private immutable FEE_COLLECTOR;
 
     /// @notice A nonce for constructing new requestIDs
     uint256 private s_requestIDNonce;
 
+    /// @notice The contract's configuration parameters
     Config private s_config;
 
-    /// @notice Mapping to track requests and their associated clients.
+    /// @notice Mapping to track requests
     mapping(uint256 requestId => QueryRequest query) private s_requests;
 
     /// @notice Event emitted when a new request is made.
@@ -120,8 +120,11 @@ contract QueryExecutor is
     /// @notice Error thrown when a transfer fails.
     error TransferFailed();
 
+    /// @notice Error thrown when a zero address is used in the constructor
+    error CannotUseZeroAddress();
+
     modifier onlyRouter() {
-        if (msg.sender != router) {
+        if (msg.sender != ROUTER) {
             revert OnlyRouter();
         }
         _;
@@ -129,19 +132,25 @@ contract QueryExecutor is
 
     /// @notice Constructor for the QueryExecutor contract
     /// @param initialOwner The address of the initial owner of the contract
-    /// @param _router The address of the router contract
-    /// @param _dbManager The address of the database manager (proxy) contract
-    /// @param _feeCollector The address of the fee collector contract
+    /// @param router The address of the router contract
+    /// @param dbManager The address of the database manager (proxy) contract
+    /// @param feeCollector The address of the fee collector contract
     constructor(
         address initialOwner,
-        address _router,
-        address _dbManager,
-        address payable _feeCollector,
+        address router,
+        address dbManager,
+        address payable feeCollector,
         Config memory config
     ) Ownable(initialOwner) {
-        router = _router;
-        dbManager = IDatabaseManager(_dbManager);
-        feeCollector = _feeCollector;
+        if (
+            router == address(0) || dbManager == address(0)
+                || feeCollector == address(0)
+        ) {
+            revert CannotUseZeroAddress();
+        }
+        ROUTER = router;
+        DB_MANAGER = IDatabaseManager(dbManager);
+        FEE_COLLECTOR = feeCollector;
         s_config = config;
         SUPPORTS_L1_BLOCKDATA = supportsL1BlockData();
     }
@@ -195,7 +204,7 @@ contract QueryExecutor is
 
         // Forward fee to fee collector
         {
-            (bool success,) = feeCollector.call{value: msg.value}("");
+            (bool success,) = FEE_COLLECTOR.call{value: msg.value}("");
             if (!success) {
                 revert TransferFailed();
             }
@@ -233,6 +242,8 @@ contract QueryExecutor is
         return (query.client, uint256(query.callbackGasLimit), result);
     }
 
+    /// @notice Set the configuration parameters
+    /// @param config The new configuration parameters
     function setConfig(Config memory config) external onlyOwner {
         s_config = config;
     }
@@ -252,7 +263,7 @@ contract QueryExecutor is
     /// @param requestId The unique ID of the request
     /// @return query The request information
     function getRequest(uint256 requestId)
-        public
+        external
         view
         returns (QueryRequest memory)
     {
@@ -261,8 +272,26 @@ contract QueryExecutor is
 
     /// @notice Get the current configuration parameters
     /// @return config The current configuration parameters
-    function getConfig() public view returns (Config memory) {
+    function getConfig() external view returns (Config memory) {
         return s_config;
+    }
+
+    /// @notice Get the router contract address
+    /// @return router The router contract address
+    function getRouter() external view returns (address) {
+        return ROUTER;
+    }
+
+    /// @notice Get the database manager contract address
+    /// @return dbManager The database manager contract address
+    function getDBManager() external view returns (address) {
+        return address(DB_MANAGER);
+    }
+
+    /// @notice Get the fee collector contract address
+    /// @return feeCollector The fee collector contract address
+    function getFeeCollector() external view returns (address) {
+        return FEE_COLLECTOR;
     }
 
     /// @notice Get the current fee for a query
@@ -275,7 +304,7 @@ contract QueryExecutor is
         uint256 callbackGasLimit,
         uint256 blockRange
     ) public view returns (uint256) {
-        if (!dbManager.isQueryActive(queryHash)) {
+        if (!DB_MANAGER.isQueryActive(queryHash)) {
             revert InvalidQuery();
         }
         Config memory config = s_config;

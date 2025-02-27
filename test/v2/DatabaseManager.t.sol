@@ -43,6 +43,10 @@ contract DatabaseManagerTest is BaseTest {
     function test_Initialize() public view {
         assertTrue(dbManager.hasRole(keccak256("OWNER_ROLE"), owner));
         assertFalse(dbManager.hasRole(keccak256("OWNER_ROLE"), stranger));
+        assertEq(
+            dbManager.getRoleAdmin(keccak256("OWNER_ROLE")),
+            keccak256("OWNER_ROLE")
+        );
     }
 
     function test_Initialize_RevertsIf_DuplicateAttempt() public {

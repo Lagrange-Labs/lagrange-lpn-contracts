@@ -37,6 +37,9 @@ contract FeeCollector is IVersioned, Ownable2Step {
     /// @notice Error thrown when a token transfer fails
     error TransferFailed();
 
+    /// @notice Error thrown when a token transfer is attempted to the zero address
+    error CannotTransferToZeroAddress();
+
     /// @notice Constructor to set initial owner
     constructor(address initialOwner) Ownable(initialOwner) {}
 
@@ -57,6 +60,9 @@ contract FeeCollector is IVersioned, Ownable2Step {
     /// @param to The address to withdraw tokens to
     /// @dev Only callable by owner
     function withdrawNative(address to) external onlyOwner {
+        if (to == address(0)) {
+            revert CannotTransferToZeroAddress();
+        }
         uint256 balance = address(this).balance;
         (bool success,) = to.call{value: balance}("");
         if (!success) {
@@ -70,6 +76,9 @@ contract FeeCollector is IVersioned, Ownable2Step {
     /// @param to The address to withdraw tokens to
     /// @dev Only callable by owner
     function withdrawERC20(address token, address to) external onlyOwner {
+        if (to == address(0)) {
+            revert CannotTransferToZeroAddress();
+        }
         uint256 balance = IERC20(token).balanceOf(address(this));
         IERC20(token).safeTransfer(to, balance);
         emit ERC20Withdrawn(token, to, balance);

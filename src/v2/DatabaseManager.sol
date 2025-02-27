@@ -59,9 +59,11 @@ contract DatabaseManager is
     }
 
     /// @notice Initializes the contract
+    /// @param initialOwner The owner of the contract
     function initialize(address initialOwner) public initializer {
         __AccessControl_init();
         _grantRole(OWNER_ROLE, initialOwner);
+        _setRoleAdmin(OWNER_ROLE, OWNER_ROLE);
     }
 
     /// @notice Registers a new table
@@ -100,7 +102,6 @@ contract DatabaseManager is
     /// @param tableHash The hash of the table that the query is registered to
     /// @param sql The raw SQL of the query
     /// @dev The hash is deterministed from the SQL; if it doesn't match then the query is conidered invalid
-    // TODO: We should consider charging a small fee for registering a new query to prevent spam
     function registerQuery(bytes32 hash, bytes32 tableHash, string calldata sql)
         external
     {
