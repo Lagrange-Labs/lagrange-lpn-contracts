@@ -23,6 +23,7 @@ contract LagrangeQueryRouter is
 {
     using EnumerableSet for EnumerableSet.AddressSet;
 
+    /// @notice The semantic version of the contract
     string public constant VERSION = "1.0.0";
 
     /// @notice The default QueryExecutor contract

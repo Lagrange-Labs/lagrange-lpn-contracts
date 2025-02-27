@@ -85,6 +85,12 @@ contract FeeCollectorTest is Test {
         feeCollector.withdrawNative(stranger);
     }
 
+    function test_WithdrawNative_RevertIf_ZeroAddress() public {
+        vm.prank(owner);
+        vm.expectRevert(FeeCollector.CannotTransferToZeroAddress.selector);
+        feeCollector.withdrawNative(address(0));
+    }
+
     function test_WithdrawERC20_Success() public {
         token.mint(address(feeCollector), TRANSFER_AMOUNT);
 
@@ -108,5 +114,11 @@ contract FeeCollectorTest is Test {
             )
         );
         feeCollector.withdrawERC20(address(token), stranger);
+    }
+
+    function test_WithdrawERC20_RevertIf_ZeroAddress() public {
+        vm.prank(owner);
+        vm.expectRevert(FeeCollector.CannotTransferToZeroAddress.selector);
+        feeCollector.withdrawERC20(address(token), address(0));
     }
 }
