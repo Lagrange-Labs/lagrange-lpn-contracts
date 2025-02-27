@@ -1,26 +1,12 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity 0.8.25;
 
-struct QueryOutput {
-    // Total number of the all matching rows
-    uint256 totalMatchedRows;
-    // Returned rows of the current cursor
-    bytes[] rows;
-    // Query error, return NoError if none.
-    QueryErrorCode error;
-}
+import {QueryOutput} from "../Groth16VerifierExtension.sol";
 
-// Query errors
-enum QueryErrorCode {
-    // No error
-    NoError,
-    // A computation overflow error during the query process
-    ComputationOverflow
-}
-
-interface ILPNRegistryV1 {
+interface ILagrangeQueryRouter {
     function request(
         bytes32 queryHash,
+        uint256 callbackGasLimit,
         bytes32[] calldata placeholders,
         uint256 startBlock,
         uint256 endBlock
@@ -29,20 +15,20 @@ interface ILPNRegistryV1 {
 
 error CallbackNotAuthorized();
 
-contract LPNClientExample {
-    ILPNRegistryV1 public lpnRegistry;
+contract LPNClientV2Example {
+    ILagrangeQueryRouter public lpnRouter;
 
     event NewResponse(uint256 requestId, QueryOutput result);
 
     modifier onlyLagrangeRegistry() {
-        if (msg.sender != address(lpnRegistry)) {
+        if (msg.sender != address(lpnRouter)) {
             revert CallbackNotAuthorized();
         }
         _;
     }
 
-    constructor(address _lpnRegistry) {
-        lpnRegistry = ILPNRegistryV1(_lpnRegistry);
+    constructor(address router) {
+        lpnRouter = ILagrangeQueryRouter(router);
     }
 
     function lpnCallback(uint256 requestId, QueryOutput memory result)
@@ -54,12 +40,13 @@ contract LPNClientExample {
 
     function request(
         bytes32 queryHash,
+        uint256 callbackGasLimit,
         bytes32[] calldata placeholders,
         uint256 startBlock,
         uint256 endBlock
     ) external payable {
-        lpnRegistry.request{value: msg.value}(
-            queryHash, placeholders, startBlock, endBlock
+        lpnRouter.request{value: msg.value}(
+            queryHash, callbackGasLimit, placeholders, startBlock, endBlock
         );
     }
 }
