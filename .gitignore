@@ -10,9 +10,6 @@ out/
 
 /script/output/anvil
 
-# Docs
-docs/
-
 # env files
 .env
 .envrc
