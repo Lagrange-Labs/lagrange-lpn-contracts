@@ -36,9 +36,7 @@ $ make slither
 ## Design
 
 See the following design docs:
-* [Architecture](docs/architecture.md)
-* [Request Flow](docs/request-flow.md) 
-* [Response Flow](docs/response-flow.md)
+* [ZK-Coprocessor System Overview](docs/coprocessor-system-overview.md)
 
 ## Credit - [Gnark](https://github.com/Consensys/gnark)
 We would like to thank and recognize Consensys and the gnark team for their work, which we use to generate a Solidity verifier for onchain verification of our proofs.
