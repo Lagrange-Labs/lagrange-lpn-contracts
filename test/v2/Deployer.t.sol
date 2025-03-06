@@ -13,7 +13,7 @@ import {
     QueryOutput,
     QueryErrorCode
 } from "../../src/v2/Groth16VerifierExtension.sol";
-import {isInitialized, getProxyAdminOwner} from "../../src/utils/Utils.sol";
+import {isInitialized, getProxyAdminOwner} from "../../src/utils/Proxy.sol";
 import {Vm} from "forge-std/Vm.sol";
 
 contract DeployerTest is BaseTest {
