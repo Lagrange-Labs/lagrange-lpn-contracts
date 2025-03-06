@@ -13,17 +13,10 @@ import {
     QueryOutput,
     QueryErrorCode
 } from "../../src/v2/Groth16VerifierExtension.sol";
+import {isInitialized, getProxyAdminOwner} from "../../src/utils/Utils.sol";
 import {Vm} from "forge-std/Vm.sol";
-import {ProxyAdmin} from
-    "@openzeppelin-contracts-5.2.0/proxy/transparent/ProxyAdmin.sol";
 
 contract DeployerTest is BaseTest {
-    bytes32 constant INITIALIZED_SLOT =
-        0xf0c57e16840df040f15088dc2f81fe391c3923bec73e23a9662efc9c229c6a00;
-
-    bytes32 constant ADMIN_SLOT =
-        bytes32(uint256(keccak256("eip1967.proxy.admin")) - 1);
-
     // Core protocol contracts
     LagrangeQueryRouter public router;
     DatabaseManager public dbManager;
@@ -75,8 +68,8 @@ contract DeployerTest is BaseTest {
         assertEq(queryExecutor.owner(), engMultisig);
         assertEq(feeCollector.owner(), financeMultisig);
         // Assert contracts are initialized
-        assertTrue(uint256(vm.load(address(router), INITIALIZED_SLOT)) == 1);
-        assertTrue(uint256(vm.load(address(dbManager), INITIALIZED_SLOT)) == 1);
+        assertTrue(isInitialized(address(router)));
+        assertTrue(isInitialized(address(dbManager)));
         // Assert contracts point to eachother
         assertEq(
             address(router.getDefaultQueryExecutor()), address(queryExecutor)
@@ -89,18 +82,5 @@ contract DeployerTest is BaseTest {
         // Assert proxy admins belong to eng multisig
         assertEq(getProxyAdminOwner(address(router)), engMultisig);
         assertEq(getProxyAdminOwner(address(dbManager)), engMultisig);
-    }
-
-    function getProxyAdminOwner(address proxy)
-        internal
-        view
-        returns (address)
-    {
-        address admin;
-        bytes32 result = vm.load(proxy, ADMIN_SLOT);
-        assembly {
-            admin := result
-        }
-        return ProxyAdmin(admin).owner();
     }
 }
