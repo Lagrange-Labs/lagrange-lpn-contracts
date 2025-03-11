@@ -66,7 +66,7 @@ abstract contract BaseTest is Test {
         if (!isLocal() && !isTestnet() && !isMainnet()) {
             revert("Chain not supported");
         }
-        // reset previouse imitations
+        // reset previous imitations
         vm.etch(OP_STACK_L1_BLOCK_PREDEPLOY_ADDR, hex"");
         // imitate chain
         vm.chainId(chainId);
