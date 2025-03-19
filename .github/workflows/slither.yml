@@ -2,6 +2,10 @@ name: Slither
 
 on: push
 
+# DEV: there appears to be a unique compatibility issue between the version of slither and the version of foundry
+# Slither installs foundry itself during the build step, but we must install it manually first to support installing
+# deps via soldeer
+
 jobs:
   analyze:
     runs-on: ubuntu-latest
@@ -13,7 +17,7 @@ jobs:
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
         with:
-          version: nightly
+          version: stable
 
       - name: Install dependencies
         run: forge soldeer install
@@ -24,3 +28,4 @@ jobs:
         id: slither
         with:
           fail-on: high
+          slither-version: 0.10.4
