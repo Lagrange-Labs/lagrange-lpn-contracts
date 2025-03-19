@@ -19,7 +19,7 @@ contract DatabaseManagerTest is BaseTest {
     // Test data
     string public constant TEST_SQL = "SELECT * FROM test_table";
     bytes32 public constant TEST_QUERY_HASH = keccak256(bytes(TEST_SQL));
-    bytes32 public constant TEST_TABLE_HASH = keccak256("test_table");
+    bytes32 public constant TEST_TABLE_ID = keccak256("test_table");
 
     function setUp() public virtual {
         owner = makeAddr("owner");
@@ -69,14 +69,10 @@ contract DatabaseManagerTest is BaseTest {
         vm.prank(owner);
 
         vm.expectEmit();
-        emit DatabaseManager.NewTableRegistration(
-            TEST_TABLE_HASH, address(0x123), 1, 100, "test_table", TEST_SQL
-        );
-        dbManager.registerTable(
-            TEST_TABLE_HASH, address(0x123), 1, 100, "test_table", TEST_SQL
-        );
+        emit DatabaseManager.NewTableRegistered(TEST_TABLE_ID);
+        dbManager.registerTable(TEST_TABLE_ID);
 
-        assertTrue(dbManager.isTableActive(TEST_TABLE_HASH));
+        assertTrue(dbManager.isTableActive(TEST_TABLE_ID));
     }
 
     function test_RegisterTable_RevertIfNotOwner() public {
@@ -88,9 +84,7 @@ contract DatabaseManagerTest is BaseTest {
                 keccak256("OWNER_ROLE")
             )
         );
-        dbManager.registerTable(
-            TEST_TABLE_HASH, address(0x123), 1, 100, "test_table", TEST_SQL
-        );
+        dbManager.registerTable(TEST_TABLE_ID);
 
         vm.stopPrank();
     }
@@ -99,15 +93,11 @@ contract DatabaseManagerTest is BaseTest {
         vm.startPrank(owner);
 
         // Register first time
-        dbManager.registerTable(
-            TEST_TABLE_HASH, address(0x123), 1, 100, "test_table", TEST_SQL
-        );
+        dbManager.registerTable(TEST_TABLE_ID);
 
         // Try to register again
         vm.expectRevert(DatabaseManager.TableAlreadyRegistered.selector);
-        dbManager.registerTable(
-            TEST_TABLE_HASH, address(0x123), 1, 100, "test_table", TEST_SQL
-        );
+        dbManager.registerTable(TEST_TABLE_ID);
 
         vm.stopPrank();
     }
@@ -116,18 +106,16 @@ contract DatabaseManagerTest is BaseTest {
         vm.startPrank(owner);
 
         // First register a table
-        dbManager.registerTable(
-            TEST_TABLE_HASH, address(0x123), 1, 100, "test_table", TEST_SQL
-        );
+        dbManager.registerTable(TEST_TABLE_ID);
 
-        assertTrue(dbManager.isTableActive(TEST_TABLE_HASH));
+        assertTrue(dbManager.isTableActive(TEST_TABLE_ID));
 
         // Delete the table
         vm.expectEmit();
-        emit DatabaseManager.TableDeleted(TEST_TABLE_HASH);
-        dbManager.deleteTable(TEST_TABLE_HASH);
+        emit DatabaseManager.TableDeleted(TEST_TABLE_ID);
+        dbManager.deleteTable(TEST_TABLE_ID);
 
-        assertFalse(dbManager.isTableActive(TEST_TABLE_HASH));
+        assertFalse(dbManager.isTableActive(TEST_TABLE_ID));
         vm.stopPrank();
     }
 
@@ -141,7 +129,7 @@ contract DatabaseManagerTest is BaseTest {
                 keccak256("OWNER_ROLE")
             )
         );
-        dbManager.deleteTable(TEST_TABLE_HASH);
+        dbManager.deleteTable(TEST_TABLE_ID);
 
         vm.stopPrank();
     }
@@ -149,34 +137,30 @@ contract DatabaseManagerTest is BaseTest {
     function test_RegisterQuery() public {
         vm.prank(owner);
         // First register a table
-        dbManager.registerTable(
-            TEST_TABLE_HASH, address(0x123), 1, 100, "test_table", TEST_SQL
-        );
+        dbManager.registerTable(TEST_TABLE_ID);
         // Anyone can register a query
         vm.expectEmit(true, true, false, true);
-        emit DatabaseManager.NewQueryRegistration(
-            TEST_QUERY_HASH, TEST_TABLE_HASH, TEST_SQL
+        emit DatabaseManager.NewQueryRegistered(
+            TEST_QUERY_HASH, TEST_TABLE_ID, TEST_SQL
         );
         vm.prank(stranger);
-        dbManager.registerQuery(TEST_QUERY_HASH, TEST_TABLE_HASH, TEST_SQL);
-        assertEq(dbManager.getTableForQuery(TEST_QUERY_HASH), TEST_TABLE_HASH);
+        dbManager.registerQuery(TEST_QUERY_HASH, TEST_TABLE_ID, TEST_SQL);
+        assertEq(dbManager.getTableForQuery(TEST_QUERY_HASH), TEST_TABLE_ID);
     }
 
     function test_RegisterQuery_RevertIfAlreadyRegistered() public {
         vm.prank(owner);
         // First register a table
-        dbManager.registerTable(
-            TEST_TABLE_HASH, address(0x123), 1, 100, "test_table", TEST_SQL
-        );
+        dbManager.registerTable(TEST_TABLE_ID);
 
         vm.startPrank(stranger);
 
         // Register first time
-        dbManager.registerQuery(TEST_QUERY_HASH, TEST_TABLE_HASH, TEST_SQL);
+        dbManager.registerQuery(TEST_QUERY_HASH, TEST_TABLE_ID, TEST_SQL);
 
         // Try to register again
         vm.expectRevert(DatabaseManager.QueryAlreadyRegistered.selector);
-        dbManager.registerQuery(TEST_QUERY_HASH, TEST_TABLE_HASH, TEST_SQL);
+        dbManager.registerQuery(TEST_QUERY_HASH, TEST_TABLE_ID, TEST_SQL);
 
         vm.stopPrank();
     }
@@ -185,24 +169,20 @@ contract DatabaseManagerTest is BaseTest {
         vm.startPrank(owner);
 
         // Register table and query
-        dbManager.registerTable(
-            TEST_TABLE_HASH, address(0x123), 1, 100, "test_table", TEST_SQL
-        );
-        dbManager.registerQuery(TEST_QUERY_HASH, TEST_TABLE_HASH, TEST_SQL);
+        dbManager.registerTable(TEST_TABLE_ID);
+        dbManager.registerQuery(TEST_QUERY_HASH, TEST_TABLE_ID, TEST_SQL);
 
         // Query should be active
         assertTrue(dbManager.isQueryActive(TEST_QUERY_HASH));
 
         // Delete table
-        dbManager.deleteTable(TEST_TABLE_HASH);
+        dbManager.deleteTable(TEST_TABLE_ID);
 
         // Query should no longer be active
         assertFalse(dbManager.isQueryActive(TEST_QUERY_HASH));
 
         // Re-activate the table
-        dbManager.registerTable(
-            TEST_TABLE_HASH, address(0x123), 1, 100, "test_table", TEST_SQL
-        );
+        dbManager.registerTable(TEST_TABLE_ID);
 
         // Query should now be active again
         assertTrue(dbManager.isQueryActive(TEST_QUERY_HASH));

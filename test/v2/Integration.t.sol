@@ -31,7 +31,7 @@ contract IntegrationTest is BaseTest {
     address public client;
 
     // Test data
-    bytes32 public constant TABLE_HASH = keccak256("test_table");
+    bytes32 public constant TABLE_ID = keccak256("test_table");
     string public constant TEST_SQL = "SELECT * FROM test_table";
     bytes32 public constant QUERY_HASH = keccak256(bytes(TEST_SQL));
     bytes32[] public PLACEHOLDERS;
@@ -97,13 +97,11 @@ contract IntegrationTest is BaseTest {
     function test_ContractIntegration() public {
         // Register table in DatabaseManager
         vm.prank(engMultisig);
-        dbManager.registerTable(
-            TABLE_HASH, address(0x123), 1, 100, "test_table", "schema"
-        );
+        dbManager.registerTable(TABLE_ID);
 
         // Register query
         vm.prank(stranger);
-        dbManager.registerQuery(QUERY_HASH, TABLE_HASH, TEST_SQL);
+        dbManager.registerQuery(QUERY_HASH, TABLE_ID, TEST_SQL);
 
         // Assert fee collector balance is 0
         assertEq(address(feeCollector).balance, 0);
