@@ -82,6 +82,7 @@ fmt                :; forge fmt
 slither            :; docker run -ti --entrypoint=/home/ethsec/.local/bin/slither -v ./:/local/ --workdir=/local trailofbits/eth-security-toolbox:nightly .
 check-balances     :; forge script script/CheckDeploymentKeyBalances.s.sol --sig 'run(string)' $(env)
 upgrade-registries :; script/util/copy-verifier.sh $(env) && forge script ./script/UpgradeLPNRegistries.s.sol --sig "run(string)" --verify --slow --broadcast $(env)
+deploy-v2          :; forge script script/deploy/DeployLPNV2Contracts.s.sol --rpc-url $(word 2, $(MAKECMDGOALS)) --etherscan-api-key $(ETHERSCAN_API_KEY) --verify --verifier etherscan --delay 10 --broadcast --retries 7
 
 # List available scripts
 list-scripts:

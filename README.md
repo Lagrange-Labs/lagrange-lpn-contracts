@@ -17,20 +17,31 @@ Be sure to include a `.env` file and export the environment variables shown in `
 ## Installation
 Install dependencies:
 ```bash
-$ forge install
-$ forge soldeer install
+forge install
+forge soldeer install
 ```
 
 ## Build & Test
 ```bash
-$ forge build
-$ forge test
+forge build
+forge test
 ```
 
 ## Run Static Analysis
 
 ```bash
-$ make slither
+make slither
+```
+
+## Deploy
+
+* Private key and Etherscan API key *must* be supplied as environment variables.
+* Only 8/9 contracts will verify because the [Deployer](./src/v2/Deployer.sol) contract self-destructs.
+
+```bash
+export PRIVATE_KEY=<...>
+export ETHERSCAN_API_KEY=<...>
+make deploy-v2 [chain]
 ```
 
 ## Design
