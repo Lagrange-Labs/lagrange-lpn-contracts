@@ -13,7 +13,7 @@ case "$ENV" in
     ENV_FOLDER_NAME="dev-0"
     ;;
   dev-1)
-    VERIFIER_SOL_URL="https://pub-a894572689a54c008859f232868fc67d.r2.dev"
+    VERIFIER_SOL_URL="https://pub-d7c7f0d6979a41f2b25137eaecf12d7b.r2.dev/1"
     ENV_FOLDER_NAME="dev-1"
     ;;
   dev-3)
