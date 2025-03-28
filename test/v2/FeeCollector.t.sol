@@ -60,6 +60,23 @@ contract FeeCollectorTest is Test {
         assertEq(token.balanceOf(stranger), INITIAL_BALANCE - TRANSFER_AMOUNT);
     }
 
+    function test_ReceiveERC20_FeeOnTransfer_Success() public {
+        vm.startPrank(stranger);
+        token.approve(address(feeCollector), TRANSFER_AMOUNT);
+        token.setTransferFee(1);
+
+        vm.expectEmit();
+        emit FeeCollector.ERC20Received(
+            address(token), stranger, TRANSFER_AMOUNT - 1
+        );
+
+        feeCollector.receiveERC20(address(token), TRANSFER_AMOUNT);
+        vm.stopPrank();
+
+        assertEq(token.balanceOf(address(feeCollector)), TRANSFER_AMOUNT - 1);
+        assertEq(token.balanceOf(stranger), INITIAL_BALANCE - TRANSFER_AMOUNT);
+    }
+
     function test_WithdrawNative_Success() public {
         vm.deal(address(feeCollector), TRANSFER_AMOUNT);
 
