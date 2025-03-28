@@ -51,9 +51,15 @@ contract FeeCollector is IVersioned, Ownable2Step {
     /// @notice Receives ERC20 tokens from a sender
     /// @param token The ERC20 token contract address
     /// @param amount The amount of tokens to transfer
+    /// @dev Rather than trust the value of "amount" passed as a param, we calculate the actual
+    /// amount received by checking the balance before and after the transfer. This is useful
+    /// for some tokens that implement fee-on-transfer mechanisms or have special transfer rules
+    /// for uint256.max
     function receiveERC20(address token, uint256 amount) external {
+        uint256 received = IERC20(token).balanceOf(address(this));
         IERC20(token).safeTransferFrom(msg.sender, address(this), amount);
-        emit ERC20Received(token, msg.sender, amount);
+        received = IERC20(token).balanceOf(address(this)) - received;
+        emit ERC20Received(token, msg.sender, received);
     }
 
     /// @notice Withdraws all native tokens to a specified address
