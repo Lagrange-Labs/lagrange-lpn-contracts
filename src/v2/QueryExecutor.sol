@@ -182,9 +182,7 @@ contract QueryExecutor is
 
         uint256 requestId = uint256(
             keccak256(
-                abi.encodePacked(
-                    ++s_requestIDNonce, address(this), block.chainid
-                )
+                abi.encode(++s_requestIDNonce, address(this), block.chainid)
             )
         );
 
