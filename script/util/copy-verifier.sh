@@ -9,7 +9,7 @@ VERIFIER_EXTENSION_URL=https://raw.githubusercontent.com/Lagrange-Labs/mapreduce
 # NOTE: all dev-x environments are deployed to holesky. The "holesky" environment is a "test" environment, like the other chains.
 case "$ENV" in
   dev-0)
-    VERIFIER_SOL_URL="https://pub-64a4eb6e897e425083647b3e0e8539a1.r2.dev"
+    VERIFIER_SOL_URL="https://pub-d7c7f0d6979a41f2b25137eaecf12d7b.r2.dev/1"
     ENV_FOLDER_NAME="dev-0"
     ;;
   dev-1)
@@ -17,15 +17,15 @@ case "$ENV" in
     ENV_FOLDER_NAME="dev-1"
     ;;
   dev-3)
-    VERIFIER_SOL_URL="https://pub-bca6985bd0e849b5b8840edc0b7f9e15.r2.dev"
+    VERIFIER_SOL_URL="https://pub-d7c7f0d6979a41f2b25137eaecf12d7b.r2.dev/1"
     ENV_FOLDER_NAME="dev-3"
     ;;
   test)
-    VERIFIER_SOL_URL="https://pub-fbb5db8dc9ee4e8da9daf13e07d27c24.r2.dev"
+    VERIFIER_SOL_URL="https://pub-d7c7f0d6979a41f2b25137eaecf12d7b.r2.dev/1"
     ENV_FOLDER_NAME="test"
     ;;
   prod)
-    VERIFIER_SOL_URL="https://pub-fbb5db8dc9ee4e8da9daf13e07d27c24.r2.dev"
+    VERIFIER_SOL_URL="https://pub-d7c7f0d6979a41f2b25137eaecf12d7b.r2.dev/1"
     ENV_FOLDER_NAME="prod"
     ;;
   *)
