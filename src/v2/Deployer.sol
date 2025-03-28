@@ -23,10 +23,17 @@ contract Deployer {
         address queryExecutor
     );
 
+    /// @notice Reverts when a zero address is provided
+    error ZeroAddress();
+
     /// @notice Deploys and configures the Lagrange protocol contracts, then self-destructs
     /// @param engMultisig The engineering multisig address
     /// @param financeMultisig The finance multisig address
     constructor(address engMultisig, address financeMultisig) {
+        if (engMultisig == address(0) || financeMultisig == address(0)) {
+            revert ZeroAddress();
+        }
+
         // Deploy implementations
         LagrangeQueryRouter routerImpl = new LagrangeQueryRouter();
         DatabaseManager dbManagerImpl = new DatabaseManager();
