@@ -3,8 +3,6 @@ pragma solidity 0.8.25;
 
 import {LagrangeQueryRouter} from "./LagrangeQueryRouter.sol";
 import {QueryExecutor} from "./QueryExecutor.sol";
-import {QueryExecutorTestHelper} from
-    "../../test/v2/test_helpers/QueryExecutorTestHelper.sol";
 import {DatabaseManager} from "./DatabaseManager.sol";
 import {FeeCollector} from "./FeeCollector.sol";
 import {TransparentUpgradeableProxy} from
