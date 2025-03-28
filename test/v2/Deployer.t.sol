@@ -2,8 +2,8 @@
 pragma solidity 0.8.25;
 
 import {BaseTest} from "./BaseTest.t.sol";
-import {DeployerTestHelper as Deployer} from
-    "./test_helpers/DeployerTestHelper.sol";
+import {DeployerTestHelper} from "./test_helpers/DeployerTestHelper.sol";
+import {Deployer} from "../../src/v2/Deployer.sol";
 import {LagrangeQueryRouter} from "../../src/v2/LagrangeQueryRouter.sol";
 import {DatabaseManager} from "../../src/v2/DatabaseManager.sol";
 import {QueryExecutor} from "../../src/v2/QueryExecutor.sol";
@@ -39,7 +39,7 @@ contract DeployerTest is BaseTest {
         vm.recordLogs();
 
         // Deploy all contracts using Deployer
-        new Deployer(engMultisig, financeMultisig);
+        new DeployerTestHelper(engMultisig, financeMultisig);
 
         // Get the last emitted event
         Vm.Log[] memory entries = vm.getRecordedLogs();
@@ -82,5 +82,17 @@ contract DeployerTest is BaseTest {
         // Assert proxy admins belong to eng multisig
         assertEq(getProxyAdminOwner(address(router)), engMultisig);
         assertEq(getProxyAdminOwner(address(dbManager)), engMultisig);
+    }
+
+    function test_Deployer_RevertsOnZeroEngMultisig() public {
+        // Should revert when engineering multisig is zero address
+        vm.expectRevert(Deployer.ZeroAddress.selector);
+        new Deployer(address(0), financeMultisig);
+    }
+
+    function test_Deployer_RevertsOnZeroFinanceMultisig() public {
+        // Should revert when finance multisig is zero address
+        vm.expectRevert(Deployer.ZeroAddress.selector);
+        new Deployer(engMultisig, address(0));
     }
 }
