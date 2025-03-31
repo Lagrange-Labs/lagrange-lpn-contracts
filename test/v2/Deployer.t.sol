@@ -9,6 +9,7 @@ import {DatabaseManager} from "../../src/v2/DatabaseManager.sol";
 import {QueryExecutor} from "../../src/v2/QueryExecutor.sol";
 import {FeeCollector} from "../../src/v2/FeeCollector.sol";
 import {ILPNClient} from "../../src/v2/interfaces/ILPNClient.sol";
+import {LPNClientV2Example} from "../../src/v2/client/LPNClientV2Example.sol";
 import {
     QueryOutput,
     QueryErrorCode
@@ -22,6 +23,7 @@ contract DeployerTest is BaseTest {
     DatabaseManager public dbManager;
     QueryExecutor public queryExecutor;
     FeeCollector public feeCollector;
+    LPNClientV2Example public testClient;
 
     // Test accounts
     address public engMultisig;
@@ -50,14 +52,18 @@ contract DeployerTest is BaseTest {
             address routerProxy,
             address dbManagerProxy,
             address feeCollectorAddr,
-            address queryExecutorAddr
-        ) = abi.decode(lastEntry.data, (address, address, address, address));
+            address queryExecutorAddr,
+            address testClientAddr
+        ) = abi.decode(
+            lastEntry.data, (address, address, address, address, address)
+        );
 
         // Get contract instances from emitted addresses
         router = LagrangeQueryRouter(routerProxy);
         dbManager = DatabaseManager(dbManagerProxy);
         queryExecutor = QueryExecutor(queryExecutorAddr);
         feeCollector = FeeCollector(payable(feeCollectorAddr));
+        testClient = LPNClientV2Example(testClientAddr);
     }
 
     /// @notice this tests that the Deployment tx configures the contracts correctly
@@ -82,6 +88,8 @@ contract DeployerTest is BaseTest {
         // Assert proxy admins belong to eng multisig
         assertEq(getProxyAdminOwner(address(router)), engMultisig);
         assertEq(getProxyAdminOwner(address(dbManager)), engMultisig);
+        // Assert test client points to router
+        assertEq(address(testClient.lpnRouter()), address(router));
     }
 
     function test_Deployer_RevertsOnZeroEngMultisig() public {
