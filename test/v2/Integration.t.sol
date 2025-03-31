@@ -8,7 +8,7 @@ import {LagrangeQueryRouter} from "../../src/v2/LagrangeQueryRouter.sol";
 import {DatabaseManager} from "../../src/v2/DatabaseManager.sol";
 import {QueryExecutor} from "../../src/v2/QueryExecutor.sol";
 import {FeeCollector} from "../../src/v2/FeeCollector.sol";
-import {ILPNClient} from "../../src/v2/interfaces/ILPNClient.sol";
+import {LPNClientV2Example} from "../../src/v2/client/LPNClientV2Example.sol";
 import {
     QueryOutput,
     QueryErrorCode
@@ -23,12 +23,12 @@ contract IntegrationTest is BaseTest {
     DatabaseManager public dbManager;
     QueryExecutor public queryExecutor;
     FeeCollector public feeCollector;
+    LPNClientV2Example public client;
 
     // Test accounts
     address public engMultisig;
     address public financeMultisig;
     address public stranger;
-    address public client;
 
     // Test data
     bytes32 public constant TABLE_ID = keccak256("test_table");
@@ -49,7 +49,6 @@ contract IntegrationTest is BaseTest {
         engMultisig = makeAddr("engMultisig");
         financeMultisig = makeAddr("financeMultisig");
         stranger = makeAddr("stranger");
-        client = makeMock("client");
 
         vm.recordLogs();
 
@@ -65,15 +64,18 @@ contract IntegrationTest is BaseTest {
             address routerProxy,
             address dbManagerProxy,
             address feeCollectorAddr,
-            address queryExecutorAddr
-        ) = abi.decode(lastEntry.data, (address, address, address, address));
+            address queryExecutorAddr,
+            address clientAddr
+        ) = abi.decode(
+            lastEntry.data, (address, address, address, address, address)
+        );
 
         // Get contract instances from emitted addresses
         router = LagrangeQueryRouter(routerProxy);
         dbManager = DatabaseManager(dbManagerProxy);
         queryExecutor = QueryExecutor(queryExecutorAddr);
         feeCollector = FeeCollector(payable(feeCollectorAddr));
-
+        client = LPNClientV2Example(clientAddr);
         // Setup test data
         PLACEHOLDERS = new bytes32[](2);
         PLACEHOLDERS[0] = bytes32(uint256(1));
@@ -84,14 +86,6 @@ contract IntegrationTest is BaseTest {
             error: QueryErrorCode.NoError
         });
         RESPONSE_DATA.push(bytes32(uint256(42)));
-
-        // Fund client account
-        vm.deal(client, 1 ether);
-
-        // Mock client callback
-        vm.mockCall(
-            client, abi.encodeWithSelector(ILPNClient.lpnCallback.selector), ""
-        );
     }
 
     function test_ContractIntegration() public {
@@ -111,16 +105,21 @@ contract IntegrationTest is BaseTest {
         emit FeeCollector.NativeReceived(address(queryExecutor), GAS_FEE);
 
         // Make request from client
-        vm.prank(client);
-        requestId = router.request{value: GAS_FEE}(
-            QUERY_HASH, CALLBACK_GAS_LIMIT, PLACEHOLDERS, START_BLOCK, END_BLOCK
+        requestId = client.request{value: GAS_FEE}(
+            QUERY_HASH,
+            uint256(CALLBACK_GAS_LIMIT),
+            PLACEHOLDERS,
+            START_BLOCK,
+            END_BLOCK
         );
 
         // Expect client callback to be called
         vm.expectCall(
-            client,
+            address(client),
             abi.encodeWithSelector(
-                ILPNClient.lpnCallback.selector, requestId, EXPECTED_OUTPUT
+                LPNClientV2Example.lpnCallback.selector,
+                requestId,
+                EXPECTED_OUTPUT
             )
         );
 

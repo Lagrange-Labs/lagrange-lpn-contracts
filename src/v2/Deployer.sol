@@ -7,6 +7,7 @@ import {DatabaseManager} from "./DatabaseManager.sol";
 import {FeeCollector} from "./FeeCollector.sol";
 import {TransparentUpgradeableProxy} from
     "@openzeppelin-contracts-5.2.0/proxy/transparent/TransparentUpgradeableProxy.sol";
+import {LPNClientV2Example} from "./client/LPNClientV2Example.sol";
 
 /// @title Deployer
 /// @notice Deploys and configures the Lagrange protocol contracts then self-destructs
@@ -18,7 +19,8 @@ contract Deployer {
         address routerProxy,
         address dbManagerProxy,
         address feeCollector,
-        address queryExecutor
+        address queryExecutor,
+        address testClient
     );
 
     /// @notice Reverts when a zero address is provided
@@ -67,11 +69,16 @@ contract Deployer {
             engMultisig, queryExecutor
         );
 
+        // Deploy LPNClientV2Example
+        LPNClientV2Example lpnClientExample =
+            new LPNClientV2Example(address(routerProxy));
+
         emit ContractsDeployed(
             address(routerProxy),
             address(dbManagerProxy),
             address(feeCollector),
-            address(queryExecutor)
+            address(queryExecutor),
+            address(lpnClientExample)
         );
 
         // This contract is not needed after others are deployed, so we can selfdestruct

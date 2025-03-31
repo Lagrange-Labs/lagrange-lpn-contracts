@@ -2,25 +2,17 @@
 pragma solidity 0.8.25;
 
 import {QueryOutput} from "../Groth16VerifierExtension.sol";
-
-interface ILagrangeQueryRouter {
-    function request(
-        bytes32 queryHash,
-        uint256 callbackGasLimit,
-        bytes32[] calldata placeholders,
-        uint256 startBlock,
-        uint256 endBlock
-    ) external payable returns (uint256);
-}
+import {ILagrangeQueryRouter} from "../interfaces/ILagrangeQueryRouter.sol";
+import {ILPNClient} from "../interfaces/ILPNClient.sol";
 
 error CallbackNotAuthorized();
 
-contract LPNClientV2Example {
+contract LPNClientV2Example is ILPNClient {
     ILagrangeQueryRouter public lpnRouter;
 
     event NewResponse(uint256 requestId, QueryOutput result);
 
-    modifier onlyLagrangeRegistry() {
+    modifier onlyLagrangeRouter() {
         if (msg.sender != address(lpnRouter)) {
             revert CallbackNotAuthorized();
         }
@@ -33,7 +25,7 @@ contract LPNClientV2Example {
 
     function lpnCallback(uint256 requestId, QueryOutput memory result)
         external
-        onlyLagrangeRegistry
+        onlyLagrangeRouter
     {
         emit NewResponse(requestId, result);
     }
@@ -44,9 +36,29 @@ contract LPNClientV2Example {
         bytes32[] calldata placeholders,
         uint256 startBlock,
         uint256 endBlock
-    ) external payable {
-        lpnRouter.request{value: msg.value}(
+    ) external payable returns (uint256) {
+        return lpnRouter.request{value: msg.value}(
             queryHash, callbackGasLimit, placeholders, startBlock, endBlock
+        );
+    }
+
+    function request(
+        bytes32 queryHash,
+        uint256 callbackGasLimit,
+        bytes32[] calldata placeholders,
+        uint256 startBlock,
+        uint256 endBlock,
+        uint256 limit,
+        uint256 offset
+    ) external payable returns (uint256) {
+        return lpnRouter.request{value: msg.value}(
+            queryHash,
+            callbackGasLimit,
+            placeholders,
+            startBlock,
+            endBlock,
+            limit,
+            offset
         );
     }
 }

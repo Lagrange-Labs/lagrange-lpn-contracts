@@ -46,8 +46,11 @@ contract DeployLPNV2Contracts is Script, ChainConnections {
             address routerProxy,
             address dbManagerProxy,
             address feeCollector,
-            address queryExecutor
-        ) = abi.decode(lastEntry.data, (address, address, address, address));
+            address queryExecutor,
+            address lpnClientExample
+        ) = abi.decode(
+            lastEntry.data, (address, address, address, address, address)
+        );
 
         // Get implementation and admin addresses from proxies
         address routerImpl = getProxyImplementation(routerProxy);
@@ -64,5 +67,6 @@ contract DeployLPNV2Contracts is Script, ChainConnections {
         console.log("DB Manager Proxy Admin: %s", dbManagerProxyAdmin);
         console.log("Fee Collector: %s", feeCollector);
         console.log("Query Executor: %s", queryExecutor);
+        console.log("LPN Client Example: %s", lpnClientExample);
     }
 }
