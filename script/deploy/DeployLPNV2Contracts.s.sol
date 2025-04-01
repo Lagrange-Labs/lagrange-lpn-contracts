@@ -1,35 +1,27 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.25;
 
-import {Script} from "forge-std/Script.sol";
-import {ChainConnections} from "../../src/utils/ChainConnections.sol";
-import {Environments} from "../../src/utils/Environments.sol";
 import {
     getProxyImplementation, getProxyAdmin
 } from "../../src/utils/Proxy.sol";
 import {Deployer} from "../../src/v2/Deployer.sol";
 import {console} from "forge-std/console.sol";
 import {Vm} from "forge-std/Vm.sol";
-import {MultiSigs} from "../../src/utils/MultiSigs.sol";
+import {DeploymentUtils} from "../../src/utils/DeploymentUtils.sol";
 
 /// @notice Script to deploy and configure LPN V2 contracts
 /// @dev Reads private key & multisig addresses from environment variables
 /// @dev uses Deployer contract to deploy and configure the V2 contracts in a single transaction
-contract DeployLPNV2Contracts is Script, ChainConnections, MultiSigs {
+contract DeployLPNV2Contracts is DeploymentUtils {
     /// @notice Deploys V2 contracts
     function run() external {
-        // Get key & multisig addresses from environment variables
-        vm.rememberKey(vm.envUint("PRIVATE_KEY"));
-        address engMultisig = getEngMultiSig(block.chainid);
-        address financeMultisig = getFinanceMultiSig(block.chainid);
-
         console.log(unicode"🚀 Deploying V2 contracts");
 
         vm.startBroadcast();
         vm.recordLogs();
 
         // Deploy all V2 contracts using the Deployer contract
-        new Deployer(engMultisig, financeMultisig);
+        new Deployer(getEngMultiSig(), getFinanceMultiSig());
 
         // Capture emitted events from the Deployer to get contract addresses
         vm.stopBroadcast();
