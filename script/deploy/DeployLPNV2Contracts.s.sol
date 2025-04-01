@@ -10,17 +10,18 @@ import {
 import {Deployer} from "../../src/v2/Deployer.sol";
 import {console} from "forge-std/console.sol";
 import {Vm} from "forge-std/Vm.sol";
+import {MultiSigs} from "../../src/utils/MultiSigs.sol";
 
 /// @notice Script to deploy and configure LPN V2 contracts
 /// @dev Reads private key & multisig addresses from environment variables
 /// @dev uses Deployer contract to deploy and configure the V2 contracts in a single transaction
-contract DeployLPNV2Contracts is Script, ChainConnections {
+contract DeployLPNV2Contracts is Script, ChainConnections, MultiSigs {
     /// @notice Deploys V2 contracts
     function run() external {
         // Get key & multisig addresses from environment variables
         vm.rememberKey(vm.envUint("PRIVATE_KEY"));
-        address engMultisig = vm.envAddress("ENG_MULTISIG_ADDRESS");
-        address financeMultisig = vm.envAddress("FINANCE_MULTISIG_ADDRESS");
+        address engMultisig = getEngMultiSig(block.chainid);
+        address financeMultisig = getFinanceMultiSig(block.chainid);
 
         console.log(unicode"🚀 Deploying V2 contracts");
 
