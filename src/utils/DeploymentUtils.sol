@@ -3,6 +3,7 @@
 pragma solidity 0.8.25;
 
 import {Script} from "forge-std/Script.sol";
+import {LagrangeQueryRouter} from "../v2/LagrangeQueryRouter.sol";
 import {ChainConnections} from "./ChainConnections.sol";
 
 /// @notice This contract contains many utility functions for deployment scripts
@@ -14,6 +15,10 @@ abstract contract DeploymentUtils is ChainConnections, Script {
 
     mapping(uint256 chainId => address addr) private engMultiSigs;
     mapping(uint256 chainId => address addr) private financeMultiSigs;
+
+    mapping(
+        string env => mapping(uint256 chainId => LagrangeQueryRouter router)
+    ) private routers;
 
     constructor() {
         // Deployer Key
@@ -30,12 +35,13 @@ abstract contract DeploymentUtils is ChainConnections, Script {
         chainsByEnv["dev-3"] = ["holesky"];
         // Test
         chainsByEnv["test"] = [
-            "base_sepolia",
-            "fraxtal_testnet",
-            "holesky",
-            "mantle_sepolia",
-            "scroll_sepolia",
-            "sepolia"
+            // TODO: Add these back in after v2 deployments are complete
+            // "base_sepolia",
+            // "fraxtal_testnet",
+            "holesky"
+            // "mantle_sepolia",
+            // "scroll_sepolia",
+            // "sepolia"
         ];
         // Prod
         chainsByEnv["prod"] =
@@ -69,6 +75,17 @@ abstract contract DeploymentUtils is ChainConnections, Script {
         // Polygon zkEVM
         engMultiSigs[1101] = 0xE7cdA508FEB53713fB7C69bb891530C924980366;
         financeMultiSigs[1101] = 0xE7cdA508FEB53713fB7C69bb891530C924980366;
+
+        // Deployed Router Proxies
+        // dev-0
+        routers["dev-0"][17000] =
+            LagrangeQueryRouter(0x927F5A4570BfA168f0da995CfDbf678d89ADC869);
+        // dev-1
+        routers["dev-1"][17000] =
+            LagrangeQueryRouter(0x62126c172B79a5f2513B3943CceB2da3EfD2Ceec);
+        // test
+        routers["test"][17000] =
+            LagrangeQueryRouter(0x988732D6aaa4a7419bE3628444Ae02e86FeD41ac);
     }
 
     function getDeployerAddress() internal view returns (address) {
@@ -87,6 +104,10 @@ abstract contract DeploymentUtils is ChainConnections, Script {
         );
     }
 
+    function getEnv() internal view returns (string memory) {
+        return env;
+    }
+
     function isDevEnv() internal view returns (bool) {
         return keccak256(bytes(env)) == keccak256(bytes("dev-0"))
             || keccak256(bytes(env)) == keccak256(bytes("dev-1"))
@@ -101,6 +122,12 @@ abstract contract DeploymentUtils is ChainConnections, Script {
         return keccak256(bytes(env)) == keccak256(bytes("prod"));
     }
 
+    /// @notice Get the chains that are configured for a given environment
+    /// @return chains the list of chain names that are configured for the given environment
+    function getChainsForEnv() internal view returns (string[] memory) {
+        return chainsByEnv[env];
+    }
+
     function getEngMultiSig() internal view returns (address) {
         if (isDevEnv()) return getDeployerAddress();
         address addr = engMultiSigs[block.chainid];
@@ -113,5 +140,46 @@ abstract contract DeploymentUtils is ChainConnections, Script {
         address addr = financeMultiSigs[block.chainid];
         require(addr != address(0), "Finance multi-sig not found");
         return addr;
+    }
+
+    function getRouter() internal view returns (LagrangeQueryRouter) {
+        LagrangeQueryRouter router = routers[env][block.chainid];
+        require(address(router) != address(0), "Router not found");
+        return router;
+    }
+
+    /// @notice this function checks that the verifier contracts are up to date, and fails if they are not
+    /// @dev sadly we can't fetch the contracts and resume script execution because the compilation step
+    /// happens first
+    /// @dev running the copy verifier script will produce some ERROR logs - ignore these
+    function checkVerifier() internal {
+        // compute the md5 hash of the verifier contracts
+        string[] memory md5CmdArgs = new string[](2);
+        md5CmdArgs[0] = "md5";
+        md5CmdArgs[1] = "src/v2/Verifier.sol";
+
+        bytes32 verifierHash = keccak256(vm.ffi(md5CmdArgs));
+        md5CmdArgs[1] = "src/v2/Groth16VerifierExtension.sol";
+        bytes32 verifierExtensionHash = keccak256(vm.ffi(md5CmdArgs));
+
+        // run the copy verifier script
+        string[] memory copyVerifierCmdArgs = new string[](3);
+        copyVerifierCmdArgs[0] = "bash";
+        copyVerifierCmdArgs[1] = "script/util/copy-verifier.sh";
+        copyVerifierCmdArgs[2] = getEnv();
+        vm.ffi(copyVerifierCmdArgs);
+
+        // compute the md5 hash of the new verifier contracts
+        md5CmdArgs[1] = "src/v2/Verifier.sol";
+        bytes32 newVerifierHash = keccak256(vm.ffi(md5CmdArgs));
+        md5CmdArgs[1] = "src/v2/Groth16VerifierExtension.sol";
+        bytes32 newVerifierExtensionHash = keccak256(vm.ffi(md5CmdArgs));
+
+        // check before vs after
+        require(
+            verifierHash == newVerifierHash
+                && verifierExtensionHash == newVerifierExtensionHash,
+            "Verifier.sol and/or Groth16VerifierExtension.sol have changed, please re-run deployment script"
+        );
     }
 }

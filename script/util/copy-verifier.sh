@@ -1,6 +1,9 @@
 #! /bin/bash
 set -e
 
+# redirect stderr to stdout, this prevents foundry from erroring when calling this script directly
+exec 2>&1
+
 GIT_REPO_PATH=../mapreduce-plonky2
 CODE_DIR_PATH=groth16-framework/test_data
 ENV=$1
@@ -53,5 +56,7 @@ wget -O $VERIFIER_EXTENSION_FILE $VERIFIER_EXTENSION_URL
 
 cp $VERIFIER_EXTENSION_FILE ./src/v1/Groth16VerifierExtension.sol
 cp $VERIFIER_FILE ./src/v1/Verifier.sol
+cp $VERIFIER_EXTENSION_FILE ./src/v2/Groth16VerifierExtension.sol
+cp $VERIFIER_FILE ./src/v2/Verifier.sol
 
 forge fmt

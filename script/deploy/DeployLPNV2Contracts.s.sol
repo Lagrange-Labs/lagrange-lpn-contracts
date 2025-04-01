@@ -15,6 +15,8 @@ import {DeploymentUtils} from "../../src/utils/DeploymentUtils.sol";
 contract DeployLPNV2Contracts is DeploymentUtils {
     /// @notice Deploys V2 contracts
     function run() external {
+        checkVerifier();
+
         console.log(unicode"🚀 Deploying V2 contracts");
 
         vm.startBroadcast();
