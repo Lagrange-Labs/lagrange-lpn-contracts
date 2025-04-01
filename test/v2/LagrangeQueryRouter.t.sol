@@ -141,7 +141,9 @@ contract LagrangeQueryRouterTest is BaseTest {
     function test_Request_Aggregation_Success() public {
         vm.prank(client);
         vm.expectEmit();
-        emit LagrangeQueryRouter.NewRequest(REQUEST_ID_1, address(executor));
+        emit LagrangeQueryRouter.NewRequest(
+            REQUEST_ID_1, address(executor), client
+        );
         router.request{value: GAS_FEE}(
             QUERY_HASH, CALLBACK_GAS_LIMIT, PLACEHOLDERS, START_BLOCK, END_BLOCK
         );
@@ -150,7 +152,9 @@ contract LagrangeQueryRouterTest is BaseTest {
     function test_Request_LimitOffset_Success() public {
         vm.prank(client);
         vm.expectEmit();
-        emit LagrangeQueryRouter.NewRequest(REQUEST_ID_1, address(executor));
+        emit LagrangeQueryRouter.NewRequest(
+            REQUEST_ID_1, address(executor), client
+        );
         router.request{value: GAS_FEE}(
             QUERY_HASH,
             CALLBACK_GAS_LIMIT,
@@ -170,7 +174,9 @@ contract LagrangeQueryRouterTest is BaseTest {
         // Make request
         vm.prank(client);
         vm.expectEmit();
-        emit LagrangeQueryRouter.NewRequest(REQUEST_ID_2, address(executor2));
+        emit LagrangeQueryRouter.NewRequest(
+            REQUEST_ID_2, address(executor2), client
+        );
         uint256 requestId = router.requestTo{value: GAS_FEE}(
             IQueryExecutor(executor2),
             QUERY_HASH,
@@ -202,13 +208,30 @@ contract LagrangeQueryRouterTest is BaseTest {
 
     function test_Respond_Success() public {
         vm.expectEmit();
-        emit LagrangeQueryRouter.NewResponse(REQUEST_ID_1, address(executor));
+        emit LagrangeQueryRouter.NewResponse(
+            REQUEST_ID_1, address(executor), client, true
+        );
 
         vm.expectCall(
             client,
             abi.encodeWithSelector(
                 ILPNClient.lpnCallback.selector, REQUEST_ID_1, QUERY_OUTPUT
             )
+        );
+
+        router.respond(REQUEST_ID_1, IQueryExecutor(executor), new bytes32[](0));
+    }
+
+    function test_Respond_CallbackFails_Success() public {
+        vm.expectEmit();
+        emit LagrangeQueryRouter.NewResponse(
+            REQUEST_ID_1, address(executor), client, false
+        );
+
+        vm.mockCallRevert(
+            client,
+            abi.encodeWithSelector(ILPNClient.lpnCallback.selector),
+            "REVERT"
         );
 
         router.respond(REQUEST_ID_1, IQueryExecutor(executor), new bytes32[](0));

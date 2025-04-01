@@ -36,7 +36,7 @@ make slither
 ## Deploy
 
 * Private key and Etherscan API key *must* be supplied as environment variables.
-* Only 8/9 contracts will verify because the [Deployer](./src/v2/Deployer.sol) contract self-destructs.
+* Only 9/10 contracts will verify because the [Deployer](./src/v2/Deployer.sol) contract self-destructs.
 
 ```bash
 export PRIVATE_KEY=<...>

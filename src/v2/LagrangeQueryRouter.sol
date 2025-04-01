@@ -37,12 +37,24 @@ contract LagrangeQueryRouter is
     /// @notice Event emitted when a new request is made
     /// @param requestId The ID of the request
     /// @param queryExecutor The address of the query executor that is handling the request
-    event NewRequest(uint256 indexed requestId, address indexed queryExecutor);
+    /// @param client The address of the client that made the request
+    event NewRequest(
+        uint256 indexed requestId,
+        address indexed queryExecutor,
+        address indexed client
+    );
 
     /// @notice Event emitted when a response is received
     /// @param requestId The ID of the request
-    /// @param queryExecutor The address of the query executor that is handling the response
-    event NewResponse(uint256 indexed requestId, address indexed queryExecutor);
+    /// @param queryExecutor The address of the query executor that is validating the response
+    /// @param client The address of the client that made the request, and is receiving the response
+    /// @param success Whether the call to the client's callback was successful or not
+    event NewResponse(
+        uint256 indexed requestId,
+        address indexed queryExecutor,
+        address indexed client,
+        bool success
+    );
 
     /// @notice Error thrown when a QueryExecutor address is invalid
     error InvalidExecutorAddress();
@@ -182,7 +194,7 @@ contract LagrangeQueryRouter is
             offset
         );
 
-        emit NewRequest(requestId, address(executor));
+        emit NewRequest(requestId, address(executor), msg.sender);
 
         return requestId;
     }
@@ -203,9 +215,14 @@ contract LagrangeQueryRouter is
         (address client, uint256 callbackGasLimit, QueryOutput memory result) =
             executor.respond(requestId, data);
 
-        ILPNClient(client).lpnCallback{gas: callbackGasLimit}(requestId, result);
+        bool success;
+        try ILPNClient(client).lpnCallback{gas: callbackGasLimit}(
+            requestId, result
+        ) {
+            success = true;
+        } catch {}
 
-        emit NewResponse(requestId, address(executor));
+        emit NewResponse(requestId, address(executor), client, success);
     }
 
     /// @notice Returns the fee for a query
