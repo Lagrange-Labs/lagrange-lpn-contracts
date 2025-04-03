@@ -1,4 +1,25 @@
 [[dependencies]]
+name = "@layerzerolabs-lz-evm-protocol-v2"
+version = "3.0.84"
+url = "https://soldeer-revisions.s3.amazonaws.com/@layerzerolabs-lz-evm-protocol-v2/3_0_84_01-04-2025_15:38:53_lz-evm-protocol-v2.zip"
+checksum = "6a2e785699966fa9547fabfe7574b96a36e141cdd14759ec08f2d95e6299bbd6"
+integrity = "3ca260255e50b1aea96c202f09283ef97720ca6642d64ca7277ee450595eb2e4"
+
+[[dependencies]]
+name = "@layerzerolabs-oapp-evm"
+version = "0.3.2"
+url = "https://soldeer-revisions.s3.amazonaws.com/@layerzerolabs-oapp-evm/0_3_2_08-03-2025_08:55:58_oapp-evm.zip"
+checksum = "3ab34a2e41af455e55b4bff6ffffc535f83311e3d100b3b66876b6917f7a0ad7"
+integrity = "9ee76076bfe90b69ef534ff42c367bf253ad0cadc0b10e94483dc4bc34864d58"
+
+[[dependencies]]
+name = "@layerzerolabs-oft-evm"
+version = "3.1.3"
+url = "https://soldeer-revisions.s3.amazonaws.com/@layerzerolabs-oft-evm/3_1_3_08-03-2025_08:56:05_oft-evm.zip"
+checksum = "f3e43cd67cf56e9f79e88bc26a993ef2a616c11437e9d4c616b350388eb6f82d"
+integrity = "5dca68ecb4466047026ab5169bfedc080e9247d5fdd9eddfa33419aeccf972d6"
+
+[[dependencies]]
 name = "@openzeppelin-contracts"
 version = "5.2.0"
 url = "https://soldeer-revisions.s3.amazonaws.com/@openzeppelin-contracts/5_2_0_11-01-2025_09:30:20_contracts.zip"

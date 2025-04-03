@@ -57,3 +57,6 @@ scroll = { key = "${SCROLLSCAN_API_KEY}" }
 [dependencies]
 "@openzeppelin-contracts-upgradeable" = "5.2.0"
 "@openzeppelin-contracts" = "5.2.0"
+"@layerzerolabs-lz-evm-protocol-v2" = "3.0.84"
+"@layerzerolabs-oapp-evm" = "0.3.2"
+"@layerzerolabs-oft-evm" = "3.1.3"
