@@ -33,6 +33,7 @@ contract LAToken is Initializable, AirdropableOFTUpgradable {
         __ERC20_init(NAME, "LA");
         __ERC20Permit_init(NAME);
         __AccessControlDefaultAdminRules_init(0, defaultAdmin);
+        __OFT_init(defaultAdmin);
 
         _grantRole(MINTER_ROLE, minter);
 

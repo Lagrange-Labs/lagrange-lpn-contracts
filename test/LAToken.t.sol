@@ -10,6 +10,8 @@ import {Initializable} from
     "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import {TransparentUpgradeableProxy} from
     "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
+import {ILayerZeroEndpointV2} from
+    "@layerzerolabs/oapp-evm/contracts/oapp/interfaces/IOAppCore.sol";
 
 contract LATokenTest is BaseTest {
     LAToken public implementation;
@@ -19,6 +21,7 @@ contract LATokenTest is BaseTest {
     address public user1;
     address public user2;
     address public user3;
+    address public lzEndpoint;
     uint256 public constant INITIAL_MINT_AMOUNT = 1000 ether;
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
@@ -32,8 +35,19 @@ contract LATokenTest is BaseTest {
         user1 = makeAddr("user1");
         user2 = makeAddr("user2");
         user3 = makeAddr("user3");
+        lzEndpoint = makeMock("lzEndpoint");
+
+        // Mock setDelegate call to LZ endpoint contract, happens in LAToken.initialize
+        vm.mockCall(
+            lzEndpoint,
+            abi.encodeWithSelector(
+                ILayerZeroEndpointV2.setDelegate.selector, admin
+            ),
+            ""
+        );
+
         // Deploy implementation
-        implementation = new LAToken(address(0));
+        implementation = new LAToken(lzEndpoint);
 
         // Deploy proxy and initialize
         bytes memory initData = abi.encodeWithSelector(
@@ -60,7 +74,7 @@ contract LATokenTest is BaseTest {
 
     function test_Initialize_WithMerkleRoot_Success() public {
         bytes32 merkleRoot = randomBytes32();
-        LAToken newImplementation = new LAToken(address(0));
+        LAToken newImplementation = new LAToken(lzEndpoint);
 
         // Deploy proxy and initialize
         bytes memory initData = abi.encodeWithSelector(
