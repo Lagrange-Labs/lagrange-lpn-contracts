@@ -147,6 +147,25 @@ contract LATokenMintableTest is BaseTest {
         );
     }
 
+    function test_Initialize_RevertsWhen_InitialTreasuryTooLarge() public {
+        LATokenMintable newImplementation =
+            new LATokenMintable(lzEndpoint, INITIAL_SUPPLY);
+
+        // Deploy proxy and try to initialize with treasury supply > INITIAL_SUPPLY
+        bytes memory initData = abi.encodeWithSelector(
+            LATokenMintable.initialize.selector,
+            admin,
+            treasury,
+            bytes32(0),
+            INITIAL_SUPPLY + 1
+        );
+
+        vm.expectRevert(LATokenMintable.InitialTreasuryTooLarge.selector);
+        TransparentUpgradeableProxy newProxy = new TransparentUpgradeableProxy(
+            address(newImplementation), admin, initData
+        );
+    }
+
     // ------------------------------------------------------------
     //                      BASIC ERC20 TESTS                     |
     // ------------------------------------------------------------
@@ -183,18 +202,21 @@ contract LATokenMintableTest is BaseTest {
 
     function test_Mint_Success() public {
         assertEq(token.balanceOf(user2), 0);
-        uint256 mintAmount = 1;
+        uint256 mintAmount = token.availableToMint();
+        assertTrue(mintAmount > 0);
 
         vm.prank(treasury);
-        token.mint(user2, 1);
+        vm.expectEmit();
+        emit LATokenMintable.Mint(user2, mintAmount);
+        token.mint(user2, mintAmount);
 
         assertEq(token.balanceOf(user2), mintAmount);
-
         assertEq(token.totalSupply(), INITIAL_TREASURY_SUPPLY + mintAmount);
+        assertEq(token.availableToMint(), 0);
     }
 
     function test_Mint_RevertsWhen_CallerLacksMinterRole() public {
-        uint256 mintAmount = 500 ether;
+        uint256 mintAmount = 1;
 
         vm.prank(user1);
         vm.expectRevert(
@@ -205,6 +227,108 @@ contract LATokenMintableTest is BaseTest {
             )
         );
         token.mint(user2, mintAmount);
+    }
+
+    function test_Mint_RevertsWhen_ExceedsAllowedInflation() public {
+        // Calculate the available amount to mint based on 1 day elapsed time
+        uint256 availableAmount = token.availableToMint();
+
+        // Try to mint more than available
+        uint256 excessAmount = availableAmount + 1;
+
+        vm.prank(treasury);
+        vm.expectRevert(LATokenMintable.ExceedsAllowedInflation.selector);
+        token.mint(user2, excessAmount);
+    }
+
+    function test_AvailableToMint_IncreaseOverTime_Success() public {
+        // 1 day after deployment (first warp happens in setup function)
+        uint256 expectedAmount =
+            (INITIAL_SUPPLY * 4 * 1 days) / (365 days * 100);
+        uint256 actualAmount = token.availableToMint();
+        assertEq(actualAmount, expectedAmount);
+        // 1 year after deployment
+        vm.warp(block.timestamp + 364 days); // plus the 1 day from setup = 365 days
+        expectedAmount = (INITIAL_SUPPLY * 4) / 100;
+        actualAmount = token.availableToMint();
+        assertEq(actualAmount, expectedAmount);
+        // 5 years after deployment
+        vm.warp(block.timestamp + (365 days * 4)); // add 4 more years, so 5 total
+        expectedAmount = (INITIAL_SUPPLY * 4 * 5) / 100;
+        actualAmount = token.availableToMint();
+        assertEq(actualAmount, expectedAmount);
+    }
+
+    function test_AvailableToMint_DecreaseAfterMinting_Success() public {
+        // Get initial available amount
+        uint256 initialAvailable = token.availableToMint();
+        assertTrue(initialAvailable > 2); // need to be able to split in half for this test
+
+        // Mint half of the available amount
+        uint256 mintAmount = initialAvailable / 2;
+        vm.prank(treasury);
+        token.mint(user2, mintAmount);
+
+        // Check that available amount decreased by the minted amount
+        uint256 newAvailable = token.availableToMint();
+        assertEq(newAvailable, initialAvailable - mintAmount);
+    }
+
+    function test_AvailableToMint_IncreasesOverTime_Success() public {
+        // Get initial available amount
+        uint256 initialAvailable = token.availableToMint();
+
+        // Warp forward 30 days
+        vm.warp(block.timestamp + 30 days);
+
+        // Check that available amount increased
+        uint256 newAvailable = token.availableToMint();
+        assertTrue(newAvailable > initialAvailable);
+
+        // Calculate expected increase (30 days of inflation)
+        uint256 expectedIncrease =
+            (INITIAL_SUPPLY * 4 * 30 days) / (365 days * 100);
+        assertApproxEqAbs(newAvailable - initialAvailable, expectedIncrease, 10);
+    }
+
+    function test_AvailableToMint_AfterMultipleMints_Success() public {
+        // Mint multiple times and verify the available amount decreases correctly
+        uint256 initialAvailable = token.availableToMint();
+
+        // First mint
+        uint256 firstMintAmount = initialAvailable / 4;
+        vm.prank(treasury);
+        token.mint(user2, firstMintAmount);
+
+        // Check available decreased correctly
+        uint256 availableAfterFirstMint = token.availableToMint();
+        assertEq(availableAfterFirstMint, initialAvailable - firstMintAmount);
+
+        // Second mint
+        uint256 secondMintAmount = availableAfterFirstMint / 3;
+        vm.prank(treasury);
+        token.mint(user3, secondMintAmount);
+
+        // Check available decreased correctly
+        uint256 availableAfterSecondMint = token.availableToMint();
+        assertEq(
+            availableAfterSecondMint, availableAfterFirstMint - secondMintAmount
+        );
+
+        // Wait some time and mint again
+        vm.warp(block.timestamp + 60 days);
+        uint256 availableAfterTimeIncrease = token.availableToMint();
+
+        uint256 thirdMintAmount = availableAfterTimeIncrease / 2;
+        vm.prank(treasury);
+        token.mint(user1, thirdMintAmount);
+
+        // Check available decreased correctly
+        uint256 availableAfterThirdMint = token.availableToMint();
+        assertEq(
+            availableAfterThirdMint,
+            availableAfterTimeIncrease - thirdMintAmount
+        );
     }
 
     // ------------------------------------------------------------

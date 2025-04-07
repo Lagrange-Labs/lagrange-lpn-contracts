@@ -19,6 +19,8 @@ contract LATokenMintable is LATokenBase {
     uint256 public immutable INITIAL_SUPPLY;
     uint256 private immutable DEPLOYMENT_DATETIME;
 
+    event Mint(address indexed to, uint256 amount);
+
     error ExceedsAllowedInflation();
     error InitialTreasuryTooLarge();
 
@@ -70,6 +72,7 @@ contract LATokenMintable is LATokenBase {
         MintableStorage storage $ = _getMintableStorage();
         $.lastMintCheckpoint += amount;
         _mint(to, amount);
+        emit Mint(to, amount);
     }
 
     /// @notice Gets the storage struct
