@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import {BaseTest} from "./v2/BaseTest.t.sol"; // TODO
-import {LAToken} from "../src/latoken/LAToken.sol";
-import {AirdropableUpgradable} from "../src/latoken/AirdropableUpgradable.sol";
+import {BaseTest} from "../BaseTest.t.sol"; // TODO
+import {LATokenMintable} from "../../src/latoken/LATokenMintable.sol";
+import {AirdropableUpgradable} from
+    "../../src/latoken/AirdropableUpgradable.sol";
 
 import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
 import {Initializable} from
@@ -13,31 +14,57 @@ import {TransparentUpgradeableProxy} from
 import {ILayerZeroEndpointV2} from
     "@layerzerolabs/oapp-evm/contracts/oapp/interfaces/IOAppCore.sol";
 
-contract LATokenTest is BaseTest {
-    LAToken public implementation;
-    LAToken public token;
+contract LATokenMintableTest is BaseTest {
+    LATokenMintable public implementation;
+    LATokenMintable public token;
     address public admin;
-    address public minter;
+    address public treasury;
     address public user1;
     address public user2;
     address public user3;
     address public lzEndpoint;
-    uint256 public constant INITIAL_MINT_AMOUNT = 1000 ether;
+
+    uint256 public constant INITIAL_SUPPLY = 1000 ether;
+    uint256 public constant INITIAL_TREASURY_SUPPLY = 100 ether;
+    uint256 public constant USER_INITIAL_BALANCE = 10 ether;
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
     // For ERC20Permit testing
     uint256 privateKey = 0xBEEF;
     address permitUser = vm.addr(privateKey);
 
+    bytes32 public merkleRoot;
+    bytes32[] public leaves;
+    uint256[] public amounts;
+
     function setUp() public {
         admin = makeAddr("admin");
-        minter = makeAddr("minter");
+        treasury = makeAddr("treasury");
         user1 = makeAddr("user1");
         user2 = makeAddr("user2");
         user3 = makeAddr("user3");
         lzEndpoint = makeMock("lzEndpoint");
 
-        // Mock setDelegate call to LZ endpoint contract, happens in LAToken.initialize
+        // Merkle tree for airdrop
+        address[] memory accounts = new address[](3);
+        amounts = new uint256[](3);
+
+        accounts[0] = user1;
+        accounts[1] = user2;
+        accounts[2] = user3;
+
+        amounts[0] = 100 ether;
+        amounts[1] = 200 ether;
+        amounts[2] = 300 ether;
+
+        leaves = new bytes32[](3);
+        for (uint256 i = 0; i < 3; i++) {
+            leaves[i] = keccak256(abi.encodePacked(accounts[i], amounts[i]));
+        }
+
+        merkleRoot = _buildMerkleRoot();
+
+        // Mock setDelegate call to LZ endpoint contract, happens in LATokenMintable.initialize
         vm.mockCall(
             lzEndpoint,
             abi.encodeWithSelector(
@@ -47,96 +74,123 @@ contract LATokenTest is BaseTest {
         );
 
         // Deploy implementation
-        implementation = new LAToken(lzEndpoint);
+        implementation = new LATokenMintable(lzEndpoint, INITIAL_SUPPLY);
 
         // Deploy proxy and initialize
         bytes memory initData = abi.encodeWithSelector(
-            LAToken.initialize.selector, admin, minter, bytes32(0)
+            LATokenMintable.initialize.selector,
+            admin,
+            treasury,
+            merkleRoot,
+            INITIAL_TREASURY_SUPPLY
         );
         TransparentUpgradeableProxy proxy = new TransparentUpgradeableProxy(
             address(implementation), admin, initData
         );
 
         // Get token instance pointing to the proxy
-        token = LAToken(address(proxy));
+        token = LATokenMintable(address(proxy));
 
-        // Mint initial tokens to user1
-        vm.prank(minter);
-        token.mint(user1, INITIAL_MINT_AMOUNT);
+        // Transfer initial tokens to user1
+        vm.prank(treasury);
+        token.transfer(user1, USER_INITIAL_BALANCE);
+
+        // Fast forward time to allow minting
+        vm.warp(block.timestamp + 1 days);
     }
+
+    // ------------------------------------------------------------
+    //                    INITIALIZATION TESTS                    |
+    // ------------------------------------------------------------
 
     function test_Initialize_Success() public view {
         assertEq(token.name(), "Lagrange");
         assertEq(token.symbol(), "LA");
         assertEq(token.decimals(), 18);
-        assertEq(token.totalSupply(), INITIAL_MINT_AMOUNT);
+        assertEq(token.totalSupply(), INITIAL_TREASURY_SUPPLY);
     }
 
-    function test_Initialize_WithMerkleRoot_Success() public {
-        bytes32 merkleRoot = randomBytes32();
-        LAToken newImplementation = new LAToken(lzEndpoint);
+    function test_Initialize_WithoutMerkleRoot_Success() public {
+        LATokenMintable newImplementation =
+            new LATokenMintable(lzEndpoint, INITIAL_SUPPLY);
 
         // Deploy proxy and initialize
         bytes memory initData = abi.encodeWithSelector(
-            LAToken.initialize.selector, admin, minter, merkleRoot
+            LATokenMintable.initialize.selector,
+            admin,
+            treasury,
+            bytes32(0),
+            INITIAL_TREASURY_SUPPLY
         );
         TransparentUpgradeableProxy newProxy = new TransparentUpgradeableProxy(
             address(newImplementation), admin, initData
         );
 
-        LAToken newToken = LAToken(address(newProxy));
+        LATokenMintable newToken = LATokenMintable(address(newProxy));
 
-        assertEq(newToken.getMerkleRoot(), merkleRoot);
+        assertEq(newToken.getMerkleRoot(), bytes32(0));
     }
 
     function test_Initialize_RevertsWhen_CalledAgain() public {
         vm.expectRevert(
             abi.encodeWithSelector(Initializable.InvalidInitialization.selector)
         );
-        token.initialize(admin, minter, bytes32(0));
+        token.initialize(admin, treasury, bytes32(0), INITIAL_TREASURY_SUPPLY);
     }
 
     function test_Initialize_RevertsWhen_CalledOnImplementation() public {
         vm.expectRevert(
             abi.encodeWithSelector(Initializable.InvalidInitialization.selector)
         );
-        implementation.initialize(admin, minter, bytes32(0));
+        implementation.initialize(
+            admin, treasury, bytes32(0), INITIAL_TREASURY_SUPPLY
+        );
     }
 
+    // ------------------------------------------------------------
+    //                      BASIC ERC20 TESTS                     |
+    // ------------------------------------------------------------
+
     function test_Transfer_Success() public {
-        uint256 transferAmount = 100 ether;
+        uint256 transferAmount = 1 ether;
 
         vm.prank(user1);
         token.transfer(user2, transferAmount);
 
-        assertEq(token.balanceOf(user1), INITIAL_MINT_AMOUNT - transferAmount);
+        assertEq(token.balanceOf(user1), USER_INITIAL_BALANCE - transferAmount);
         assertEq(token.balanceOf(user2), transferAmount);
     }
 
     function test_ApproveAndTransferFrom_Success() public {
-        uint256 approveAmount = 150 ether;
+        uint256 approveAmount = 5 ether;
 
         vm.prank(user1);
         token.approve(user2, approveAmount);
         assertEq(token.allowance(user1, user2), approveAmount);
 
-        uint256 transferAmount = 100 ether;
+        uint256 transferAmount = 1 ether;
         vm.prank(user2);
         token.transferFrom(user1, user2, transferAmount);
 
-        assertEq(token.balanceOf(user1), INITIAL_MINT_AMOUNT - transferAmount);
+        assertEq(token.balanceOf(user1), USER_INITIAL_BALANCE - transferAmount);
         assertEq(token.balanceOf(user2), transferAmount);
         assertEq(token.allowance(user1, user2), approveAmount - transferAmount);
     }
 
-    function test_Mint_Success() public {
-        uint256 mintAmount = 500 ether;
+    // ------------------------------------------------------------
+    //                        MINTING TESTS                       |
+    // ------------------------------------------------------------
 
-        vm.prank(minter);
-        token.mint(user2, mintAmount);
+    function test_Mint_Success() public {
+        assertEq(token.balanceOf(user2), 0);
+        uint256 mintAmount = 1;
+
+        vm.prank(treasury);
+        token.mint(user2, 1);
 
         assertEq(token.balanceOf(user2), mintAmount);
-        assertEq(token.totalSupply(), INITIAL_MINT_AMOUNT + mintAmount);
+
+        assertEq(token.totalSupply(), INITIAL_TREASURY_SUPPLY + mintAmount);
     }
 
     function test_Mint_RevertsWhen_CallerLacksMinterRole() public {
@@ -153,13 +207,17 @@ contract LATokenTest is BaseTest {
         token.mint(user2, mintAmount);
     }
 
+    // ------------------------------------------------------------
+    //                        PERMIT TESTS                        |
+    // ------------------------------------------------------------
+
     function test_Permit_Success() public {
-        uint256 permitAmount = 100 ether;
+        uint256 permitAmount = 1 ether;
         uint256 deadline = block.timestamp + 1 hours;
 
-        // Mint some tokens to the permitUser
-        vm.prank(minter);
-        token.mint(permitUser, INITIAL_MINT_AMOUNT);
+        // Transfer some tokens to the permitUser
+        vm.prank(treasury);
+        token.transfer(permitUser, USER_INITIAL_BALANCE);
 
         // Generate permit signature
         bytes32 domainSeparator = token.DOMAIN_SEPARATOR();
@@ -194,15 +252,20 @@ contract LATokenTest is BaseTest {
         token.transferFrom(permitUser, user1, permitAmount);
 
         assertEq(
-            token.balanceOf(permitUser), INITIAL_MINT_AMOUNT - permitAmount
+            token.balanceOf(permitUser), USER_INITIAL_BALANCE - permitAmount
         );
-        assertEq(token.balanceOf(user1), INITIAL_MINT_AMOUNT + permitAmount);
+
+        assertEq(token.balanceOf(user1), USER_INITIAL_BALANCE + permitAmount);
     }
 
-    function test_AccessControlRoles_Success() public {
+    // ------------------------------------------------------------
+    //                    ACCESS CONTROL TESTS                    |
+    // ------------------------------------------------------------
+
+    function test_GrantRole_Success() public {
         // Verify roles
         assertTrue(token.hasRole(token.DEFAULT_ADMIN_ROLE(), admin));
-        assertTrue(token.hasRole(MINTER_ROLE, minter));
+        assertTrue(token.hasRole(MINTER_ROLE, treasury));
 
         // Grant minter role to user1
         vm.prank(admin);
@@ -210,7 +273,7 @@ contract LATokenTest is BaseTest {
 
         // Verify user1 can now mint
         vm.prank(user1);
-        token.mint(user2, 100 ether);
+        token.mint(user2, 1);
 
         // Revoke minter role
         vm.prank(admin);
@@ -227,6 +290,116 @@ contract LATokenTest is BaseTest {
         vm.prank(user1);
         token.mint(user2, 100 ether);
     }
+
+    function test_GrantRole_RevertsWhen_CalledByMemberButNotAdmin() public {
+        // Verify initial roles
+        assertTrue(token.hasRole(MINTER_ROLE, treasury));
+
+        // Try to grant MINTER_ROLE from treasury (who has MINTER_ROLE but not admin)
+        // to user1, which should revert
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IAccessControl.AccessControlUnauthorizedAccount.selector,
+                treasury,
+                token.DEFAULT_ADMIN_ROLE()
+            )
+        );
+        vm.prank(treasury);
+        token.grantRole(MINTER_ROLE, user1);
+
+        // Verify user1 did not receive the role
+        assertFalse(token.hasRole(MINTER_ROLE, user1));
+    }
+
+    // ------------------------------------------------------------
+    //                       AIRDROP TESTS                        |
+    // ------------------------------------------------------------
+
+    function test_claimAirdrop_Success() public {
+        // Set merkle root
+        vm.prank(admin);
+        token.setMerkleRoot(merkleRoot);
+
+        // Generate proof for user1
+        bytes32[] memory proof = _generateMerkleProof(0);
+
+        // Claim airdrop for user1
+        vm.prank(user1);
+        token.claimAirdrop(amounts[0], proof);
+
+        // Verify claim
+
+        assertEq(token.balanceOf(user1), USER_INITIAL_BALANCE + amounts[0]);
+    }
+
+    function test_claimAirdrop_3RevertsWhen_AlreadyClaimed() public {
+        // Generate proof
+        bytes32[] memory proof = _generateMerkleProof(0);
+
+        // First claim should succeed
+        vm.prank(user1);
+        token.claimAirdrop(100 ether, proof);
+
+        // Second claim should revert
+        vm.prank(user1);
+        vm.expectRevert(AirdropableUpgradable.AlreadyClaimed.selector);
+        token.claimAirdrop(100 ether, proof);
+    }
+
+    function test_claimAirdrop_RevertsWhen_InvalidProof() public {
+        // Create invalid proof
+        bytes32[] memory invalidProof = new bytes32[](1);
+        invalidProof[0] = bytes32(0);
+
+        // Claim should revert with invalid proof
+        vm.prank(user1);
+        vm.expectRevert(AirdropableUpgradable.InvalidProof.selector);
+        token.claimAirdrop(100 ether, invalidProof);
+    }
+
+    function test_claimAirdrop_RevertsWhen_MerkleRootNotSet() public {
+        bytes32[] memory proof = new bytes32[](1);
+
+        vm.prank(admin);
+        token.setMerkleRoot(bytes32(0));
+
+        // Claim should revert when merkle root is not set
+        vm.prank(user1);
+        vm.expectRevert(AirdropableUpgradable.MerkleRootNotSet.selector);
+        token.claimAirdrop(100 ether, proof);
+    }
+
+    function test_SetMerkleRoot_Success() public {
+        assertEq(merkleRoot, token.getMerkleRoot());
+
+        // Set new merkle root
+        bytes32 newMerkleRoot = randomBytes32();
+        vm.expectEmit();
+        emit AirdropableUpgradable.MerkleRootSet(newMerkleRoot);
+        vm.prank(admin);
+        token.setMerkleRoot(newMerkleRoot);
+
+        // Assert that the merkle root is set
+        assertEq(token.getMerkleRoot(), newMerkleRoot);
+    }
+
+    function test_SetMerkleRoot_RevertsWhen_NotAdmin() public {
+        bytes32 newMerkleRoot = randomBytes32();
+
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IAccessControl.AccessControlUnauthorizedAccount.selector,
+                user1,
+                token.DEFAULT_ADMIN_ROLE()
+            )
+        );
+        vm.prank(user1);
+        token.setMerkleRoot(newMerkleRoot);
+    }
+
+    // ------------------------------------------------------------
+    //                         OTHER TESTS                        |
+    // ------------------------------------------------------------
 
     function test_SupportsInterface_Success() public view {
         // Define known interface IDs for testing
@@ -258,134 +431,12 @@ contract LATokenTest is BaseTest {
         );
     }
 
-    function test_Airdrop_Success() public {
-        // Create a merkle tree with some test data
-        address[] memory accounts = new address[](3);
-        uint256[] memory amounts = new uint256[](3);
-
-        accounts[0] = user1;
-        accounts[1] = user2;
-        accounts[2] = user3;
-
-        amounts[0] = 100 ether;
-        amounts[1] = 200 ether;
-        amounts[2] = 300 ether;
-
-        // Create merkle leaves
-        bytes32[] memory leaves = new bytes32[](3);
-        for (uint256 i = 0; i < 3; i++) {
-            leaves[i] = keccak256(abi.encodePacked(accounts[i], amounts[i]));
-        }
-
-        // Create merkle tree and get root
-        bytes32 merkleRoot = _buildMerkleRoot(leaves);
-
-        // Set merkle root
-        vm.prank(admin);
-        token.setMerkleRoot(merkleRoot);
-
-        // Generate proof for user1
-        bytes32[] memory proof = _generateMerkleProof(leaves, 0);
-
-        // Claim airdrop for user1
-        vm.prank(user1);
-        token.claimAirdrop(amounts[0], proof);
-
-        // Verify claim
-        assertEq(token.balanceOf(user1), INITIAL_MINT_AMOUNT + amounts[0]);
-    }
-
-    function test_Airdrop_RevertsWhen_AlreadyClaimed() public {
-        // Create a merkle tree with test data
-        bytes32[] memory leaves = new bytes32[](1);
-        leaves[0] = keccak256(abi.encodePacked(user1, uint256(100 ether)));
-        bytes32 merkleRoot = _buildMerkleRoot(leaves);
-
-        // Set merkle root
-        vm.prank(admin);
-        token.setMerkleRoot(merkleRoot);
-
-        // Generate proof
-        bytes32[] memory proof = _generateMerkleProof(leaves, 0);
-
-        // First claim should succeed
-        vm.prank(user1);
-        token.claimAirdrop(100 ether, proof);
-
-        // Second claim should revert
-        vm.prank(user1);
-        vm.expectRevert(AirdropableUpgradable.AlreadyClaimed.selector);
-        token.claimAirdrop(100 ether, proof);
-    }
-
-    function test_Airdrop_RevertsWhen_InvalidProof() public {
-        // Create a merkle tree with test data
-        bytes32[] memory leaves = new bytes32[](1);
-        leaves[0] = keccak256(abi.encodePacked(user1, uint256(100 ether)));
-        bytes32 merkleRoot = _buildMerkleRoot(leaves);
-
-        // Set merkle root
-        vm.prank(admin);
-        token.setMerkleRoot(merkleRoot);
-
-        // Create invalid proof
-        bytes32[] memory invalidProof = new bytes32[](1);
-        invalidProof[0] = bytes32(0);
-
-        // Claim should revert with invalid proof
-        vm.prank(user1);
-        vm.expectRevert(AirdropableUpgradable.InvalidProof.selector);
-        token.claimAirdrop(100 ether, invalidProof);
-    }
-
-    function test_Airdrop_RevertsWhen_MerkleRootNotSet() public {
-        // Create a merkle tree with test data
-        bytes32[] memory leaves = new bytes32[](1);
-        leaves[0] = keccak256(abi.encodePacked(user1, uint256(100 ether)));
-        bytes32[] memory proof = _generateMerkleProof(leaves, 0);
-
-        // Claim should revert when merkle root is not set
-        vm.prank(user1);
-        vm.expectRevert(AirdropableUpgradable.MerkleRootNotSet.selector);
-        token.claimAirdrop(100 ether, proof);
-    }
-
-    function test_SetMerkleRoot_Success() public {
-        // Assert that the merkle root is not set
-        bytes32 merkleRoot = token.getMerkleRoot();
-        assertEq(merkleRoot, bytes32(0));
-
-        // Set merkle root
-        bytes32 newMerkleRoot = randomBytes32();
-        vm.expectEmit();
-        emit AirdropableUpgradable.MerkleRootSet(newMerkleRoot);
-        vm.prank(admin);
-        token.setMerkleRoot(newMerkleRoot);
-
-        // Assert that the merkle root is set
-        assertEq(token.getMerkleRoot(), newMerkleRoot);
-    }
-
-    function test_SetMerkleRoot_RevertsWhen_NotAdmin() public {
-        bytes32 merkleRoot = bytes32(uint256(1));
-
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                IAccessControl.AccessControlUnauthorizedAccount.selector,
-                user1,
-                token.DEFAULT_ADMIN_ROLE()
-            )
-        );
-        vm.prank(user1);
-        token.setMerkleRoot(merkleRoot);
-    }
+    // ------------------------------------------------------------
+    //                      HELPER FUNCTIONS                      |
+    // ------------------------------------------------------------
 
     // Helper function to build a merkle root from leaves
-    function _buildMerkleRoot(bytes32[] memory leaves)
-        internal
-        pure
-        returns (bytes32)
-    {
+    function _buildMerkleRoot() internal view returns (bytes32) {
         if (leaves.length == 0) return bytes32(0);
         if (leaves.length == 1) return leaves[0];
 
@@ -420,9 +471,9 @@ contract LATokenTest is BaseTest {
     }
 
     // Helper function to generate a merkle proof
-    function _generateMerkleProof(bytes32[] memory leaves, uint256 index)
+    function _generateMerkleProof(uint256 index)
         internal
-        pure
+        view
         returns (bytes32[] memory)
     {
         if (leaves.length <= 1) return new bytes32[](0);

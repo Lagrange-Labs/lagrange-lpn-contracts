@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.25;
 
-import {BaseTest} from "./BaseTest.t.sol";
+import {BaseTest} from "../BaseTest.t.sol";
 import {LagrangeQueryRouter} from "../../src/v2/LagrangeQueryRouter.sol";
 import {IQueryExecutor} from "../../src/v2/interfaces/IQueryExecutor.sol";
 import {ILPNClient} from "../../src/v2/interfaces/ILPNClient.sol";

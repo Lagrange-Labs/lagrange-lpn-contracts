@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 import {DatabaseManager} from "../../src/v2/DatabaseManager.sol";
-import {BaseTest} from "./BaseTest.t.sol";
+import {BaseTest} from "../BaseTest.t.sol";
 
 import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
 import {Initializable} from

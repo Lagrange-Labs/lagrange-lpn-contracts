@@ -14,13 +14,13 @@ abstract contract AirdropableUpgradable is
     ERC20PermitUpgradeable,
     AccessControlDefaultAdminRulesUpgradeable
 {
-    struct AirdropStorage {
+    struct AirdropableStorage {
         bytes32 merkleRoot;
         mapping(address => bool) hasClaimed;
     }
 
     // keccak256(abi.encode(uint256(keccak256("LAToken.storage.AirdropableUpgradable")) - 1)) & ~bytes32(uint256(0xff))
-    bytes32 private constant STORAGE_SLOT =
+    bytes32 private constant AIRDROPABLE_STORAGE_SLOT =
         0x70f1366171695f4553dde0f5e5dc0a68a82d82ec8d402c8c63d06c53eda2f100;
 
     event MerkleRootSet(bytes32 merkleRoot);
@@ -44,7 +44,7 @@ abstract contract AirdropableUpgradable is
     /// @param amount The amount of tokens to claim
     /// @param proof The merkle proof
     function claimAirdrop(uint256 amount, bytes32[] calldata proof) external {
-        AirdropStorage storage $ = _getAirdropStorage();
+        AirdropableStorage storage $ = _getAirdropableStorage();
         if ($.merkleRoot == bytes32(0)) revert MerkleRootNotSet();
         if ($.hasClaimed[msg.sender]) revert AlreadyClaimed();
 
@@ -65,7 +65,7 @@ abstract contract AirdropableUpgradable is
     /// @param merkleRoot The merkle root to set
     /// @dev Can be called in the initializer if the merkle root is known at deployment time
     function _setMerkleRoot(bytes32 merkleRoot) internal {
-        AirdropStorage storage $ = _getAirdropStorage();
+        AirdropableStorage storage $ = _getAirdropableStorage();
         $.merkleRoot = merkleRoot;
         emit MerkleRootSet(merkleRoot);
     }
@@ -73,19 +73,19 @@ abstract contract AirdropableUpgradable is
     /// @notice Returns the merkle root
     /// @return root The merkle root
     function getMerkleRoot() public view returns (bytes32) {
-        return _getAirdropStorage().merkleRoot;
+        return _getAirdropableStorage().merkleRoot;
     }
 
-    /// @notice Gets the airdrop storage struct
-    /// @return storage_ The airdrop storage struct
-    function _getAirdropStorage()
+    /// @notice Gets the storage struct
+    /// @return $ The storage struct
+    function _getAirdropableStorage()
         private
         pure
-        returns (AirdropStorage storage storage_)
+        returns (AirdropableStorage storage $)
     {
-        bytes32 position = STORAGE_SLOT;
+        bytes32 position = AIRDROPABLE_STORAGE_SLOT;
         assembly {
-            storage_.slot := position
+            $.slot := position
         }
     }
 }

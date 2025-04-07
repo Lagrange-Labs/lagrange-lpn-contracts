@@ -1,0 +1,52 @@
+// SPDX-License-Identifier: MIT
+pragma solidity 0.8.25;
+
+import {AccessControlDefaultAdminRulesUpgradeable} from
+    "@openzeppelin-contracts-upgradeable-5.2.0/access/extensions/AccessControlDefaultAdminRulesUpgradeable.sol";
+import {AirdropableOFTUpgradable} from "./AirdropableOFTUpgradable.sol";
+import {Initializable} from
+    "@openzeppelin-contracts-upgradeable-5.2.0/proxy/utils/Initializable.sol";
+import {IERC165} from "@openzeppelin/contracts/interfaces/IERC165.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {IERC20Permit} from
+    "@openzeppelin/contracts/token/ERC20/extensions/IERC20Permit.sol";
+
+/// @title LATokenBase
+/// @dev Base contract for the LAToken and LATokenMintable
+abstract contract LATokenBase is Initializable, AirdropableOFTUpgradable {
+    string private constant NAME = "Lagrange";
+    string private constant SYMBOL = "LA";
+
+    /// @notice Disable initializers on the logic contract
+    constructor(address lzEndpoint) AirdropableOFTUpgradable(lzEndpoint) {
+        _disableInitializers();
+    }
+
+    /// @notice Initialize the token
+    /// @param defaultAdmin The address that will be granted the DEFAULT_ADMIN_ROLE
+    /// @param merkleRoot The merkle root of the airdrop, optional
+    function __LATokenBase_init(address defaultAdmin, bytes32 merkleRoot)
+        internal
+    {
+        __ERC20_init(NAME, SYMBOL);
+        __ERC20Permit_init(NAME);
+        __AccessControlDefaultAdminRules_init(0, defaultAdmin);
+        __OFT_init(defaultAdmin);
+
+        if (merkleRoot != bytes32(0)) {
+            _setMerkleRoot(merkleRoot);
+        }
+    }
+
+    /// @inheritdoc IERC165
+    function supportsInterface(bytes4 interfaceId)
+        public
+        view
+        override(AccessControlDefaultAdminRulesUpgradeable)
+        returns (bool)
+    {
+        return type(IERC20).interfaceId == interfaceId
+            || type(IERC20Permit).interfaceId == interfaceId
+            || super.supportsInterface(interfaceId);
+    }
+}

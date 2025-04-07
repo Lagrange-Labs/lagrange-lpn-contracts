@@ -17,3 +17,6 @@ out/
 
 # coverage report
 lcov.info
+
+# editor files
+.vscode/

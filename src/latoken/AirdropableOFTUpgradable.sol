@@ -5,11 +5,17 @@ import {AirdropableUpgradable} from "./AirdropableUpgradable.sol";
 import {OFTCustomUpgradeable} from
     "@layerzerolabs/oft-evm-upgradeable/contracts/oft/OFTCustomUpgradeable.sol";
 
+/// @title AirdropableOFTUpgradable
+/// @dev Implementation of the LZ OFT standard with airdrop and minting functionality
 abstract contract AirdropableOFTUpgradable is
     AirdropableUpgradable,
     OFTCustomUpgradeable
 {
-    constructor(address lzEndpoint) OFTCustomUpgradeable(18, lzEndpoint) {}
+    uint8 internal constant DECIMALS = 18;
+
+    constructor(address lzEndpoint)
+        OFTCustomUpgradeable(DECIMALS, lzEndpoint)
+    {}
 
     modifier onlyLZAdmin() override {
         _checkRole(DEFAULT_ADMIN_ROLE);
