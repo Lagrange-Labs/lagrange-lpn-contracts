@@ -15,7 +15,6 @@ import {ILayerZeroEndpointV2} from
 contract LATokenMintableTest is BaseTest {
     LATokenMintable public implementation;
     LATokenMintable public token;
-    address public admin;
     address public treasury;
     address public initialMintHandler;
     address public user1;
@@ -33,7 +32,6 @@ contract LATokenMintableTest is BaseTest {
     address permitUser = vm.addr(privateKey);
 
     function setUp() public {
-        admin = makeAddr("admin");
         treasury = makeAddr("treasury");
         initialMintHandler = makeAddr("initialMintHandler");
         user1 = makeAddr("user1");
@@ -45,7 +43,7 @@ contract LATokenMintableTest is BaseTest {
         vm.mockCall(
             lzEndpoint,
             abi.encodeWithSelector(
-                ILayerZeroEndpointV2.setDelegate.selector, admin
+                ILayerZeroEndpointV2.setDelegate.selector, treasury
             ),
             ""
         );
@@ -56,13 +54,10 @@ contract LATokenMintableTest is BaseTest {
 
         // Deploy proxy and initialize
         bytes memory initData = abi.encodeWithSelector(
-            LATokenMintable.initialize.selector,
-            admin,
-            treasury,
-            initialMintHandler
+            LATokenMintable.initialize.selector, treasury, initialMintHandler
         );
         TransparentUpgradeableProxy proxy = new TransparentUpgradeableProxy(
-            address(implementation), admin, initData
+            address(implementation), treasury, initData
         );
 
         // Get token instance pointing to the proxy
@@ -98,14 +93,14 @@ contract LATokenMintableTest is BaseTest {
         vm.expectRevert(
             abi.encodeWithSelector(Initializable.InvalidInitialization.selector)
         );
-        token.initialize(admin, treasury, initialMintHandler);
+        token.initialize(treasury, initialMintHandler);
     }
 
     function test_Initialize_RevertsWhen_CalledOnImplementation() public {
         vm.expectRevert(
             abi.encodeWithSelector(Initializable.InvalidInitialization.selector)
         );
-        implementation.initialize(admin, treasury, initialMintHandler);
+        implementation.initialize(treasury, initialMintHandler);
     }
 
     // ------------------------------------------------------------
@@ -330,11 +325,11 @@ contract LATokenMintableTest is BaseTest {
 
     function test_GrantRole_Success() public {
         // Verify roles
-        assertTrue(token.hasRole(token.DEFAULT_ADMIN_ROLE(), admin));
+        assertTrue(token.hasRole(token.DEFAULT_ADMIN_ROLE(), treasury));
         assertTrue(token.hasRole(MINTER_ROLE, treasury));
 
         // Grant minter role to user1
-        vm.prank(admin);
+        vm.prank(treasury);
         token.grantRole(MINTER_ROLE, user1);
 
         // Verify user1 can now mint
@@ -342,7 +337,7 @@ contract LATokenMintableTest is BaseTest {
         token.mint(user2, 1);
 
         // Revoke minter role
-        vm.prank(admin);
+        vm.prank(treasury);
         token.revokeRole(MINTER_ROLE, user1);
 
         // Verify user1 can no longer mint
@@ -355,26 +350,6 @@ contract LATokenMintableTest is BaseTest {
         );
         vm.prank(user1);
         token.mint(user2, 100 ether);
-    }
-
-    function test_GrantRole_RevertsWhen_CalledByMemberButNotAdmin() public {
-        // Verify initial roles
-        assertTrue(token.hasRole(MINTER_ROLE, treasury));
-
-        // Try to grant MINTER_ROLE from treasury (who has MINTER_ROLE but not admin)
-        // to user1, which should revert
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                IAccessControl.AccessControlUnauthorizedAccount.selector,
-                treasury,
-                token.DEFAULT_ADMIN_ROLE()
-            )
-        );
-        vm.prank(treasury);
-        token.grantRole(MINTER_ROLE, user1);
-
-        // Verify user1 did not receive the role
-        assertFalse(token.hasRole(MINTER_ROLE, user1));
     }
 
     // ------------------------------------------------------------

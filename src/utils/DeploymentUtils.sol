@@ -10,7 +10,6 @@ import {ChainConnections} from "./ChainConnections.sol";
 abstract contract DeploymentUtils is ChainConnections, Script {
     address private deployerAddress;
 
-    string private env;
     mapping(string env => string[] chains) private chainsByEnv;
 
     mapping(uint256 chainId => address addr) private engMultiSigs;
@@ -20,6 +19,11 @@ abstract contract DeploymentUtils is ChainConnections, Script {
         string env => mapping(uint256 chainId => LagrangeQueryRouter router)
     ) private routers;
 
+    // la token config
+    mapping(uint256 chainId => address addr) private lzEndpoints;
+    mapping(uint256 chainId => bool isMintable) private mintableChains;
+    mapping(uint256 chainId => address addr) private treasuryAddresses;
+
     constructor() {
         // Deployer Key
         uint256 deployerKey = vm.envUint("PRIVATE_KEY");
@@ -27,8 +31,6 @@ abstract contract DeploymentUtils is ChainConnections, Script {
         vm.rememberKey(deployerKey);
 
         // Environments
-        env = vm.envString("ENV");
-        _validateEnv();
         // Dev
         chainsByEnv["dev-0"] = ["holesky"];
         chainsByEnv["dev-1"] = ["holesky"];
@@ -50,13 +52,10 @@ abstract contract DeploymentUtils is ChainConnections, Script {
         // Multi-sigs
         // Mainnet
         engMultiSigs[1] = 0xE7cdA508FEB53713fB7C69bb891530C924980366;
-        financeMultiSigs[1] = 0x0000000000000000000000000000000000000000; // not yet setup
         // Base
         engMultiSigs[8453] = 0xE7cdA508FEB53713fB7C69bb891530C924980366;
-        financeMultiSigs[8453] = 0x0000000000000000000000000000000000000000; // not yet setup
         // Mantle
         engMultiSigs[5000] = 0xE7cdA508FEB53713fB7C69bb891530C924980366;
-        financeMultiSigs[5000] = 0x0000000000000000000000000000000000000000; // not yet setup
         // Holesky
         engMultiSigs[17000] = 0x4584E9d4685E9Ffcc2d2823D016A08BA72Ad555f;
         financeMultiSigs[17000] = 0x4584E9d4685E9Ffcc2d2823D016A08BA72Ad555f;
@@ -86,6 +85,50 @@ abstract contract DeploymentUtils is ChainConnections, Script {
         // test
         routers["test"][17000] =
             LagrangeQueryRouter(0x988732D6aaa4a7419bE3628444Ae02e86FeD41ac);
+
+        // LayerZero Endpoints
+        // Anvil
+        lzEndpoints[31337] = 0x0000000000000000000000000000000000000999;
+        // Mainnet
+        lzEndpoints[1] = 0x1a44076050125825900e736c501f859c50fE728c;
+        // Holesky
+        lzEndpoints[17000] = 0x6EDCE65403992e310A62460808c4b910D972f10f;
+        // Sepolia
+        lzEndpoints[11155111] = 0x6EDCE65403992e310A62460808c4b910D972f10f;
+        // Base
+        lzEndpoints[8453] = 0x1a44076050125825900e736c501f859c50fE728c;
+        // Optimism
+        lzEndpoints[10] = 0x1a44076050125825900e736c501f859c50fE728c;
+        // Polygon
+        lzEndpoints[137] = 0x1a44076050125825900e736c501f859c50fE728c;
+        // BSC
+        lzEndpoints[56] = 0x1a44076050125825900e736c501f859c50fE728c;
+        // Scroll
+        lzEndpoints[534352] = 0x1a44076050125825900e736c501f859c50fE728c;
+        // Mantle
+        lzEndpoints[5000] = 0x1a44076050125825900e736c501f859c50fE728c;
+        // Cronos
+        lzEndpoints[25] = 0x3A73033C0b1407574C76BdBAc67f126f6b4a9AA9;
+        // Gnosis
+        lzEndpoints[100] = 0x1a44076050125825900e736c501f859c50fE728c;
+        // Polygon-zkevm
+        lzEndpoints[1101] = 0x1a44076050125825900e736c501f859c50fE728c;
+
+        // Chains with minting
+        // Mainnet
+        mintableChains[1] = true;
+        // Holesky
+        mintableChains[17000] = true;
+        // Sepolia
+        mintableChains[11155111] = true;
+
+        // Treasury addresses
+        // Mainnet
+        treasuryAddresses[1] = 0x2336Af8d44d7EF6f72E37F28c9D5BB9A926A1cF6;
+        // Holesky
+        treasuryAddresses[17000] = 0x2336Af8d44d7EF6f72E37F28c9D5BB9A926A1cF6;
+        // Sepolia
+        treasuryAddresses[11155111] = 0x2336Af8d44d7EF6f72E37F28c9D5BB9A926A1cF6;
     }
 
     function getDeployerAddress() internal view returns (address) {
@@ -93,7 +136,8 @@ abstract contract DeploymentUtils is ChainConnections, Script {
     }
 
     /// @notice Check if an environment is valid
-    function _validateEnv() private view {
+    function validEnv() private view {
+        string memory env = getEnv();
         require(
             keccak256(bytes(env)) == keccak256(bytes("dev-0"))
                 || keccak256(bytes(env)) == keccak256(bytes("dev-1"))
@@ -105,27 +149,28 @@ abstract contract DeploymentUtils is ChainConnections, Script {
     }
 
     function getEnv() internal view returns (string memory) {
-        return env;
+        return vm.envString("ENV");
     }
 
     function isDevEnv() internal view returns (bool) {
+        string memory env = getEnv();
         return keccak256(bytes(env)) == keccak256(bytes("dev-0"))
             || keccak256(bytes(env)) == keccak256(bytes("dev-1"))
             || keccak256(bytes(env)) == keccak256(bytes("dev-3"));
     }
 
     function isTestEnv() internal view returns (bool) {
-        return keccak256(bytes(env)) == keccak256(bytes("test"));
+        return keccak256(bytes(getEnv())) == keccak256(bytes("test"));
     }
 
     function isProdEnv() internal view returns (bool) {
-        return keccak256(bytes(env)) == keccak256(bytes("prod"));
+        return keccak256(bytes(getEnv())) == keccak256(bytes("prod"));
     }
 
     /// @notice Get the chains that are configured for a given environment
     /// @return chains the list of chain names that are configured for the given environment
     function getChainsForEnv() internal view returns (string[] memory) {
-        return chainsByEnv[env];
+        return chainsByEnv[getEnv()];
     }
 
     function getEngMultiSig() internal view returns (address) {
@@ -143,9 +188,25 @@ abstract contract DeploymentUtils is ChainConnections, Script {
     }
 
     function getRouter() internal view returns (LagrangeQueryRouter) {
-        LagrangeQueryRouter router = routers[env][block.chainid];
+        LagrangeQueryRouter router = routers[getEnv()][block.chainid];
         require(address(router) != address(0), "Router not found");
         return router;
+    }
+
+    function getLzEndpoint() internal view returns (address) {
+        address addr = lzEndpoints[block.chainid];
+        require(addr != address(0), "LayerZero endpoint not found");
+        return addr;
+    }
+
+    function getTreasuryAddress() internal view returns (address) {
+        address addr = treasuryAddresses[block.chainid];
+        require(addr != address(0), "Treasury address not found");
+        return addr;
+    }
+
+    function isMintableChain() internal view returns (bool) {
+        return mintableChains[block.chainid];
     }
 
     /// @notice this function checks that the verifier contracts are up to date, and fails if they are not

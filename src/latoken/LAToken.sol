@@ -11,8 +11,8 @@ contract LAToken is LATokenBase {
     constructor(address lzEndpoint) LATokenBase(lzEndpoint) {}
 
     /// @notice Initializes the token with name, symbol, and roles
-    /// @param defaultAdmin The address that will be granted the DEFAULT_ADMIN_ROLE
-    function initialize(address defaultAdmin) external {
-        __LATokenBase_init(defaultAdmin);
+    /// @param treasury The address that will be granted the DEFAULT_ADMIN_ROLE
+    function initialize(address treasury) external {
+        __LATokenBase_init(treasury);
     }
 }

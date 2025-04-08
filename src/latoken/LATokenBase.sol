@@ -24,12 +24,12 @@ abstract contract LATokenBase is Initializable, OFTUpgradable {
     }
 
     /// @notice Initialize the token
-    /// @param defaultAdmin The address that will be granted the DEFAULT_ADMIN_ROLE
-    function __LATokenBase_init(address defaultAdmin) internal {
+    /// @param treasury The address that will be granted the DEFAULT_ADMIN_ROLE
+    function __LATokenBase_init(address treasury) internal {
         __ERC20_init(NAME, SYMBOL);
         __ERC20Permit_init(NAME);
-        __AccessControlDefaultAdminRules_init(0, defaultAdmin);
-        __OFT_init(defaultAdmin);
+        __AccessControlDefaultAdminRules_init(0, treasury);
+        __OFT_init(treasury);
     }
 
     /// @inheritdoc IERC165
