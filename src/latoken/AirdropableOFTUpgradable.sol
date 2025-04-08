@@ -13,15 +13,19 @@ abstract contract AirdropableOFTUpgradable is
 {
     uint8 internal constant DECIMALS = 18;
 
+    /// @notice Constructor for the AirdropableOFTUpgradable contract
+    /// @param lzEndpoint The endpoint for the LayerZero protocol
     constructor(address lzEndpoint)
         OFTCustomUpgradeable(DECIMALS, lzEndpoint)
     {}
 
+    /// @inheritdoc OnlyLZAdmin
     modifier onlyLZAdmin() override {
         _checkRole(DEFAULT_ADMIN_ROLE);
         _;
     }
 
+    /// @inheritdoc OFTCustomUpgradeable
     function _oftBurn(address _from, uint256 _amountLD)
         internal
         virtual
@@ -30,6 +34,7 @@ abstract contract AirdropableOFTUpgradable is
         _burn(_from, _amountLD);
     }
 
+    /// @inheritdoc OFTCustomUpgradeable
     function _oftMint(address _to, uint256 _amountLD)
         internal
         virtual

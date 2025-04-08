@@ -18,6 +18,7 @@ abstract contract LATokenBase is Initializable, AirdropableOFTUpgradable {
     string private constant SYMBOL = "LA";
 
     /// @notice Disable initializers on the logic contract
+    /// @param lzEndpoint The endpoint for the LayerZero protocol
     constructor(address lzEndpoint) AirdropableOFTUpgradable(lzEndpoint) {
         _disableInitializers();
     }

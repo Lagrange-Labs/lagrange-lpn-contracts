@@ -24,6 +24,11 @@ contract LATokenMintable is LATokenBase {
     error ExceedsAllowedInflation();
     error InitialTreasuryTooLarge();
 
+    /// @notice Constructor for the LATokenMintable contract
+    /// @param lzEndpoint The endpoint for the LayerZero protocol
+    /// @param initialSupply The initial supply of the token
+    /// @dev only the LATokenMintable needs to know the initial supply, so that it
+    /// can enforce inflation properly
     constructor(address lzEndpoint, uint256 initialSupply)
         LATokenBase(lzEndpoint)
     {
