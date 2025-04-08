@@ -14,14 +14,15 @@ abstract contract AirdropableUpgradable is
     ERC20PermitUpgradeable,
     AccessControlDefaultAdminRulesUpgradeable
 {
+    /// @custom:storage-location erc7201:lagrange.storage.Airdropable
     struct AirdropableStorage {
         bytes32 merkleRoot;
         mapping(address => bool) hasClaimed;
     }
 
-    // keccak256(abi.encode(uint256(keccak256("LAToken.storage.AirdropableUpgradable")) - 1)) & ~bytes32(uint256(0xff))
+    // keccak256(abi.encode(uint256(keccak256("lagrange.storage.Airdropable")) - 1)) & ~bytes32(uint256(0xff))
     bytes32 private constant AIRDROPABLE_STORAGE_SLOT =
-        0x70f1366171695f4553dde0f5e5dc0a68a82d82ec8d402c8c63d06c53eda2f100;
+        0xafaaefcc2ad65572dc11e135cc07ab3bab4801a056f5142ed15b86169ac0cf00;
 
     event MerkleRootSet(bytes32 merkleRoot);
     event AirdropClaimed(address indexed account, uint256 amount);

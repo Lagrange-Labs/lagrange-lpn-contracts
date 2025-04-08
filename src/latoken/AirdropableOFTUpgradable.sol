@@ -4,6 +4,8 @@ pragma solidity 0.8.25;
 import {AirdropableUpgradable} from "./AirdropableUpgradable.sol";
 import {OFTCustomUpgradeable} from
     "@layerzerolabs/oft-evm-upgradeable/contracts/oft/OFTCustomUpgradeable.sol";
+import {OnlyLZAdmin} from
+    "@layerzerolabs/oapp-evm-upgradeable/contracts/OnlyLZAdmin.sol";
 
 /// @title AirdropableOFTUpgradable
 /// @dev Implementation of the LZ OFT standard with airdrop and minting functionality

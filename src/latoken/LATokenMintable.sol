@@ -6,13 +6,14 @@ import {LATokenBase} from "./LATokenBase.sol";
 /// @title LATokenMintable
 /// @notice This is the eth mainnet version of the LAToken, that supports minting and inflation
 contract LATokenMintable is LATokenBase {
+    /// @custom:storage-location erc7201:lagrange.storage.LATokenMintable
     struct MintableStorage {
         uint256 lastMintCheckpoint; // sum of tokens minted since deployment
     }
 
-    // keccak256(abi.encode(uint256(keccak256("LAToken.storage.Mintable")) - 1)) & ~bytes32(uint256(0xff))
+    // keccak256(abi.encode(uint256(keccak256("lagrange.storage.LATokenMintable")) - 1)) & ~bytes32(uint256(0xff))
     bytes32 private constant MINTABLE_STORAGE_SLOT =
-        0xdf8649829a4265b15de1f1904f50ffe1524a0eb10b8707538514af4f71d43800;
+        0x2219bb684b280dec630467478a4cd2056b205c5189535fe0d80f615f47799400;
 
     bytes32 private constant MINTER_ROLE = keccak256("MINTER_ROLE");
     uint256 public constant ANNUAL_INFLATION_RATE = 4; // 4%
