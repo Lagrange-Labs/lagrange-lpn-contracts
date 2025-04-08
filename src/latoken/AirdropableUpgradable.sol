@@ -24,12 +24,12 @@ abstract contract AirdropableUpgradable is
     bytes32 private constant AIRDROPABLE_STORAGE_SLOT =
         0xafaaefcc2ad65572dc11e135cc07ab3bab4801a056f5142ed15b86169ac0cf00;
 
-    event MerkleRootSet(bytes32 merkleRoot);
     event AirdropClaimed(address indexed account, uint256 amount);
+    event MerkleRootSet(bytes32 merkleRoot);
 
-    error MerkleRootNotSet();
     error AlreadyClaimed();
     error InvalidProof();
+    error MerkleRootNotSet();
 
     /// @notice Sets the merkle root for the airdrop
     /// @param merkleRoot The merkle root of the airdrop
@@ -62,6 +62,12 @@ abstract contract AirdropableUpgradable is
         emit AirdropClaimed(msg.sender, amount);
     }
 
+    /// @notice Returns the merkle root
+    /// @return root The merkle root
+    function getMerkleRoot() public view returns (bytes32) {
+        return _getAirdropableStorage().merkleRoot;
+    }
+
     /// @notice Internal function to set the merkle root
     /// @param merkleRoot The merkle root to set
     /// @dev Can be called in the initializer if the merkle root is known at deployment time
@@ -69,12 +75,6 @@ abstract contract AirdropableUpgradable is
         AirdropableStorage storage $ = _getAirdropableStorage();
         $.merkleRoot = merkleRoot;
         emit MerkleRootSet(merkleRoot);
-    }
-
-    /// @notice Returns the merkle root
-    /// @return root The merkle root
-    function getMerkleRoot() public view returns (bytes32) {
-        return _getAirdropableStorage().merkleRoot;
     }
 
     /// @notice Gets the storage struct
