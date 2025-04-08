@@ -3,8 +3,6 @@ pragma solidity ^0.8.20;
 
 import {BaseTest} from "../BaseTest.t.sol"; // TODO
 import {LATokenMintable} from "../../src/latoken/LATokenMintable.sol";
-import {AirdropableUpgradable} from
-    "../../src/latoken/AirdropableUpgradable.sol";
 
 import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
 import {Initializable} from
@@ -24,18 +22,14 @@ contract LATokenMintableTest is BaseTest {
     address public user3;
     address public lzEndpoint;
 
+    uint256 public constant INFLATION_RATE = 400; // 4%
     uint256 public constant INITIAL_SUPPLY = 1000 ether;
-    uint256 public constant INITIAL_TREASURY_SUPPLY = 100 ether;
     uint256 public constant USER_INITIAL_BALANCE = 10 ether;
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
     // For ERC20Permit testing
     uint256 privateKey = 0xBEEF;
     address permitUser = vm.addr(privateKey);
-
-    bytes32 public merkleRoot;
-    bytes32[] public leaves;
-    uint256[] public amounts;
 
     function setUp() public {
         admin = makeAddr("admin");
@@ -44,25 +38,6 @@ contract LATokenMintableTest is BaseTest {
         user2 = makeAddr("user2");
         user3 = makeAddr("user3");
         lzEndpoint = makeMock("lzEndpoint");
-
-        // Merkle tree for airdrop
-        address[] memory accounts = new address[](3);
-        amounts = new uint256[](3);
-
-        accounts[0] = user1;
-        accounts[1] = user2;
-        accounts[2] = user3;
-
-        amounts[0] = 100 ether;
-        amounts[1] = 200 ether;
-        amounts[2] = 300 ether;
-
-        leaves = new bytes32[](3);
-        for (uint256 i = 0; i < 3; i++) {
-            leaves[i] = keccak256(abi.encodePacked(accounts[i], amounts[i]));
-        }
-
-        merkleRoot = _buildMerkleRoot();
 
         // Mock setDelegate call to LZ endpoint contract, happens in LATokenMintable.initialize
         vm.mockCall(
@@ -74,15 +49,12 @@ contract LATokenMintableTest is BaseTest {
         );
 
         // Deploy implementation
-        implementation = new LATokenMintable(lzEndpoint, INITIAL_SUPPLY);
+        implementation =
+            new LATokenMintable(lzEndpoint, INFLATION_RATE, INITIAL_SUPPLY);
 
         // Deploy proxy and initialize
         bytes memory initData = abi.encodeWithSelector(
-            LATokenMintable.initialize.selector,
-            admin,
-            treasury,
-            merkleRoot,
-            INITIAL_TREASURY_SUPPLY
+            LATokenMintable.initialize.selector, admin, treasury
         );
         TransparentUpgradeableProxy proxy = new TransparentUpgradeableProxy(
             address(implementation), admin, initData
@@ -107,63 +79,23 @@ contract LATokenMintableTest is BaseTest {
         assertEq(token.name(), "Lagrange");
         assertEq(token.symbol(), "LA");
         assertEq(token.decimals(), 18);
-        assertEq(token.totalSupply(), INITIAL_TREASURY_SUPPLY);
-    }
-
-    function test_Initialize_WithoutMerkleRoot_Success() public {
-        LATokenMintable newImplementation =
-            new LATokenMintable(lzEndpoint, INITIAL_SUPPLY);
-
-        // Deploy proxy and initialize
-        bytes memory initData = abi.encodeWithSelector(
-            LATokenMintable.initialize.selector,
-            admin,
-            treasury,
-            bytes32(0),
-            INITIAL_TREASURY_SUPPLY
-        );
-        TransparentUpgradeableProxy newProxy = new TransparentUpgradeableProxy(
-            address(newImplementation), admin, initData
-        );
-
-        LATokenMintable newToken = LATokenMintable(address(newProxy));
-
-        assertEq(newToken.getMerkleRoot(), bytes32(0));
+        assertEq(token.totalSupply(), INITIAL_SUPPLY);
+        assertEq(token.ANNUAL_INFLATION_RATE_PPTT(), INFLATION_RATE);
+        assertEq(token.INITIAL_SUPPLY(), INITIAL_SUPPLY);
     }
 
     function test_Initialize_RevertsWhen_CalledAgain() public {
         vm.expectRevert(
             abi.encodeWithSelector(Initializable.InvalidInitialization.selector)
         );
-        token.initialize(admin, treasury, bytes32(0), INITIAL_TREASURY_SUPPLY);
+        token.initialize(admin, treasury);
     }
 
     function test_Initialize_RevertsWhen_CalledOnImplementation() public {
         vm.expectRevert(
             abi.encodeWithSelector(Initializable.InvalidInitialization.selector)
         );
-        implementation.initialize(
-            admin, treasury, bytes32(0), INITIAL_TREASURY_SUPPLY
-        );
-    }
-
-    function test_Initialize_RevertsWhen_InitialTreasuryTooLarge() public {
-        LATokenMintable newImplementation =
-            new LATokenMintable(lzEndpoint, INITIAL_SUPPLY);
-
-        // Deploy proxy and try to initialize with treasury supply > INITIAL_SUPPLY
-        bytes memory initData = abi.encodeWithSelector(
-            LATokenMintable.initialize.selector,
-            admin,
-            treasury,
-            bytes32(0),
-            INITIAL_SUPPLY + 1
-        );
-
-        vm.expectRevert(LATokenMintable.InitialTreasuryTooLarge.selector);
-        TransparentUpgradeableProxy newProxy = new TransparentUpgradeableProxy(
-            address(newImplementation), admin, initData
-        );
+        implementation.initialize(admin, treasury);
     }
 
     // ------------------------------------------------------------
@@ -211,7 +143,7 @@ contract LATokenMintableTest is BaseTest {
         token.mint(user2, mintAmount);
 
         assertEq(token.balanceOf(user2), mintAmount);
-        assertEq(token.totalSupply(), INITIAL_TREASURY_SUPPLY + mintAmount);
+        assertEq(token.totalSupply(), INITIAL_SUPPLY + mintAmount);
         assertEq(token.availableToMint(), 0);
     }
 
@@ -436,92 +368,6 @@ contract LATokenMintableTest is BaseTest {
     }
 
     // ------------------------------------------------------------
-    //                       AIRDROP TESTS                        |
-    // ------------------------------------------------------------
-
-    function test_claimAirdrop_Success() public {
-        // Set merkle root
-        vm.prank(admin);
-        token.setMerkleRoot(merkleRoot);
-
-        // Generate proof for user1
-        bytes32[] memory proof = _generateMerkleProof(0);
-
-        // Claim airdrop for user1
-        vm.prank(user1);
-        token.claimAirdrop(amounts[0], proof);
-
-        // Verify claim
-
-        assertEq(token.balanceOf(user1), USER_INITIAL_BALANCE + amounts[0]);
-    }
-
-    function test_claimAirdrop_3RevertsWhen_AlreadyClaimed() public {
-        // Generate proof
-        bytes32[] memory proof = _generateMerkleProof(0);
-
-        // First claim should succeed
-        vm.prank(user1);
-        token.claimAirdrop(100 ether, proof);
-
-        // Second claim should revert
-        vm.prank(user1);
-        vm.expectRevert(AirdropableUpgradable.AlreadyClaimed.selector);
-        token.claimAirdrop(100 ether, proof);
-    }
-
-    function test_claimAirdrop_RevertsWhen_InvalidProof() public {
-        // Create invalid proof
-        bytes32[] memory invalidProof = new bytes32[](1);
-        invalidProof[0] = bytes32(0);
-
-        // Claim should revert with invalid proof
-        vm.prank(user1);
-        vm.expectRevert(AirdropableUpgradable.InvalidProof.selector);
-        token.claimAirdrop(100 ether, invalidProof);
-    }
-
-    function test_claimAirdrop_RevertsWhen_MerkleRootNotSet() public {
-        bytes32[] memory proof = new bytes32[](1);
-
-        vm.prank(admin);
-        token.setMerkleRoot(bytes32(0));
-
-        // Claim should revert when merkle root is not set
-        vm.prank(user1);
-        vm.expectRevert(AirdropableUpgradable.MerkleRootNotSet.selector);
-        token.claimAirdrop(100 ether, proof);
-    }
-
-    function test_SetMerkleRoot_Success() public {
-        assertEq(merkleRoot, token.getMerkleRoot());
-
-        // Set new merkle root
-        bytes32 newMerkleRoot = randomBytes32();
-        vm.expectEmit();
-        emit AirdropableUpgradable.MerkleRootSet(newMerkleRoot);
-        vm.prank(admin);
-        token.setMerkleRoot(newMerkleRoot);
-
-        // Assert that the merkle root is set
-        assertEq(token.getMerkleRoot(), newMerkleRoot);
-    }
-
-    function test_SetMerkleRoot_RevertsWhen_NotAdmin() public {
-        bytes32 newMerkleRoot = randomBytes32();
-
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                IAccessControl.AccessControlUnauthorizedAccount.selector,
-                user1,
-                token.DEFAULT_ADMIN_ROLE()
-            )
-        );
-        vm.prank(user1);
-        token.setMerkleRoot(newMerkleRoot);
-    }
-
-    // ------------------------------------------------------------
     //                         OTHER TESTS                        |
     // ------------------------------------------------------------
 
@@ -553,108 +399,5 @@ contract LATokenMintableTest is BaseTest {
             token.supportsInterface(accessControlDefaultAdminRulesInterfaceId),
             "Should support IAccessControlDefaultAdminRules"
         );
-    }
-
-    // ------------------------------------------------------------
-    //                      HELPER FUNCTIONS                      |
-    // ------------------------------------------------------------
-
-    // Helper function to build a merkle root from leaves
-    function _buildMerkleRoot() internal view returns (bytes32) {
-        if (leaves.length == 0) return bytes32(0);
-        if (leaves.length == 1) return leaves[0];
-
-        bytes32[] memory hashes = new bytes32[](leaves.length);
-        for (uint256 i = 0; i < leaves.length; i++) {
-            hashes[i] = leaves[i];
-        }
-
-        while (hashes.length > 1) {
-            bytes32[] memory newHashes =
-                new bytes32[](hashes.length / 2 + (hashes.length % 2));
-            for (uint256 i = 0; i < hashes.length; i += 2) {
-                if (i + 1 < hashes.length) {
-                    // Ensure consistent hashing order - smaller hash goes first
-                    if (hashes[i] <= hashes[i + 1]) {
-                        newHashes[i / 2] = keccak256(
-                            abi.encodePacked(hashes[i], hashes[i + 1])
-                        );
-                    } else {
-                        newHashes[i / 2] = keccak256(
-                            abi.encodePacked(hashes[i + 1], hashes[i])
-                        );
-                    }
-                } else {
-                    newHashes[i / 2] = hashes[i];
-                }
-            }
-            hashes = newHashes;
-        }
-
-        return hashes[0];
-    }
-
-    // Helper function to generate a merkle proof
-    function _generateMerkleProof(uint256 index)
-        internal
-        view
-        returns (bytes32[] memory)
-    {
-        if (leaves.length <= 1) return new bytes32[](0);
-
-        // Calculate the number of proof elements needed
-        uint256 proofLength = 0;
-        uint256 currentLength = leaves.length;
-        while (currentLength > 1) {
-            proofLength++;
-            currentLength = (currentLength + 1) / 2;
-        }
-
-        bytes32[] memory proof = new bytes32[](proofLength);
-        uint256 proofIndex = 0;
-
-        // Generate proof elements for each level
-        bytes32[] memory currentLevel = leaves;
-        uint256 currentIndex = index;
-
-        while (currentLevel.length > 1) {
-            uint256 pairIndex = currentIndex ^ 1;
-            if (pairIndex < currentLevel.length) {
-                // Ensure consistent hashing order - smaller hash goes first
-                if (currentLevel[currentIndex] <= currentLevel[pairIndex]) {
-                    proof[proofIndex++] = currentLevel[pairIndex];
-                } else {
-                    proof[proofIndex++] = currentLevel[pairIndex];
-                }
-            }
-
-            // Move to next level
-            bytes32[] memory nextLevel =
-                new bytes32[]((currentLevel.length + 1) / 2);
-            for (uint256 i = 0; i < currentLevel.length; i += 2) {
-                if (i + 1 < currentLevel.length) {
-                    // Ensure consistent hashing order - smaller hash goes first
-                    if (currentLevel[i] <= currentLevel[i + 1]) {
-                        nextLevel[i / 2] = keccak256(
-                            abi.encodePacked(
-                                currentLevel[i], currentLevel[i + 1]
-                            )
-                        );
-                    } else {
-                        nextLevel[i / 2] = keccak256(
-                            abi.encodePacked(
-                                currentLevel[i + 1], currentLevel[i]
-                            )
-                        );
-                    }
-                } else {
-                    nextLevel[i / 2] = currentLevel[i];
-                }
-            }
-            currentLevel = nextLevel;
-            currentIndex = currentIndex / 2;
-        }
-
-        return proof;
     }
 }

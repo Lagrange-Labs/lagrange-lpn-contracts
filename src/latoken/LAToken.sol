@@ -10,13 +10,9 @@ contract LAToken is LATokenBase {
     /// @notice Disable initializers on the logic contract
     constructor(address lzEndpoint) LATokenBase(lzEndpoint) {}
 
-    /// @dev Initializes the token with name, symbol, and roles
+    /// @notice Initializes the token with name, symbol, and roles
     /// @param defaultAdmin The address that will be granted the DEFAULT_ADMIN_ROLE
-    /// @param merkleRoot The merkle root of the airdrop, optional
-    function initialize(address defaultAdmin, bytes32 merkleRoot)
-        external
-        initializer
-    {
-        __LATokenBase_init(defaultAdmin, merkleRoot);
+    function initialize(address defaultAdmin) external {
+        __LATokenBase_init(defaultAdmin);
     }
 }

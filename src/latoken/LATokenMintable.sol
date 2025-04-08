@@ -16,44 +16,40 @@ contract LATokenMintable is LATokenBase {
         0x2219bb684b280dec630467478a4cd2056b205c5189535fe0d80f615f47799400;
 
     bytes32 private constant MINTER_ROLE = keccak256("MINTER_ROLE");
-    uint256 public constant ANNUAL_INFLATION_RATE = 4; // 4%
+    uint256 public immutable ANNUAL_INFLATION_RATE_PPTT; // parts per ten-thousand
     uint256 public immutable INITIAL_SUPPLY;
     uint256 private immutable DEPLOYMENT_DATETIME;
 
     event Mint(address indexed to, uint256 amount);
 
     error ExceedsAllowedInflation();
-    error InitialTreasuryTooLarge();
 
     /// @notice Constructor for the LATokenMintable contract
     /// @param lzEndpoint The endpoint for the LayerZero protocol
-    /// @param initialSupply The initial supply of the token
+    /// @param inflationRatePPTT The annual inflation rate in parts per ten-thousand
+    /// @param initialTreasury The initial supply of the token, minted to the treasury
     /// @dev only the LATokenMintable needs to know the initial supply, so that it
     /// can enforce inflation properly
-    constructor(address lzEndpoint, uint256 initialSupply)
-        LATokenBase(lzEndpoint)
-    {
-        INITIAL_SUPPLY = initialSupply;
+    constructor(
+        address lzEndpoint,
+        uint256 inflationRatePPTT,
+        uint256 initialTreasury
+    ) LATokenBase(lzEndpoint) {
+        ANNUAL_INFLATION_RATE_PPTT = inflationRatePPTT;
+        INITIAL_SUPPLY = initialTreasury;
         DEPLOYMENT_DATETIME = block.timestamp;
     }
 
     /// @notice Initialize the token
     /// @param defaultAdmin The address that will be granted the DEFAULT_ADMIN_ROLE
     /// @param treasury The address that will be granted the MINTER_ROLE
-    /// @param merkleRoot The merkle root of the airdrop, optional
-    /// @param initialTreasurySupply The initial amount in the treasury
-    function initialize(
-        address defaultAdmin,
-        address treasury,
-        bytes32 merkleRoot,
-        uint256 initialTreasurySupply
-    ) external initializer {
-        if (initialTreasurySupply > INITIAL_SUPPLY) {
-            revert InitialTreasuryTooLarge();
-        }
-        __LATokenBase_init(defaultAdmin, merkleRoot);
+    function initialize(address defaultAdmin, address treasury)
+        external
+        initializer
+    {
+        __LATokenBase_init(defaultAdmin);
         _grantRole(MINTER_ROLE, treasury);
-        _mint(treasury, initialTreasurySupply);
+        _mint(treasury, INITIAL_SUPPLY);
     }
 
     /// @notice Returns the amount of tokens that can be minted
@@ -63,8 +59,8 @@ contract LATokenMintable is LATokenBase {
         uint256 timeElapsed = block.timestamp - DEPLOYMENT_DATETIME;
         // 4% per year linearized: (supply * rate * seconds_elapsed) / (year_in_seconds * 10000)
         return (
-            (INITIAL_SUPPLY * ANNUAL_INFLATION_RATE * timeElapsed)
-                / (365 days * 100)
+            (INITIAL_SUPPLY * ANNUAL_INFLATION_RATE_PPTT * timeElapsed)
+                / (365 days * 10000)
         ) - $.lastMintCheckpoint;
     }
 

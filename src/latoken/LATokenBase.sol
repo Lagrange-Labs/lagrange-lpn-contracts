@@ -3,7 +3,7 @@ pragma solidity 0.8.25;
 
 import {AccessControlDefaultAdminRulesUpgradeable} from
     "@openzeppelin-contracts-upgradeable-5.2.0/access/extensions/AccessControlDefaultAdminRulesUpgradeable.sol";
-import {AirdropableOFTUpgradable} from "./AirdropableOFTUpgradable.sol";
+import {OFTUpgradable} from "./OFTUpgradable.sol";
 import {Initializable} from
     "@openzeppelin-contracts-upgradeable-5.2.0/proxy/utils/Initializable.sol";
 import {IERC165} from "@openzeppelin/contracts/interfaces/IERC165.sol";
@@ -13,30 +13,23 @@ import {IERC20Permit} from
 
 /// @title LATokenBase
 /// @dev Base contract for the LAToken and LATokenMintable
-abstract contract LATokenBase is Initializable, AirdropableOFTUpgradable {
+abstract contract LATokenBase is Initializable, OFTUpgradable {
     string private constant NAME = "Lagrange";
     string private constant SYMBOL = "LA";
 
     /// @notice Disable initializers on the logic contract
     /// @param lzEndpoint The endpoint for the LayerZero protocol
-    constructor(address lzEndpoint) AirdropableOFTUpgradable(lzEndpoint) {
+    constructor(address lzEndpoint) OFTUpgradable(lzEndpoint) {
         _disableInitializers();
     }
 
     /// @notice Initialize the token
     /// @param defaultAdmin The address that will be granted the DEFAULT_ADMIN_ROLE
-    /// @param merkleRoot The merkle root of the airdrop, optional
-    function __LATokenBase_init(address defaultAdmin, bytes32 merkleRoot)
-        internal
-    {
+    function __LATokenBase_init(address defaultAdmin) internal {
         __ERC20_init(NAME, SYMBOL);
         __ERC20Permit_init(NAME);
         __AccessControlDefaultAdminRules_init(0, defaultAdmin);
         __OFT_init(defaultAdmin);
-
-        if (merkleRoot != bytes32(0)) {
-            _setMerkleRoot(merkleRoot);
-        }
     }
 
     /// @inheritdoc IERC165
