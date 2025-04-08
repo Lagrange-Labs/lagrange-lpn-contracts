@@ -43,13 +43,15 @@ contract LATokenMintable is LATokenBase {
     /// @notice Initialize the token
     /// @param defaultAdmin The address that will be granted the DEFAULT_ADMIN_ROLE
     /// @param treasury The address that will be granted the MINTER_ROLE
-    function initialize(address defaultAdmin, address treasury)
-        external
-        initializer
-    {
+    /// @param initialMintHandler The address that will receive the initial mint
+    function initialize(
+        address defaultAdmin,
+        address treasury,
+        address initialMintHandler
+    ) external initializer {
         __LATokenBase_init(defaultAdmin);
         _grantRole(MINTER_ROLE, treasury);
-        _mint(treasury, INITIAL_SUPPLY);
+        _mint(initialMintHandler, INITIAL_SUPPLY);
     }
 
     /// @notice Returns the amount of tokens that can be minted

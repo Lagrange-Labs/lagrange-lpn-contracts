@@ -17,6 +17,7 @@ contract LATokenMintableTest is BaseTest {
     LATokenMintable public token;
     address public admin;
     address public treasury;
+    address public initialMintHandler;
     address public user1;
     address public user2;
     address public user3;
@@ -34,6 +35,7 @@ contract LATokenMintableTest is BaseTest {
     function setUp() public {
         admin = makeAddr("admin");
         treasury = makeAddr("treasury");
+        initialMintHandler = makeAddr("initialMintHandler");
         user1 = makeAddr("user1");
         user2 = makeAddr("user2");
         user3 = makeAddr("user3");
@@ -54,7 +56,10 @@ contract LATokenMintableTest is BaseTest {
 
         // Deploy proxy and initialize
         bytes memory initData = abi.encodeWithSelector(
-            LATokenMintable.initialize.selector, admin, treasury
+            LATokenMintable.initialize.selector,
+            admin,
+            treasury,
+            initialMintHandler
         );
         TransparentUpgradeableProxy proxy = new TransparentUpgradeableProxy(
             address(implementation), admin, initData
@@ -63,8 +68,8 @@ contract LATokenMintableTest is BaseTest {
         // Get token instance pointing to the proxy
         token = LATokenMintable(address(proxy));
 
-        // Transfer initial tokens to user1
-        vm.prank(treasury);
+        // Transfer some initial tokens to user1
+        vm.prank(initialMintHandler);
         token.transfer(user1, USER_INITIAL_BALANCE);
 
         // Fast forward time to allow minting
@@ -82,20 +87,25 @@ contract LATokenMintableTest is BaseTest {
         assertEq(token.totalSupply(), INITIAL_SUPPLY);
         assertEq(token.ANNUAL_INFLATION_RATE_PPTT(), INFLATION_RATE);
         assertEq(token.INITIAL_SUPPLY(), INITIAL_SUPPLY);
+        assertEq(
+            token.balanceOf(initialMintHandler),
+            INITIAL_SUPPLY - USER_INITIAL_BALANCE
+        );
+        assertEq(token.balanceOf(treasury), 0);
     }
 
     function test_Initialize_RevertsWhen_CalledAgain() public {
         vm.expectRevert(
             abi.encodeWithSelector(Initializable.InvalidInitialization.selector)
         );
-        token.initialize(admin, treasury);
+        token.initialize(admin, treasury, initialMintHandler);
     }
 
     function test_Initialize_RevertsWhen_CalledOnImplementation() public {
         vm.expectRevert(
             abi.encodeWithSelector(Initializable.InvalidInitialization.selector)
         );
-        implementation.initialize(admin, treasury);
+        implementation.initialize(admin, treasury, initialMintHandler);
     }
 
     // ------------------------------------------------------------
@@ -272,7 +282,7 @@ contract LATokenMintableTest is BaseTest {
         uint256 deadline = block.timestamp + 1 hours;
 
         // Transfer some tokens to the permitUser
-        vm.prank(treasury);
+        vm.prank(initialMintHandler);
         token.transfer(permitUser, USER_INITIAL_BALANCE);
 
         // Generate permit signature
