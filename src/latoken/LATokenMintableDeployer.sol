@@ -23,7 +23,8 @@ contract LATokenMintableDeployer {
         uint256 initialSupply,
         address lzEndpoint,
         address initialMintHandler,
-        address treasury
+        address treasury,
+        LATokenMintable.Peer[] memory peers
     ) {
         if (
             lzEndpoint == address(0) || treasury == address(0)
@@ -44,7 +45,8 @@ contract LATokenMintableDeployer {
             abi.encodeWithSelector(
                 LATokenMintable.initialize.selector,
                 treasury,
-                initialMintHandler
+                initialMintHandler,
+                peers
             )
         );
         address tokenProxy = address(proxy);

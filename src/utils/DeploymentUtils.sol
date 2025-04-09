@@ -5,6 +5,7 @@ pragma solidity 0.8.25;
 import {Script} from "forge-std/Script.sol";
 import {LagrangeQueryRouter} from "../v2/LagrangeQueryRouter.sol";
 import {ChainConnections} from "./ChainConnections.sol";
+import {LATokenMintable} from "../latoken/LATokenMintable.sol";
 
 /// @notice This contract contains many utility functions for deployment scripts
 abstract contract DeploymentUtils is ChainConnections, Script {
@@ -23,6 +24,7 @@ abstract contract DeploymentUtils is ChainConnections, Script {
     mapping(uint256 chainId => address addr) private lzEndpoints;
     mapping(uint256 chainId => bool isMintable) private mintableChains;
     mapping(uint256 chainId => address addr) private treasuryAddresses;
+    LATokenMintable.Peer[] peers;
 
     constructor() {
         // Deployer Key
@@ -95,6 +97,8 @@ abstract contract DeploymentUtils is ChainConnections, Script {
         lzEndpoints[17000] = 0x6EDCE65403992e310A62460808c4b910D972f10f;
         // Sepolia
         lzEndpoints[11155111] = 0x6EDCE65403992e310A62460808c4b910D972f10f;
+        // Arbitrum
+        lzEndpoints[42161] = 0x1a44076050125825900e736c501f859c50fE728c;
         // Base
         lzEndpoints[8453] = 0x1a44076050125825900e736c501f859c50fE728c;
         // Optimism
@@ -113,6 +117,8 @@ abstract contract DeploymentUtils is ChainConnections, Script {
         lzEndpoints[100] = 0x1a44076050125825900e736c501f859c50fE728c;
         // Polygon-zkevm
         lzEndpoints[1101] = 0x1a44076050125825900e736c501f859c50fE728c;
+        // Berachain
+        lzEndpoints[80094] = 0x6F475642a6e85809B1c36Fa62763669b1b48DD5B;
 
         // Chains with minting
         // Mainnet
@@ -129,6 +135,27 @@ abstract contract DeploymentUtils is ChainConnections, Script {
         treasuryAddresses[17000] = 0x2336Af8d44d7EF6f72E37F28c9D5BB9A926A1cF6;
         // Sepolia
         treasuryAddresses[11155111] = 0x2336Af8d44d7EF6f72E37F28c9D5BB9A926A1cF6;
+
+        // Arbitrum
+        addPeer(30110, 0x0000000000000000000000000000000000000000);
+        // Base
+        addPeer(30184, 0x0000000000000000000000000000000000000000);
+        // Optimism
+        addPeer(30111, 0x0000000000000000000000000000000000000000);
+        // Polygon
+        addPeer(30109, 0x0000000000000000000000000000000000000000);
+        // BSC
+        addPeer(30102, 0x0000000000000000000000000000000000000000);
+        // Scroll
+        addPeer(30214, 0x0000000000000000000000000000000000000000);
+        // Mantle
+        addPeer(30181, 0x0000000000000000000000000000000000000000);
+        // Gnosis
+        addPeer(30145, 0x0000000000000000000000000000000000000000);
+        // Polygon-zkevm
+        addPeer(30158, 0x0000000000000000000000000000000000000000);
+        // Berachain
+        addPeer(30362, 0x0000000000000000000000000000000000000000);
     }
 
     function getDeployerAddress() internal view returns (address) {
@@ -197,6 +224,19 @@ abstract contract DeploymentUtils is ChainConnections, Script {
         address addr = lzEndpoints[block.chainid];
         require(addr != address(0), "LayerZero endpoint not found");
         return addr;
+    }
+
+    function addPeer(uint32 endpointID, address peerAddress) internal {
+        peers.push(
+            LATokenMintable.Peer({
+                endpointID: endpointID,
+                peerAddress: bytes32(uint256(uint160(peerAddress)))
+            })
+        );
+    }
+
+    function getPeers() internal view returns (LATokenMintable.Peer[] memory) {
+        return peers;
     }
 
     function getTreasuryAddress() internal view returns (address) {

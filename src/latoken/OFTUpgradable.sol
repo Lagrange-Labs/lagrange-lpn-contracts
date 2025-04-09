@@ -24,8 +24,11 @@ abstract contract OFTUpgradable is
     {}
 
     /// @inheritdoc OnlyLZAdmin
+    /// @dev Allow LZ admin actions during initialization
     modifier onlyLZAdmin() override {
-        _checkRole(DEFAULT_ADMIN_ROLE);
+        if (!_isInitializing()) {
+            _checkRole(DEFAULT_ADMIN_ROLE);
+        }
         _;
     }
 

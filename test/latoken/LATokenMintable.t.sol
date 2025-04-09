@@ -27,6 +27,11 @@ contract LATokenMintableTest is BaseTest {
     uint256 public constant USER_INITIAL_BALANCE = 10 ether;
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
+    uint32 public constant ENDPOINT_ID = 123;
+    bytes32 public constant PEER_ADDRESS =
+        bytes32(uint256(uint160(0x0000000000000000000000000000000000000123)));
+    LATokenMintable.Peer[] public peers;
+
     // For ERC20Permit testing
     uint256 privateKey = 0xBEEF;
     address permitUser = vm.addr(privateKey);
@@ -38,6 +43,13 @@ contract LATokenMintableTest is BaseTest {
         user2 = makeAddr("user2");
         user3 = makeAddr("user3");
         lzEndpoint = makeMock("lzEndpoint");
+
+        peers.push(
+            LATokenMintable.Peer({
+                endpointID: ENDPOINT_ID,
+                peerAddress: PEER_ADDRESS
+            })
+        );
 
         // Mock setDelegate call to LZ endpoint contract, happens in LATokenMintable.initialize
         vm.mockCall(
@@ -54,7 +66,10 @@ contract LATokenMintableTest is BaseTest {
 
         // Deploy proxy and initialize
         bytes memory initData = abi.encodeWithSelector(
-            LATokenMintable.initialize.selector, treasury, initialMintHandler
+            LATokenMintable.initialize.selector,
+            treasury,
+            initialMintHandler,
+            peers
         );
         TransparentUpgradeableProxy proxy = new TransparentUpgradeableProxy(
             address(implementation), treasury, initData
@@ -87,20 +102,21 @@ contract LATokenMintableTest is BaseTest {
             INITIAL_SUPPLY - USER_INITIAL_BALANCE
         );
         assertEq(token.balanceOf(treasury), 0);
+        assertEq(token.peers(ENDPOINT_ID), PEER_ADDRESS);
     }
 
     function test_Initialize_RevertsWhen_CalledAgain() public {
         vm.expectRevert(
             abi.encodeWithSelector(Initializable.InvalidInitialization.selector)
         );
-        token.initialize(treasury, initialMintHandler);
+        token.initialize(treasury, initialMintHandler, peers);
     }
 
     function test_Initialize_RevertsWhen_CalledOnImplementation() public {
         vm.expectRevert(
             abi.encodeWithSelector(Initializable.InvalidInitialization.selector)
         );
-        implementation.initialize(treasury, initialMintHandler);
+        implementation.initialize(treasury, initialMintHandler, peers);
     }
 
     // ------------------------------------------------------------

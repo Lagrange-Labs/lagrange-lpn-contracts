@@ -37,7 +37,8 @@ contract DeployLAToken is DeploymentUtils {
                 INITIAL_SUPPLY,
                 getLzEndpoint(),
                 INITIAL_MINT_HANDLER_ADDRESS,
-                getTreasuryAddress()
+                getTreasuryAddress(),
+                getPeers()
             );
         } else {
             // Deploy and configure the LA token using the LATokenDeployer

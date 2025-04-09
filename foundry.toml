@@ -45,6 +45,7 @@ polygon = "https://polygon-bor-rpc.publicnode.com"
 scroll = "https://scroll-rpc.publicnode.com"
 cronos = "https://cronos-evm-rpc.publicnode.com"
 gnosis = "https://rpc.gnosischain.com"
+berachain = "https://rpc.berachain.com"
 
 [etherscan]
 sepolia = { key = "${MAINNET_ETHERSCAN_API_KEY}" }

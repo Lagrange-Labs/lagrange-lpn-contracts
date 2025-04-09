@@ -11,6 +11,12 @@ contract LATokenMintable is LATokenBase {
         uint256 lastMintCheckpoint; // sum of tokens minted since deployment
     }
 
+    /// @dev The peer address and endpoint ID for a peer contract
+    struct Peer {
+        uint32 endpointID;
+        bytes32 peerAddress;
+    }
+
     // keccak256(abi.encode(uint256(keccak256("lagrange.storage.LATokenMintable")) - 1)) & ~bytes32(uint256(0xff))
     bytes32 private constant MINTABLE_STORAGE_SLOT =
         0x2219bb684b280dec630467478a4cd2056b205c5189535fe0d80f615f47799400;
@@ -43,13 +49,18 @@ contract LATokenMintable is LATokenBase {
     /// @notice Initialize the token
     /// @param treasury The address that will be granted the MINTER_ROLE
     /// @param initialMintHandler The address that will receive the initial mint
-    function initialize(address treasury, address initialMintHandler)
-        external
-        initializer
-    {
+    /// @param peers The peers that will be added to the token
+    function initialize(
+        address treasury,
+        address initialMintHandler,
+        Peer[] memory peers
+    ) external initializer {
         __LATokenBase_init(treasury);
         _grantRole(MINTER_ROLE, treasury);
         _mint(initialMintHandler, INITIAL_SUPPLY);
+        for (uint256 i = 0; i < peers.length; i++) {
+            setPeer(peers[i].endpointID, peers[i].peerAddress);
+        }
     }
 
     /// @notice Returns the amount of tokens that can be minted
