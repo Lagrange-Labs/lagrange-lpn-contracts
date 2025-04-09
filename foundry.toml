@@ -38,6 +38,13 @@ base = "https://base-rpc.publicnode.com"
 fraxtal = "https://rpc.frax.com"
 mantle = "https://rpc.mantle.xyz"
 polygon_zkevm = "https://zkevm-rpc.com"
+bsc = "https://bsc-rpc.publicnode.com"
+arbitrum = "https://arbitrum-one-rpc.publicnode.com"
+optimism = "https://optimism-rpc.publicnode.com"
+polygon = "https://polygon-bor-rpc.publicnode.com"
+scroll = "https://scroll-rpc.publicnode.com"
+cronos = "https://cronos-evm-rpc.publicnode.com"
+gnosis = "https://rpc.gnosischain.com"
 
 [etherscan]
 sepolia = { key = "${MAINNET_ETHERSCAN_API_KEY}" }
