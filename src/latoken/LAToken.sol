@@ -12,7 +12,8 @@ contract LAToken is LATokenBase {
 
     /// @notice Initializes the token with name, symbol, and roles
     /// @param treasury The address that will be granted the DEFAULT_ADMIN_ROLE
-    function initialize(address treasury) external {
-        __LATokenBase_init(treasury);
+    /// @param peers The OFT peers that will be added to the token
+    function initialize(address treasury, Peer[] calldata peers) external {
+        __LATokenBase_init(treasury, peers);
     }
 }

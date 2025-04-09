@@ -85,6 +85,7 @@ upgrade-registries  :; script/util/copy-verifier.sh $(env) && forge script ./scr
 deploy-v2           :; forge script script/deploy/DeployLPNV2Contracts.s.sol --rpc-url $(word 2, $(MAKECMDGOALS)) --ffi --etherscan-api-key $(ETHERSCAN_API_KEY) --verify --verifier etherscan --delay 10 --broadcast --retries 7
 update-v2-executors :; forge script script/UpdateQueryExecutors.s.sol --ffi --etherscan-api-key $(ETHERSCAN_API_KEY) --verify --verifier etherscan --delay 10 --broadcast --retries 7
 deploy-latoken      :; forge script script/deploy/DeployLAToken.s.sol --rpc-url $(word 2, $(MAKECMDGOALS)) --etherscan-api-key $(ETHERSCAN_API_KEY) --verify --verifier etherscan --delay 10 --retries 7 --broadcast
+deploy-latoken-sim  :; forge script script/deploy/DeployLAToken.s.sol --rpc-url $(word 2, $(MAKECMDGOALS)) 
 
 # List available scripts
 list-scripts:

@@ -2,6 +2,7 @@
 pragma solidity ^0.8.20;
 
 import {BaseTest} from "../BaseTest.t.sol"; // TODO
+import {LATokenBase} from "../../src/latoken/LATokenBase.sol";
 import {LATokenMintable} from "../../src/latoken/LATokenMintable.sol";
 
 import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
@@ -30,14 +31,14 @@ contract LATokenMintableTest is BaseTest {
     uint32 public constant ENDPOINT_ID = 123;
     bytes32 public constant PEER_ADDRESS =
         bytes32(uint256(uint160(0x0000000000000000000000000000000000000123)));
-    LATokenMintable.Peer[] public peers;
+    LATokenBase.Peer[] public peers;
 
     // For ERC20Permit testing
     uint256 privateKey = 0xBEEF;
     address permitUser = vm.addr(privateKey);
 
     function setUp() public {
-        treasury = makeAddr("treasury");
+        treasury = makeMock("treasury");
         initialMintHandler = makeAddr("initialMintHandler");
         user1 = makeAddr("user1");
         user2 = makeAddr("user2");
@@ -45,7 +46,7 @@ contract LATokenMintableTest is BaseTest {
         lzEndpoint = makeMock("lzEndpoint");
 
         peers.push(
-            LATokenMintable.Peer({
+            LATokenBase.Peer({
                 endpointID: ENDPOINT_ID,
                 peerAddress: PEER_ADDRESS
             })

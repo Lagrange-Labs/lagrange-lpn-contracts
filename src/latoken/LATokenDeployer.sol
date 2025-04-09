@@ -2,6 +2,7 @@
 pragma solidity 0.8.25;
 
 import {LAToken} from "./LAToken.sol";
+import {LATokenBase} from "./LATokenBase.sol";
 import {TransparentUpgradeableProxy} from
     "@openzeppelin-contracts-5.2.0/proxy/transparent/TransparentUpgradeableProxy.sol";
 
@@ -17,7 +18,12 @@ contract LATokenDeployer {
     /// @notice Deploys and configures the standard LA token with a proxy
     /// @param adminMultisig The admin multisig address for token governance
     /// @param lzEndpoint The LayerZero endpoint address
-    constructor(address adminMultisig, address lzEndpoint) {
+    /// @param peers The OFT peers for the token
+    constructor(
+        address adminMultisig,
+        address lzEndpoint,
+        LATokenBase.Peer[] memory peers
+    ) {
         if (adminMultisig == address(0) || lzEndpoint == address(0)) {
             revert ZeroAddress();
         }
@@ -30,7 +36,9 @@ contract LATokenDeployer {
         TransparentUpgradeableProxy proxy = new TransparentUpgradeableProxy(
             tokenImpl,
             adminMultisig,
-            abi.encodeWithSelector(LAToken.initialize.selector, adminMultisig)
+            abi.encodeWithSelector(
+                LAToken.initialize.selector, adminMultisig, peers
+            )
         );
         address tokenProxy = address(proxy);
 

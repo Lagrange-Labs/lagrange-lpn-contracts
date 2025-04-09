@@ -42,7 +42,9 @@ contract DeployLAToken is DeploymentUtils {
             );
         } else {
             // Deploy and configure the LA token using the LATokenDeployer
-            new LATokenDeployer(getTreasuryAddress(), getLzEndpoint());
+            new LATokenDeployer(
+                getTreasuryAddress(), getLzEndpoint(), getPeers()
+            );
         }
 
         // Get the deployed addresses from the emitted event

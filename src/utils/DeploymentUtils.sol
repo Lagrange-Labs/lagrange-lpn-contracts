@@ -5,10 +5,15 @@ pragma solidity 0.8.25;
 import {Script} from "forge-std/Script.sol";
 import {LagrangeQueryRouter} from "../v2/LagrangeQueryRouter.sol";
 import {ChainConnections} from "./ChainConnections.sol";
-import {LATokenMintable} from "../latoken/LATokenMintable.sol";
+import {LATokenBase} from "../latoken/LATokenBase.sol";
 
 /// @notice This contract contains many utility functions for deployment scripts
 abstract contract DeploymentUtils is ChainConnections, Script {
+    struct PeerConfig {
+        LATokenBase.Peer peer;
+        uint256 chainId;
+    }
+
     address private deployerAddress;
 
     mapping(string env => string[] chains) private chainsByEnv;
@@ -24,7 +29,7 @@ abstract contract DeploymentUtils is ChainConnections, Script {
     mapping(uint256 chainId => address addr) private lzEndpoints;
     mapping(uint256 chainId => bool isMintable) private mintableChains;
     mapping(uint256 chainId => address addr) private treasuryAddresses;
-    LATokenMintable.Peer[] peers;
+    PeerConfig[] private peers;
 
     constructor() {
         // Deployer Key
@@ -131,31 +136,50 @@ abstract contract DeploymentUtils is ChainConnections, Script {
         // Treasury addresses
         // Mainnet
         treasuryAddresses[1] = 0x2336Af8d44d7EF6f72E37F28c9D5BB9A926A1cF6;
-        // Holesky
-        treasuryAddresses[17000] = 0x2336Af8d44d7EF6f72E37F28c9D5BB9A926A1cF6;
-        // Sepolia
-        treasuryAddresses[11155111] = 0x2336Af8d44d7EF6f72E37F28c9D5BB9A926A1cF6;
-
         // Arbitrum
-        addPeer(30110, 0x0000000000000000000000000000000000000000);
+        treasuryAddresses[42161] = 0x2336Af8d44d7EF6f72E37F28c9D5BB9A926A1cF6;
         // Base
-        addPeer(30184, 0x0000000000000000000000000000000000000000);
+        treasuryAddresses[8453] = 0x2336Af8d44d7EF6f72E37F28c9D5BB9A926A1cF6;
         // Optimism
-        addPeer(30111, 0x0000000000000000000000000000000000000000);
+        treasuryAddresses[10] = 0x2336Af8d44d7EF6f72E37F28c9D5BB9A926A1cF6;
         // Polygon
-        addPeer(30109, 0x0000000000000000000000000000000000000000);
+        treasuryAddresses[137] = 0x2336Af8d44d7EF6f72E37F28c9D5BB9A926A1cF6;
         // BSC
-        addPeer(30102, 0x0000000000000000000000000000000000000000);
+        treasuryAddresses[56] = 0x2336Af8d44d7EF6f72E37F28c9D5BB9A926A1cF6;
         // Scroll
-        addPeer(30214, 0x0000000000000000000000000000000000000000);
+        treasuryAddresses[534352] = 0x2336Af8d44d7EF6f72E37F28c9D5BB9A926A1cF6;
         // Mantle
-        addPeer(30181, 0x0000000000000000000000000000000000000000);
+        treasuryAddresses[5000] = 0x2336Af8d44d7EF6f72E37F28c9D5BB9A926A1cF6;
         // Gnosis
-        addPeer(30145, 0x0000000000000000000000000000000000000000);
+        treasuryAddresses[100] = 0x2336Af8d44d7EF6f72E37F28c9D5BB9A926A1cF6;
         // Polygon-zkevm
-        addPeer(30158, 0x0000000000000000000000000000000000000000);
+        treasuryAddresses[1101] = 0x2336Af8d44d7EF6f72E37F28c9D5BB9A926A1cF6;
         // Berachain
-        addPeer(30362, 0x0000000000000000000000000000000000000000);
+        treasuryAddresses[80094] = 0x2336Af8d44d7EF6f72E37F28c9D5BB9A926A1cF6;
+
+        // OFT Peers
+        // Mainnet
+        addPeer(1, 30101, 0x0000000000000000000000000000000000000001);
+        // Arbitrum
+        addPeer(42161, 30110, 0x0000000000000000000000000000000000000001);
+        // Base
+        addPeer(8453, 30184, 0x0000000000000000000000000000000000000001);
+        // Optimism
+        addPeer(10, 30111, 0x0000000000000000000000000000000000000001);
+        // Polygon
+        addPeer(137, 30109, 0x0000000000000000000000000000000000000001);
+        // BSC
+        addPeer(56, 30102, 0x0000000000000000000000000000000000000001);
+        // Scroll
+        addPeer(534352, 30214, 0x0000000000000000000000000000000000000001);
+        // Mantle
+        addPeer(5000, 30181, 0x0000000000000000000000000000000000000001);
+        // Gnosis
+        addPeer(100, 30145, 0x0000000000000000000000000000000000000001);
+        // Polygon-zkevm
+        addPeer(1101, 30158, 0x0000000000000000000000000000000000000001);
+        // Berachain
+        addPeer(80094, 30362, 0x0000000000000000000000000000000000000001);
     }
 
     function getDeployerAddress() internal view returns (address) {
@@ -226,17 +250,31 @@ abstract contract DeploymentUtils is ChainConnections, Script {
         return addr;
     }
 
-    function addPeer(uint32 endpointID, address peerAddress) internal {
+    function addPeer(uint256 chainId, uint32 endpointID, address peerAddress)
+        private
+    {
         peers.push(
-            LATokenMintable.Peer({
-                endpointID: endpointID,
-                peerAddress: bytes32(uint256(uint160(peerAddress)))
+            PeerConfig({
+                chainId: chainId,
+                peer: LATokenBase.Peer({
+                    endpointID: endpointID,
+                    peerAddress: bytes32(uint256(uint160(peerAddress)))
+                })
             })
         );
     }
 
-    function getPeers() internal view returns (LATokenMintable.Peer[] memory) {
-        return peers;
+    function getPeers() internal view returns (LATokenBase.Peer[] memory) {
+        LATokenBase.Peer[] memory filteredPeers =
+            new LATokenBase.Peer[](peers.length - 1);
+        uint256 index = 0;
+        for (uint256 i = 0; i < peers.length; i++) {
+            if (peers[i].chainId != block.chainid) {
+                filteredPeers[index] = peers[i].peer;
+                index++;
+            }
+        }
+        return filteredPeers;
     }
 
     function getTreasuryAddress() internal view returns (address) {
