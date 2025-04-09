@@ -159,27 +159,27 @@ abstract contract DeploymentUtils is ChainConnections, Script {
 
         // OFT Peers
         // Mainnet
-        // addPeer(1, 30101, 0x0000000000000000000000000000000000000000);
+        addPeer(1, 30101, 0x0fc2a55d5BD13033f1ee0cdd11f60F7eFe66f467);
         // // Arbitrum
-        // addPeer(42161, 30110, 0x0000000000000000000000000000000000000000);
-        // // Base
-        // addPeer(8453, 30184, 0x0000000000000000000000000000000000000000);
-        // // Optimism
-        // addPeer(10, 30111, 0x0000000000000000000000000000000000000000);
-        // // Polygon
-        // addPeer(137, 30109, 0x0000000000000000000000000000000000000000);
-        // // BSC
-        // addPeer(56, 30102, 0x0000000000000000000000000000000000000000);
-        // // Scroll
-        // addPeer(534352, 30214, 0x0000000000000000000000000000000000000000);
-        // // Mantle
-        // addPeer(5000, 30181, 0x0000000000000000000000000000000000000000);
-        // // Gnosis
-        // addPeer(100, 30145, 0x0000000000000000000000000000000000000000);
-        // // Polygon-zkevm
-        // addPeer(1101, 30158, 0x0000000000000000000000000000000000000000);
-        // // Berachain
-        // addPeer(80094, 30362, 0x0000000000000000000000000000000000000000);
+        addPeer(42161, 30110, 0x0fc2a55d5BD13033f1ee0cdd11f60F7eFe66f467);
+        // Base
+        addPeer(8453, 30184, 0x0fc2a55d5BD13033f1ee0cdd11f60F7eFe66f467);
+        // Optimism
+        addPeer(10, 30111, 0x0fc2a55d5BD13033f1ee0cdd11f60F7eFe66f467);
+        // Polygon
+        addPeer(137, 30109, 0x0fc2a55d5BD13033f1ee0cdd11f60F7eFe66f467);
+        // BSC
+        // addPeer(56, 30102, 0x0000000000000000000000000000000000000001);
+        // Scroll
+        addPeer(534352, 30214, 0x0fc2a55d5BD13033f1ee0cdd11f60F7eFe66f467);
+        // Mantle
+        // addPeer(5000, 30181, 0x0000000000000000000000000000000000000001);
+        // Gnosis
+        addPeer(100, 30145, 0x0fc2a55d5BD13033f1ee0cdd11f60F7eFe66f467);
+        // Polygon-zkevm
+        addPeer(1101, 30158, 0x0fc2a55d5BD13033f1ee0cdd11f60F7eFe66f467);
+        // Berachain
+        addPeer(80094, 30362, 0x389AD4bb96d0D6EE5B6eF0EFAF4b7db0bA2e02a0);
     }
 
     function getDeployerAddress() internal view returns (address) {

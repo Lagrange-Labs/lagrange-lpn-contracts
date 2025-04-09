@@ -67,14 +67,16 @@ contract DeployLAToken is DeploymentUtils {
         console.log("Token Proxy: %s", tokenProxy);
         console.log("Token Implementation: %s", tokenImplementation);
 
-        require(
-            IERC20(tokenProxy).balanceOf(INITIAL_MINT_HANDLER_ADDRESS)
-                == INITIAL_SUPPLY,
-            "Initial mint not successful"
-        );
-        require(
-            IERC20(tokenProxy).totalSupply() == INITIAL_SUPPLY,
-            "Initial balance mismatch"
-        );
+        if (block.chainid == 1) {
+            require(
+                IERC20(tokenProxy).balanceOf(INITIAL_MINT_HANDLER_ADDRESS)
+                    == INITIAL_SUPPLY,
+                "Initial mint not successful"
+            );
+            require(
+                IERC20(tokenProxy).totalSupply() == INITIAL_SUPPLY,
+                "Initial balance mismatch"
+            );
+        }
     }
 }
