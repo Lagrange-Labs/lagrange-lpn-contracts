@@ -47,21 +47,6 @@ cronos = "https://cronos-evm-rpc.publicnode.com"
 gnosis = "https://rpc.gnosischain.com"
 berachain = "https://rpc.berachain.com"
 
-[etherscan]
-sepolia = { key = "${MAINNET_ETHERSCAN_API_KEY}" }
-holesky = { key = "${MAINNET_ETHERSCAN_API_KEY}" }
-base_sepolia = { key = "${BASESCAN_API_KEY}" }
-fraxtal_testnet = { key = "${FRAXSCAN_API_KEY}" }
-mantle_sepolia = { key = "${MANTLESCAN_API_KEY}" }
-scroll_sepolia = { key = "${SCROLLSCAN_API_KEY}" }
-
-mainnet = { key = "${MAINNET_ETHERSCAN_API_KEY}" }
-base = { key = "${BASESCAN_API_KEY}" }
-fraxtal = { key = "${FRAXSCAN_API_KEY}" }
-mantle = { key = "${MANTLESCAN_API_KEY}" }
-polygon_zkevm = { key = "${POLYGONSCAN_API_KEY}" }
-scroll = { key = "${SCROLLSCAN_API_KEY}" }
-
 [dependencies]
 "@openzeppelin-contracts-upgradeable" = "5.2.0"
 "@openzeppelin-contracts" = "5.2.0"
