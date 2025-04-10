@@ -168,12 +168,8 @@ abstract contract DeploymentUtils is ChainConnections, Script {
         addPeer(10, 30111, 0x0fc2a55d5BD13033f1ee0cdd11f60F7eFe66f467);
         // Polygon
         addPeer(137, 30109, 0x0fc2a55d5BD13033f1ee0cdd11f60F7eFe66f467);
-        // BSC
-        // addPeer(56, 30102, 0x0000000000000000000000000000000000000001);
         // Scroll
         addPeer(534352, 30214, 0x0fc2a55d5BD13033f1ee0cdd11f60F7eFe66f467);
-        // Mantle
-        // addPeer(5000, 30181, 0x0000000000000000000000000000000000000001);
         // Gnosis
         addPeer(100, 30145, 0x0fc2a55d5BD13033f1ee0cdd11f60F7eFe66f467);
         // Polygon-zkevm
@@ -266,13 +262,16 @@ abstract contract DeploymentUtils is ChainConnections, Script {
 
     function getPeers() internal view returns (LATokenBase.Peer[] memory) {
         LATokenBase.Peer[] memory filteredPeers =
-            new LATokenBase.Peer[](peers.length - 1);
-        uint256 index = 0;
+            new LATokenBase.Peer[](peers.length);
+        uint256 count = 0;
         for (uint256 i = 0; i < peers.length; i++) {
             if (peers[i].chainId != block.chainid) {
-                filteredPeers[index] = peers[i].peer;
-                index++;
+                filteredPeers[count] = peers[i].peer;
+                count++;
             }
+        }
+        assembly {
+            mstore(filteredPeers, count)
         }
         return filteredPeers;
     }
