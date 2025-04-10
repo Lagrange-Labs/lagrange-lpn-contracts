@@ -2,7 +2,6 @@
 pragma solidity 0.8.25;
 
 import {LAToken} from "./LAToken.sol";
-import {LATokenBase} from "./LATokenBase.sol";
 import {TransparentUpgradeableProxy} from
     "@openzeppelin-contracts-5.2.0/proxy/transparent/TransparentUpgradeableProxy.sol";
 
@@ -22,7 +21,7 @@ contract LATokenDeployer {
     constructor(
         address adminMultisig,
         address lzEndpoint,
-        LATokenBase.Peer[] memory peers
+        LAToken.Peer[] memory peers
     ) {
         if (adminMultisig == address(0) || lzEndpoint == address(0)) {
             revert ZeroAddress();
