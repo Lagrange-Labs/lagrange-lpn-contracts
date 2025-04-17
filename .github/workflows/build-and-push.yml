@@ -62,9 +62,9 @@ jobs:
         environment: [devnet, testnet]
         image: [contract-deployer]
         include:
-          - environment: dev
+          - environment: devnet
             aws_account_id: ${{ vars.ZKMR_DEVNET_AWS_ACCOUNT_ID }}
-          - environment: test
+          - environment: testnet
             aws_account_id: ${{ vars.ZKMR_TESTNET_AWS_ACCOUNT_ID }}
     steps:
       - name: Configure AWS credentials
