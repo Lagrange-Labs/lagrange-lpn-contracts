@@ -3,6 +3,7 @@ pragma solidity 0.8.25;
 
 import {IOptimismL1Block} from "../interfaces/IOptimismL1Block.sol";
 import {
+    CANARY,
     OP_STACK_L1_BLOCK_PREDEPLOY_ADDR,
     isEthereum,
     isOPStack
@@ -20,7 +21,7 @@ function L1BlockHash() view returns (bytes32) {
         return IOptimismL1Block(OP_STACK_L1_BLOCK_PREDEPLOY_ADDR).hash();
     }
 
-    return bytes32(0);
+    return bytes32(CANARY);
 }
 
 /// @notice The latest L1 block number.
@@ -36,5 +37,5 @@ function L1BlockNumber() view returns (uint256) {
             uint256(IOptimismL1Block(OP_STACK_L1_BLOCK_PREDEPLOY_ADDR).number());
     }
 
-    return 0;
+    return CANARY;
 }
