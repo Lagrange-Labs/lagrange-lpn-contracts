@@ -7,6 +7,7 @@ uint256 constant ANVIL = 31337;
 uint256 constant ETH_MAINNET = 1;
 uint256 constant ETH_SEPOLIA = 11155111;
 uint256 constant ETH_HOLESKY = 17000;
+uint256 constant ETH_HOODI = 560048;
 
 // OP Stack Chains
 
@@ -53,7 +54,7 @@ uint256 constant TEST_ERC20_MAPPING_SLOT = 4;
 
 function isEthereum() view returns (bool) {
     return block.chainid == ETH_MAINNET || block.chainid == ETH_SEPOLIA
-        || block.chainid == ETH_HOLESKY;
+        || block.chainid == ETH_HOLESKY || block.chainid == ETH_HOODI;
 }
 
 function isOPStack() view returns (bool) {
