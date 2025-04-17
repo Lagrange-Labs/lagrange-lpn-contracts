@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.25;
 
+uint256 constant CANARY = 0xDEADBEEFDEADBEEFDEADBEEFDEADBEEFDEADBEEFDEADBEEFDEADBEEFDEADBEEF;
+
 uint256 constant LOCAL = 1337;
 uint256 constant ANVIL = 31337;
 
