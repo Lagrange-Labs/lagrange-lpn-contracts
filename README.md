@@ -36,7 +36,9 @@ make slither
 ## Deploy
 
 * Private key and Etherscan API key *must* be supplied as environment variables.
+* Set the appropriate `ENV` var: prod, test, or dev-X
 * Only 9/10 contracts will verify because the [Deployer](./src/v2/Deployer.sol) contract self-destructs.
+* Ensure the RPC is configured for the chain you want to deploy to in foundry.toml
 
 ```bash
 export PRIVATE_KEY=<...>

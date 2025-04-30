@@ -32,6 +32,7 @@ base_sepolia = "https://base-sepolia-rpc.publicnode.com"
 fraxtal_testnet = "https://rpc.testnet.frax.com"
 mantle_sepolia = "https://rpc.sepolia.mantle.xyz"
 scroll_sepolia = "https://sepolia-rpc.scroll.io"
+hoodi = "https://0xrpc.io/hoodi"
 # prod environment
 mainnet = "https://ethereum-rpc.publicnode.com"
 base = "https://base-rpc.publicnode.com"

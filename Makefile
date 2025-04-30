@@ -8,7 +8,7 @@ DEPLOY_FLAGS=--verify ${BASE_DEPLOY_FLAGS}
 MAINNET_DEPLOYER=--account lpn_owner
 
 # Define chains
-CHAINS=anvil sepolia holesky mainnet base_sepolia base fraxtal_testnet fraxtal mantle_sepolia mantle polygon_zkevm scroll scroll_sepolia
+CHAINS=anvil sepolia holesky mainnet base_sepolia base fraxtal_testnet fraxtal mantle_sepolia mantle polygon_zkevm scroll scroll_sepolia hoodi
 
 # Find all .s.sol files in the scripts directory and its subdirectories
 SCRIPT_FILES := $(shell find ./script -name '*.s.sol' -type f -not -path "./script/output/*")
