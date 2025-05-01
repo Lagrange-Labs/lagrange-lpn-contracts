@@ -3,6 +3,7 @@ pragma solidity 0.8.25;
 
 import {BaseTest} from "./BaseTest.t.sol";
 import {LagrangeQueryRouter} from "../../src/v2/LagrangeQueryRouter.sol";
+import {IDatabaseManager} from "../../src/v2/interfaces/IDatabaseManager.sol";
 import {IQueryExecutor} from "../../src/v2/interfaces/IQueryExecutor.sol";
 import {ILPNClient} from "../../src/v2/interfaces/ILPNClient.sol";
 import {
@@ -23,6 +24,7 @@ contract LagrangeQueryRouterTest is BaseTest {
     address public owner;
     address public executor;
     address public executor2;
+    address public dbManager;
     address public client;
     address public stranger;
 
@@ -31,6 +33,8 @@ contract LagrangeQueryRouterTest is BaseTest {
     uint256 constant START_BLOCK = 1000;
     uint256 constant END_BLOCK = 2000;
     uint256 constant GAS_FEE = 0.01 ether;
+    string constant SQL = "SELECT * FROM test";
+    bytes32 constant TABLE_ID = keccak256("test table");
 
     uint256 public REQUEST_ID_1;
     uint256 public REQUEST_ID_2;
@@ -44,6 +48,7 @@ contract LagrangeQueryRouterTest is BaseTest {
         executor = makeMock("executor");
         executor2 = makeMock("executor2");
         client = makeMock("client");
+        dbManager = makeMock("dbManager");
         stranger = makeAddr("stranger");
         // Setup test values
         PLACEHOLDERS = new bytes32[](3);
@@ -113,6 +118,18 @@ contract LagrangeQueryRouterTest is BaseTest {
             executor2,
             abi.encodeWithSelector(IQueryExecutor.respond.selector),
             abi.encode(client, CALLBACK_GAS_LIMIT, QUERY_OUTPUT)
+        );
+        // Mock query executor to return DBManager address
+        vm.mockCall(
+            executor,
+            abi.encodeWithSelector(IQueryExecutor.getDBManager.selector),
+            abi.encode(dbManager)
+        );
+        // Mock DBManager contract to receive registerQuery calls
+        vm.mockCall(
+            dbManager,
+            abi.encodeWithSelector(IDatabaseManager.registerQuery.selector),
+            ""
         );
     }
 
@@ -308,5 +325,19 @@ contract LagrangeQueryRouterTest is BaseTest {
             QUERY_HASH, CALLBACK_GAS_LIMIT, END_BLOCK - START_BLOCK + 1
         );
         assertEq(fee, 99);
+    }
+
+    function test_RegisterQuery_Success() public {
+        vm.prank(stranger);
+        vm.expectCall(
+            dbManager,
+            abi.encodeWithSelector(
+                IDatabaseManager.registerQuery.selector,
+                QUERY_HASH,
+                TABLE_ID,
+                SQL
+            )
+        );
+        router.registerQuery(QUERY_HASH, TABLE_ID, SQL);
     }
 }
