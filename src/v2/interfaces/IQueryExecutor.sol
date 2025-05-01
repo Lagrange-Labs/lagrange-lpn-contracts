@@ -51,4 +51,8 @@ interface IQueryExecutor {
         uint256 callbackGasLimit,
         uint256 blockRange
     ) external view returns (uint256);
+
+    /// @notice Returns the address of the DBManager contract
+    /// @return dbManager The address of the DBManager contract
+    function getDBManager() external view returns (address);
 }

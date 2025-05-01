@@ -95,7 +95,7 @@ contract IntegrationTest is BaseTest {
 
         // Register query
         vm.prank(stranger);
-        dbManager.registerQuery(QUERY_HASH, TABLE_ID, TEST_SQL);
+        router.registerQuery(QUERY_HASH, TABLE_ID, TEST_SQL);
 
         // Assert fee collector balance is 0
         assertEq(address(feeCollector).balance, 0);

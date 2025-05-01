@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.25;
 
+import {IDatabaseManager} from "./interfaces/IDatabaseManager.sol";
 import {IQueryExecutor} from "./interfaces/IQueryExecutor.sol";
 import {QueryOutput} from "./Groth16VerifierExtension.sol";
 import {IVersioned} from "../interfaces/IVersioned.sol";
@@ -223,6 +224,21 @@ contract LagrangeQueryRouter is
         } catch {}
 
         emit NewResponse(requestId, address(executor), client, success);
+    }
+
+    /// @notice Registers a new query
+    /// @param hash The hash of the query, used as it's unique identifier
+    /// @param tableID The hash of the table that the query is registered to
+    /// @param sql The raw SQL of the query
+    /// @dev This is a simple pass-through function to the DBManager contract.
+    /// We add this function to the router to make it easier to register queries
+    /// without having to figure out which DB manager to use.
+    function registerQuery(bytes32 hash, bytes32 tableID, string calldata sql)
+        external
+    {
+        IDatabaseManager(s_defaultQueryExecutor.getDBManager()).registerQuery(
+            hash, tableID, sql
+        );
     }
 
     /// @notice Returns the fee for a query
