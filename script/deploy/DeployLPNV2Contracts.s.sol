@@ -13,6 +13,19 @@ import {DeploymentUtils} from "../../src/utils/DeploymentUtils.sol";
 /// @dev Reads private key & multisig addresses from environment variables
 /// @dev uses Deployer contract to deploy and configure the V2 contracts in a single transaction
 contract DeployLPNV2Contracts is DeploymentUtils {
+    /// @dev Struct to store the deployment addresses, relieves stack pressure
+    struct Deployment {
+        address routerProxy;
+        address routerImplementation;
+        address routerProxyAdmin;
+        address dbManagerProxy;
+        address dbManagerImplementation;
+        address dbManagerProxyAdmin;
+        address feeCollector;
+        address queryExecutor;
+        address lpnClientExample;
+    }
+
     /// @notice Deploys V2 contracts
     function run() external {
         checkVerifier();
@@ -36,32 +49,81 @@ contract DeployLPNV2Contracts is DeploymentUtils {
             "could not find ContractsDeployed event"
         );
 
+        Deployment memory deployment;
         // Parse emitted addresses from event
         (
-            address routerProxy,
-            address dbManagerProxy,
-            address feeCollector,
-            address queryExecutor,
-            address lpnClientExample
+            deployment.routerProxy,
+            deployment.dbManagerProxy,
+            deployment.feeCollector,
+            deployment.queryExecutor,
+            deployment.lpnClientExample
         ) = abi.decode(
             lastEntry.data, (address, address, address, address, address)
         );
 
         // Get implementation and admin addresses from proxies
-        address routerImpl = getProxyImplementation(routerProxy);
-        address dbManagerImpl = getProxyImplementation(dbManagerProxy);
-        address routerProxyAdmin = getProxyAdmin(routerProxy);
-        address dbManagerProxyAdmin = getProxyAdmin(dbManagerProxy);
+        deployment.routerImplementation =
+            getProxyImplementation(deployment.routerProxy);
+        deployment.dbManagerImplementation =
+            getProxyImplementation(deployment.dbManagerProxy);
+        deployment.routerProxyAdmin = getProxyAdmin(deployment.routerProxy);
+        deployment.dbManagerProxyAdmin =
+            getProxyAdmin(deployment.dbManagerProxy);
 
         console.log(unicode"✅ V2 contracts deployed successfully");
-        console.log("Router Proxy: %s", routerProxy);
-        console.log("Router Implementation: %s", routerImpl);
-        console.log("Router Proxy Admin: %s", routerProxyAdmin);
-        console.log("DB Manager Proxy: %s", dbManagerProxy);
-        console.log("DB Manager Implementation: %s", dbManagerImpl);
-        console.log("DB Manager Proxy Admin: %s", dbManagerProxyAdmin);
-        console.log("Fee Collector: %s", feeCollector);
-        console.log("Query Executor: %s", queryExecutor);
-        console.log("LPN Client Example: %s", lpnClientExample);
+        console.log("Router Proxy: %s", deployment.routerProxy);
+        console.log(
+            "Router Implementation: %s", deployment.routerImplementation
+        );
+        console.log("Router Proxy Admin: %s", deployment.routerProxyAdmin);
+        console.log("DB Manager Proxy: %s", deployment.dbManagerProxy);
+        console.log(
+            "DB Manager Implementation: %s", deployment.dbManagerImplementation
+        );
+        console.log(
+            "DB Manager Proxy Admin: %s", deployment.dbManagerProxyAdmin
+        );
+        console.log("Fee Collector: %s", deployment.feeCollector);
+        console.log("Query Executor: %s", deployment.queryExecutor);
+        console.log("LPN Client Example: %s", deployment.lpnClientExample);
+
+        // Write contract addresses to a deployment json file
+        string memory outputDir = stringConcat("script/output/", getChainName());
+        vm.createDir(outputDir, true);
+        string memory filePath =
+            stringConcat(outputDir, "/coprocessor-v2-deployment.json");
+        vm.writeFile(
+            filePath,
+            string(
+                abi.encodePacked(
+                    "{\n",
+                    '  "routerProxy": "',
+                    vm.toString(deployment.routerProxy),
+                    '",\n',
+                    '  "routerImplementation": "',
+                    vm.toString(deployment.routerImplementation),
+                    '",\n',
+                    '  "dbManagerProxy": "',
+                    vm.toString(deployment.dbManagerProxy),
+                    '",\n',
+                    '  "dbManagerImplementation": "',
+                    vm.toString(deployment.dbManagerImplementation),
+                    '",\n',
+                    '  "feeCollector": "',
+                    vm.toString(deployment.feeCollector),
+                    '",\n',
+                    '  "queryExecutor": "',
+                    vm.toString(deployment.queryExecutor),
+                    '",\n',
+                    '  "lpnClientExample": "',
+                    vm.toString(deployment.lpnClientExample),
+                    '"\n',
+                    "}"
+                )
+            )
+        );
+        console.log(
+            stringConcat(unicode"📝 Deployment addresses written to ", filePath)
+        );
     }
 }
