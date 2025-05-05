@@ -13,6 +13,7 @@ abstract contract DeploymentUtils is ChainConnections, Script {
     string private env;
     mapping(string env => string[] chains) private chainsByEnv;
 
+    mapping(uint256 chainId => string name) private chainNames;
     mapping(uint256 chainId => address addr) private engMultiSigs;
     mapping(uint256 chainId => address addr) private financeMultiSigs;
 
@@ -25,6 +26,19 @@ abstract contract DeploymentUtils is ChainConnections, Script {
         uint256 deployerKey = vm.envUint("PRIVATE_KEY");
         deployerAddress = vm.addr(deployerKey);
         vm.rememberKey(deployerKey);
+
+        // Chain Names
+        chainNames[31337] = "anvil";
+        chainNames[1] = "mainnet";
+        chainNames[8453] = "base";
+        chainNames[5000] = "mantle";
+        chainNames[17000] = "holesky";
+        chainNames[11155111] = "sepolia";
+        chainNames[2522] = "fraxtal";
+        chainNames[534351] = "scroll";
+        chainNames[1101] = "polygon_zkevm";
+        chainNames[84532] = "base_sepolia";
+        chainNames[534351] = "scroll_sepolia";
 
         // Environments
         env = vm.envString("ENV");
@@ -86,6 +100,10 @@ abstract contract DeploymentUtils is ChainConnections, Script {
         // test
         routers["test"][17000] =
             LagrangeQueryRouter(0x988732D6aaa4a7419bE3628444Ae02e86FeD41ac);
+    }
+
+    function getChainName() internal view returns (string memory) {
+        return chainNames[block.chainid];
     }
 
     function getDeployerAddress() internal view returns (address) {
@@ -181,5 +199,30 @@ abstract contract DeploymentUtils is ChainConnections, Script {
                 && verifierExtensionHash == newVerifierExtensionHash,
             "Verifier.sol and/or Groth16VerifierExtension.sol have changed, please re-run deployment script"
         );
+    }
+
+    function stringConcat(string memory a, string memory b)
+        internal
+        pure
+        returns (string memory)
+    {
+        return string(abi.encodePacked(a, b));
+    }
+
+    function stringConcat(string memory a, string memory b, string memory c)
+        internal
+        pure
+        returns (string memory)
+    {
+        return string(abi.encodePacked(a, b, c));
+    }
+
+    function stringConcat(
+        string memory a,
+        string memory b,
+        string memory c,
+        string memory d
+    ) internal pure returns (string memory) {
+        return string(abi.encodePacked(a, b, c, d));
     }
 }
