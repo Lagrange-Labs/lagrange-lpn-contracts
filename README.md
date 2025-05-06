@@ -39,6 +39,7 @@ make slither
 * Set the appropriate `ENV` var: prod, test, or dev-X
 * Only 9/10 contracts will verify because the [Deployer](./src/v2/Deployer.sol) contract self-destructs.
 * Ensure the RPC is configured for the chain you want to deploy to in foundry.toml
+* Note that md5 is a required system dependency, make sure you have it installed
 
 ```bash
 export PRIVATE_KEY=<...>

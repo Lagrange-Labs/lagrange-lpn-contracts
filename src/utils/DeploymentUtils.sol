@@ -169,7 +169,6 @@ abstract contract DeploymentUtils is ChainConnections, Script {
     /// @notice this function checks that the verifier contracts are up to date, and fails if they are not
     /// @dev sadly we can't fetch the contracts and resume script execution because the compilation step
     /// happens first
-    /// @dev running the copy verifier script will produce some ERROR logs - ignore these
     function checkVerifier() internal {
         // compute the md5 hash of the verifier contracts
         string[] memory md5CmdArgs = new string[](2);
