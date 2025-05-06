@@ -9,6 +9,7 @@ out/
 /broadcast
 
 /script/output/anvil
+/script/output/coprocessor-v2-deployment.json
 
 # env files
 .env
