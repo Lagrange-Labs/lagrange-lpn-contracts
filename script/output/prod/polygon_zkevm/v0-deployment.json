@@ -1,0 +1,16 @@
+{
+  "addresses": {
+    "queryClient": "0x3F3aBcC3311Fd2D8e46569063226a530005FcaBd",
+    "registryImpl": "0xF8D534dC22132d2363aa0fC009fb33779Fc93462",
+    "registryProxy": "0x2584665Beff871534118aAbAE781BC267Af142f9",
+    "storageContracts": {
+      "erc20AvgBalance": "0x0000000000000000000000000000000000000000",
+      "erc20ProportionateBalance": "0x0000000000000000000000000000000000000000",
+      "erc721Enumerable": "0x0000000000000000000000000000000000000000"
+    }
+  },
+  "chainInfo": {
+    "chainId": 1101,
+    "deploymentBlock": 14447625
+  }
+}
