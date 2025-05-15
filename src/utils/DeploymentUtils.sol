@@ -89,6 +89,9 @@ abstract contract DeploymentUtils is ChainConnections, Script {
         // Polygon zkEVM
         engMultiSigs[1101] = 0xE7cdA508FEB53713fB7C69bb891530C924980366;
         financeMultiSigs[1101] = 0xE7cdA508FEB53713fB7C69bb891530C924980366;
+        // Hoodi
+        engMultiSigs[560048] = 0xC93e57A48a8052665C57677B3274ACaC67c1eB2E;
+        financeMultiSigs[560048] = 0xC93e57A48a8052665C57677B3274ACaC67c1eB2E;
 
         // Deployed Router Proxies
         // dev-0
