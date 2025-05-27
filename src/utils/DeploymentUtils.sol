@@ -39,27 +39,19 @@ abstract contract DeploymentUtils is ChainConnections, Script {
         chainNames[1101] = "polygon_zkevm";
         chainNames[84532] = "base_sepolia";
         chainNames[534351] = "scroll_sepolia";
+        chainNames[560048] = "hoodi";
 
         // Environments
         env = vm.envString("ENV");
         _validateEnv();
         // Dev
-        chainsByEnv["dev-0"] = ["holesky"];
-        chainsByEnv["dev-1"] = ["holesky"];
-        chainsByEnv["dev-3"] = ["holesky"];
+        chainsByEnv["dev-0"] = ["hoodi"];
+        chainsByEnv["dev-1"] = ["hoodi"];
+        chainsByEnv["dev-3"] = ["hoodi"];
         // Test
-        chainsByEnv["test"] = [
-            // TODO: Add these back in after v2 deployments are complete
-            // "base_sepolia",
-            // "fraxtal_testnet",
-            "holesky"
-            // "mantle_sepolia",
-            // "scroll_sepolia",
-            // "sepolia"
-        ];
+        chainsByEnv["test"] = ["hoodi"];
         // Prod
-        chainsByEnv["prod"] =
-            ["mainnet", "base", "mantle", "polygon_zkevm", "scroll", "fraxtal"];
+        chainsByEnv["prod"] = ["mainnet"];
 
         // Multi-sigs
         // Mainnet
@@ -95,14 +87,14 @@ abstract contract DeploymentUtils is ChainConnections, Script {
 
         // Deployed Router Proxies
         // dev-0
-        routers["dev-0"][17000] =
-            LagrangeQueryRouter(0x927F5A4570BfA168f0da995CfDbf678d89ADC869);
+        routers["dev-0"][560048] =
+            LagrangeQueryRouter(0x43FA1Ccf0ca5977c3D8B6c2b073240f700960c77);
         // dev-1
-        routers["dev-1"][17000] =
-            LagrangeQueryRouter(0x62126c172B79a5f2513B3943CceB2da3EfD2Ceec);
+        routers["dev-1"][560048] =
+            LagrangeQueryRouter(0x90594F0ED032E7adba9CF01607291bE7666d4BE8);
         // test
-        routers["test"][17000] =
-            LagrangeQueryRouter(0x988732D6aaa4a7419bE3628444Ae02e86FeD41ac);
+        routers["test"][560048] =
+            LagrangeQueryRouter(0xA71e8FEEef90BAD0261f840Cc82b3A21CF5a028E);
     }
 
     function getChainName() internal view returns (string memory) {
