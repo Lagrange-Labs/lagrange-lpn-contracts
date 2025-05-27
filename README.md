@@ -44,7 +44,19 @@ make slither
 ```bash
 export PRIVATE_KEY=<...>
 export ETHERSCAN_API_KEY=<...>
+export ENV=<dev-x/test/prod>
 make deploy-v2 [chain]
+```
+
+## Update
+
+To update the verifier contract on a dev environment, the command is:
+
+```bash
+export PRIVATE_KEY=<...>
+export ETHERSCAN_API_KEY=<...>
+export ENV=<dev-x/test/prod>
+make update-v2-executors
 ```
 
 ## Design
