@@ -25,7 +25,7 @@ contract DeployLAToken is DeploymentUtils {
 
     /// @notice Deploys the Lagrange (LA) token
     function run() external {
-        console.log(unicode"🚀 Deploying LA Token (Mintable)");
+        console.log(unicode"🚀 Deploying LA Token");
 
         vm.startBroadcast();
         vm.recordLogs();
