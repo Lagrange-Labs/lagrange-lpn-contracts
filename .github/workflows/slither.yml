@@ -14,18 +14,24 @@ jobs:
         with:
           submodules: recursive
       
-      - name: Install Foundry
-        uses: foundry-rs/foundry-toolchain@v1
-        with:
-          version: stable
+      # - name: Install Foundry
+      #   uses: foundry-rs/foundry-toolchain@v1
+      #   with:
+          # version: v0.3.0
+          # version: v1.2.3
 
-      - name: Install dependencies
-        run: forge soldeer install
-        id: install-dependencies
+      # - name: Install dependencies
+      #   run: forge soldeer install
+      #   id: install-dependencies
+      
+      # - name: Compile
+      #   run: forge build
 
       - name: Run Slither
         uses: crytic/slither-action@v0.4.0
         id: slither
         with:
           fail-on: high
-          slither-version: 0.10.4
+          # ignore-compile: true
+          # slither-version: 0.10.4
+          # slither-version: 0.11.3
