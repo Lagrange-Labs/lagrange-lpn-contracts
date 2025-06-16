@@ -1,7 +1,15 @@
+@layerzerolabs-lz-evm-protocol-v2-3.0.84/=dependencies/@layerzerolabs-lz-evm-protocol-v2-3.0.84/
+@layerzerolabs-oapp-evm-0.3.2/=dependencies/@layerzerolabs-oapp-evm-0.3.2/
+@layerzerolabs-oft-evm-3.1.3/=dependencies/@layerzerolabs-oft-evm-3.1.3/
+@layerzerolabs/lz-evm-protocol-v2/=dependencies/@layerzerolabs-lz-evm-protocol-v2-3.0.84/
+@layerzerolabs/oapp-evm-upgradeable/=vendor/layerzero/oapp-evm-upgradeable/
+@layerzerolabs/oapp-evm/=dependencies/@layerzerolabs-oapp-evm-0.3.2/
+@layerzerolabs/oft-evm-upgradeable/=vendor/layerzero/oft-evm-upgradeable/
+@layerzerolabs/oft-evm/=dependencies/@layerzerolabs-oft-evm-3.1.3/
 @openzeppelin-contracts-5.2.0/=dependencies/@openzeppelin-contracts-5.2.0/
 @openzeppelin-contracts-upgradeable-5.2.0/=dependencies/@openzeppelin-contracts-upgradeable-5.2.0/
-@openzeppelin/contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable/contracts/
-@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/
+@openzeppelin/contracts-upgradeable=dependencies/@openzeppelin-contracts-upgradeable-5.2.0/
+@openzeppelin/contracts/=dependencies/@openzeppelin-contracts-5.2.0/
 ds-test/=lib/openzeppelin-contracts-upgradeable/lib/forge-std/lib/ds-test/src/
 erc4626-tests/=lib/openzeppelin-contracts-upgradeable/lib/erc4626-tests/
 forge-safe/=lib/forge-safe/src/

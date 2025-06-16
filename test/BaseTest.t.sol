@@ -14,7 +14,7 @@ import {
     FRAXTAL_HOLESKY,
     MANTLE_MAINNET,
     MANTLE_SEPOLIA
-} from "../../src/utils/Constants.sol";
+} from "../src/utils/Constants.sol";
 
 abstract contract BaseTest is Test {
     /// @notice The nonce for generating pseudo-random values

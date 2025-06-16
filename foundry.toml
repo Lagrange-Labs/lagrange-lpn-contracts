@@ -1,7 +1,7 @@
 [profile.default]
 src = "src"
 out = "out"
-libs = ["lib"]
+libs = ["lib", "dependencies"]
 fs_permissions = [
     { access = "read", path = "./test" },
     { access = "read-write", path = "./script/output" },
@@ -9,7 +9,7 @@ fs_permissions = [
     { access = "read", path = "./config/mainnet-operators.json" },
 ]
 optimizer = true
-optimizer_runs = 200
+optimizer_runs = 4000
 solc-version = "0.8.25"
 evm_version = "cancun"
 verbosity = 4
@@ -39,22 +39,18 @@ base = "https://base-rpc.publicnode.com"
 fraxtal = "https://rpc.frax.com"
 mantle = "https://rpc.mantle.xyz"
 polygon_zkevm = "https://zkevm-rpc.com"
-
-[etherscan]
-sepolia = { key = "${MAINNET_ETHERSCAN_API_KEY}" }
-holesky = { key = "${MAINNET_ETHERSCAN_API_KEY}" }
-base_sepolia = { key = "${BASESCAN_API_KEY}" }
-fraxtal_testnet = { key = "${FRAXSCAN_API_KEY}" }
-mantle_sepolia = { key = "${MANTLESCAN_API_KEY}" }
-scroll_sepolia = { key = "${SCROLLSCAN_API_KEY}" }
-
-mainnet = { key = "${MAINNET_ETHERSCAN_API_KEY}" }
-base = { key = "${BASESCAN_API_KEY}" }
-fraxtal = { key = "${FRAXSCAN_API_KEY}" }
-mantle = { key = "${MANTLESCAN_API_KEY}" }
-polygon_zkevm = { key = "${POLYGONSCAN_API_KEY}" }
-scroll = { key = "${SCROLLSCAN_API_KEY}" }
+bsc = "https://bsc-rpc.publicnode.com"
+arbitrum = "https://arbitrum-one-rpc.publicnode.com"
+optimism = "https://optimism-rpc.publicnode.com"
+polygon = "https://polygon-bor-rpc.publicnode.com"
+scroll = "https://scroll-rpc.publicnode.com"
+cronos = "https://cronos-evm-rpc.publicnode.com"
+gnosis = "https://rpc.gnosischain.com"
+berachain = "https://rpc.berachain.com"
 
 [dependencies]
 "@openzeppelin-contracts-upgradeable" = "5.2.0"
 "@openzeppelin-contracts" = "5.2.0"
+"@layerzerolabs-lz-evm-protocol-v2" = "3.0.84"
+"@layerzerolabs-oapp-evm" = "0.3.2"
+"@layerzerolabs-oft-evm" = "3.1.3"

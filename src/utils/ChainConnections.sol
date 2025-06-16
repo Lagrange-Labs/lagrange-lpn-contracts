@@ -40,5 +40,6 @@ abstract contract ChainConnections is StdChains {
                 "https://sepolia-rpc.scroll.io"
             )
         );
+        setChain("mantle", ChainData("Mantle", 5000, "https://rpc.mantle.xyz"));
     }
 }
