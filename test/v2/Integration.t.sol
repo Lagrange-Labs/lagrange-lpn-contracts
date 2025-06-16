@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.25;
 
-import {BaseTest} from "./BaseTest.t.sol";
+import {BaseTest} from "../BaseTest.t.sol";
 import {DeployerTestHelper as Deployer} from
     "./test_helpers/DeployerTestHelper.sol";
 import {LagrangeQueryRouter} from "../../src/v2/LagrangeQueryRouter.sol";

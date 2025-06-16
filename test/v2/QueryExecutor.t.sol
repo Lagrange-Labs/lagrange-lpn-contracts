@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.25;
 
-import {BaseTest} from "./BaseTest.t.sol";
+import {BaseTest} from "../BaseTest.t.sol";
 import {QueryExecutorTestHelper} from
     "./test_helpers/QueryExecutorTestHelper.sol";
 import {QueryExecutor} from "../../src/v2/QueryExecutor.sol";

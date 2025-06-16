@@ -5,12 +5,17 @@ pragma solidity 0.8.25;
 import {Script} from "forge-std/Script.sol";
 import {LagrangeQueryRouter} from "../v2/LagrangeQueryRouter.sol";
 import {ChainConnections} from "./ChainConnections.sol";
+import {LATokenBase} from "../latoken/LATokenBase.sol";
 
 /// @notice This contract contains many utility functions for deployment scripts
 abstract contract DeploymentUtils is ChainConnections, Script {
+    struct PeerConfig {
+        LATokenBase.Peer peer;
+        uint256 chainId;
+    }
+
     address private deployerAddress;
 
-    string private env;
     mapping(string env => string[] chains) private chainsByEnv;
 
     mapping(uint256 chainId => string name) private chainNames;
@@ -20,6 +25,12 @@ abstract contract DeploymentUtils is ChainConnections, Script {
     mapping(
         string env => mapping(uint256 chainId => LagrangeQueryRouter router)
     ) private routers;
+
+    // la token config
+    mapping(uint256 chainId => address addr) private lzEndpoints;
+    mapping(uint256 chainId => bool isMintable) private mintableChains;
+    mapping(uint256 chainId => address addr) private treasuryAddresses;
+    PeerConfig[] private peers;
 
     constructor() {
         // Deployer Key
@@ -42,8 +53,6 @@ abstract contract DeploymentUtils is ChainConnections, Script {
         chainNames[560048] = "hoodi";
 
         // Environments
-        env = vm.envString("ENV");
-        _validateEnv();
         // Dev
         chainsByEnv["dev-0"] = ["holesky"];
         chainsByEnv["dev-1"] = ["hoodi"];
@@ -56,13 +65,10 @@ abstract contract DeploymentUtils is ChainConnections, Script {
         // Multi-sigs
         // Mainnet
         engMultiSigs[1] = 0xE7cdA508FEB53713fB7C69bb891530C924980366;
-        financeMultiSigs[1] = 0x0000000000000000000000000000000000000000; // not yet setup
         // Base
         engMultiSigs[8453] = 0xE7cdA508FEB53713fB7C69bb891530C924980366;
-        financeMultiSigs[8453] = 0x0000000000000000000000000000000000000000; // not yet setup
         // Mantle
         engMultiSigs[5000] = 0xE7cdA508FEB53713fB7C69bb891530C924980366;
-        financeMultiSigs[5000] = 0x0000000000000000000000000000000000000000; // not yet setup
         // Holesky
         engMultiSigs[17000] = 0x4584E9d4685E9Ffcc2d2823D016A08BA72Ad555f;
         financeMultiSigs[17000] = 0x4584E9d4685E9Ffcc2d2823D016A08BA72Ad555f;
@@ -97,6 +103,93 @@ abstract contract DeploymentUtils is ChainConnections, Script {
         // test
         routers["test"][560048] =
             LagrangeQueryRouter(0xA71e8FEEef90BAD0261f840Cc82b3A21CF5a028E);
+
+        routers["test"][17000] =
+            LagrangeQueryRouter(0x988732D6aaa4a7419bE3628444Ae02e86FeD41ac);
+
+        // LayerZero Endpoints
+        // Anvil
+        lzEndpoints[31337] = 0x0000000000000000000000000000000000000999;
+        // Mainnet
+        lzEndpoints[1] = 0x1a44076050125825900e736c501f859c50fE728c;
+        // Holesky
+        lzEndpoints[17000] = 0x6EDCE65403992e310A62460808c4b910D972f10f;
+        // Sepolia
+        lzEndpoints[11155111] = 0x6EDCE65403992e310A62460808c4b910D972f10f;
+        // Arbitrum
+        lzEndpoints[42161] = 0x1a44076050125825900e736c501f859c50fE728c;
+        // Base
+        lzEndpoints[8453] = 0x1a44076050125825900e736c501f859c50fE728c;
+        // Optimism
+        lzEndpoints[10] = 0x1a44076050125825900e736c501f859c50fE728c;
+        // Polygon
+        lzEndpoints[137] = 0x1a44076050125825900e736c501f859c50fE728c;
+        // BSC
+        lzEndpoints[56] = 0x1a44076050125825900e736c501f859c50fE728c;
+        // Scroll
+        lzEndpoints[534352] = 0x1a44076050125825900e736c501f859c50fE728c;
+        // Mantle
+        lzEndpoints[5000] = 0x1a44076050125825900e736c501f859c50fE728c;
+        // Cronos
+        lzEndpoints[25] = 0x3A73033C0b1407574C76BdBAc67f126f6b4a9AA9;
+        // Gnosis
+        lzEndpoints[100] = 0x1a44076050125825900e736c501f859c50fE728c;
+        // Polygon-zkevm
+        lzEndpoints[1101] = 0x1a44076050125825900e736c501f859c50fE728c;
+        // Berachain
+        lzEndpoints[80094] = 0x6F475642a6e85809B1c36Fa62763669b1b48DD5B;
+
+        // Chains with minting
+        // Mainnet
+        mintableChains[1] = true;
+        // Holesky
+        mintableChains[17000] = true;
+        // Sepolia
+        mintableChains[11155111] = true;
+
+        // Treasury addresses
+        // Mainnet
+        treasuryAddresses[1] = 0x2336Af8d44d7EF6f72E37F28c9D5BB9A926A1cF6;
+        // Arbitrum
+        treasuryAddresses[42161] = 0x2336Af8d44d7EF6f72E37F28c9D5BB9A926A1cF6;
+        // Base
+        treasuryAddresses[8453] = 0x2336Af8d44d7EF6f72E37F28c9D5BB9A926A1cF6;
+        // Optimism
+        treasuryAddresses[10] = 0x2336Af8d44d7EF6f72E37F28c9D5BB9A926A1cF6;
+        // Polygon
+        treasuryAddresses[137] = 0x2336Af8d44d7EF6f72E37F28c9D5BB9A926A1cF6;
+        // BSC
+        treasuryAddresses[56] = 0x2336Af8d44d7EF6f72E37F28c9D5BB9A926A1cF6;
+        // Scroll
+        treasuryAddresses[534352] = 0x2336Af8d44d7EF6f72E37F28c9D5BB9A926A1cF6;
+        // Mantle
+        treasuryAddresses[5000] = 0x2336Af8d44d7EF6f72E37F28c9D5BB9A926A1cF6;
+        // Gnosis
+        treasuryAddresses[100] = 0x2336Af8d44d7EF6f72E37F28c9D5BB9A926A1cF6;
+        // Polygon-zkevm
+        treasuryAddresses[1101] = 0x2336Af8d44d7EF6f72E37F28c9D5BB9A926A1cF6;
+        // Berachain
+        treasuryAddresses[80094] = 0x2336Af8d44d7EF6f72E37F28c9D5BB9A926A1cF6;
+
+        // OFT Peers
+        // Mainnet
+        addPeer(1, 30101, 0x0fc2a55d5BD13033f1ee0cdd11f60F7eFe66f467);
+        // // Arbitrum
+        addPeer(42161, 30110, 0x0fc2a55d5BD13033f1ee0cdd11f60F7eFe66f467);
+        // Base
+        addPeer(8453, 30184, 0x0fc2a55d5BD13033f1ee0cdd11f60F7eFe66f467);
+        // Optimism
+        addPeer(10, 30111, 0x0fc2a55d5BD13033f1ee0cdd11f60F7eFe66f467);
+        // Polygon
+        addPeer(137, 30109, 0x0fc2a55d5BD13033f1ee0cdd11f60F7eFe66f467);
+        // Scroll
+        addPeer(534352, 30214, 0x0fc2a55d5BD13033f1ee0cdd11f60F7eFe66f467);
+        // Gnosis
+        addPeer(100, 30145, 0x0fc2a55d5BD13033f1ee0cdd11f60F7eFe66f467);
+        // Polygon-zkevm
+        addPeer(1101, 30158, 0x0fc2a55d5BD13033f1ee0cdd11f60F7eFe66f467);
+        // Berachain
+        addPeer(80094, 30362, 0x389AD4bb96d0D6EE5B6eF0EFAF4b7db0bA2e02a0);
     }
 
     function getChainName() internal view returns (string memory) {
@@ -108,7 +201,8 @@ abstract contract DeploymentUtils is ChainConnections, Script {
     }
 
     /// @notice Check if an environment is valid
-    function _validateEnv() private view {
+    function validEnv() private view {
+        string memory env = getEnv();
         require(
             keccak256(bytes(env)) == keccak256(bytes("dev-0"))
                 || keccak256(bytes(env)) == keccak256(bytes("dev-1"))
@@ -120,27 +214,28 @@ abstract contract DeploymentUtils is ChainConnections, Script {
     }
 
     function getEnv() internal view returns (string memory) {
-        return env;
+        return vm.envString("ENV");
     }
 
     function isDevEnv() internal view returns (bool) {
+        string memory env = getEnv();
         return keccak256(bytes(env)) == keccak256(bytes("dev-0"))
             || keccak256(bytes(env)) == keccak256(bytes("dev-1"))
             || keccak256(bytes(env)) == keccak256(bytes("dev-3"));
     }
 
     function isTestEnv() internal view returns (bool) {
-        return keccak256(bytes(env)) == keccak256(bytes("test"));
+        return keccak256(bytes(getEnv())) == keccak256(bytes("test"));
     }
 
     function isProdEnv() internal view returns (bool) {
-        return keccak256(bytes(env)) == keccak256(bytes("prod"));
+        return keccak256(bytes(getEnv())) == keccak256(bytes("prod"));
     }
 
     /// @notice Get the chains that are configured for a given environment
     /// @return chains the list of chain names that are configured for the given environment
     function getChainsForEnv() internal view returns (string[] memory) {
-        return chainsByEnv[env];
+        return chainsByEnv[getEnv()];
     }
 
     function getEngMultiSig() internal view returns (address) {
@@ -158,9 +253,55 @@ abstract contract DeploymentUtils is ChainConnections, Script {
     }
 
     function getRouter() internal view returns (LagrangeQueryRouter) {
-        LagrangeQueryRouter router = routers[env][block.chainid];
+        LagrangeQueryRouter router = routers[getEnv()][block.chainid];
         require(address(router) != address(0), "Router not found");
         return router;
+    }
+
+    function getLzEndpoint() internal view returns (address) {
+        address addr = lzEndpoints[block.chainid];
+        require(addr != address(0), "LayerZero endpoint not found");
+        return addr;
+    }
+
+    function addPeer(uint256 chainId, uint32 endpointID, address peerAddress)
+        private
+    {
+        peers.push(
+            PeerConfig({
+                chainId: chainId,
+                peer: LATokenBase.Peer({
+                    endpointID: endpointID,
+                    peerAddress: bytes32(uint256(uint160(peerAddress)))
+                })
+            })
+        );
+    }
+
+    function getPeers() internal view returns (LATokenBase.Peer[] memory) {
+        LATokenBase.Peer[] memory filteredPeers =
+            new LATokenBase.Peer[](peers.length);
+        uint256 count = 0;
+        for (uint256 i = 0; i < peers.length; i++) {
+            if (peers[i].chainId != block.chainid) {
+                filteredPeers[count] = peers[i].peer;
+                count++;
+            }
+        }
+        assembly {
+            mstore(filteredPeers, count)
+        }
+        return filteredPeers;
+    }
+
+    function getTreasuryAddress() internal view returns (address) {
+        address addr = treasuryAddresses[block.chainid];
+        require(addr != address(0), "Treasury address not found");
+        return addr;
+    }
+
+    function isMintableChain() internal view returns (bool) {
+        return mintableChains[block.chainid];
     }
 
     /// @notice this function checks that the verifier contracts are up to date, and fails if they are not
