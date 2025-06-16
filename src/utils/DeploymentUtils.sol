@@ -45,7 +45,7 @@ abstract contract DeploymentUtils is ChainConnections, Script {
         env = vm.envString("ENV");
         _validateEnv();
         // Dev
-        chainsByEnv["dev-0"] = ["hoodi"];
+        chainsByEnv["dev-0"] = ["holesky"];
         chainsByEnv["dev-1"] = ["hoodi"];
         chainsByEnv["dev-3"] = ["hoodi"];
         // Test
@@ -89,6 +89,8 @@ abstract contract DeploymentUtils is ChainConnections, Script {
         // dev-0
         routers["dev-0"][560048] =
             LagrangeQueryRouter(0x43FA1Ccf0ca5977c3D8B6c2b073240f700960c77);
+        routers["dev-0"][17000] =
+            LagrangeQueryRouter(0x927F5A4570BfA168f0da995CfDbf678d89ADC869);
         // dev-1
         routers["dev-1"][560048] =
             LagrangeQueryRouter(0x90594F0ED032E7adba9CF01607291bE7666d4BE8);
