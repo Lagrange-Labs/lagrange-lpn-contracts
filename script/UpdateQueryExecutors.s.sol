@@ -42,7 +42,6 @@ contract UpdateQueryExecutors is DeploymentUtils {
 
         if (isDevEnv()) {
             router.setDefaultQueryExecutor(queryExecutor);
-            router.setExecutorEnabled(oldExecutor, false);
         } else {
             console.log(
                 unicode"⚠️ Cannot automatically update QueryExecutor on non-dev environment, use mutisig"
