@@ -54,8 +54,9 @@ abstract contract DeploymentUtils is ChainConnections, Script {
 
         // Environments
         // Dev
-        chainsByEnv["dev-0"] = ["holesky"];
-        chainsByEnv["dev-1"] = ["hoodi"];
+        // chainsByEnv["dev-0"] = ["holesky"];
+        chainsByEnv["dev-0"] = ["hoodi", "holesky"];
+        chainsByEnv["dev-1"] = ["hoodi", "holesky"];
         chainsByEnv["dev-3"] = ["hoodi"];
         // Test
         chainsByEnv["test"] = ["hoodi"];
@@ -100,6 +101,12 @@ abstract contract DeploymentUtils is ChainConnections, Script {
         // dev-1
         routers["dev-1"][560048] =
             LagrangeQueryRouter(0x90594F0ED032E7adba9CF01607291bE7666d4BE8);
+        routers["dev-1"][17000] =
+            LagrangeQueryRouter(0x62126c172B79a5f2513B3943CceB2da3EfD2Ceec);
+        // dev-3
+        routers["dev-3"][560048] =
+            LagrangeQueryRouter(0x0c4B8fCB41548167dea619C4e00B101Efa6784d0);
+
         // test
         routers["test"][560048] =
             LagrangeQueryRouter(0xA71e8FEEef90BAD0261f840Cc82b3A21CF5a028E);
@@ -308,6 +315,8 @@ abstract contract DeploymentUtils is ChainConnections, Script {
     /// @dev sadly we can't fetch the contracts and resume script execution because the compilation step
     /// happens first
     function checkVerifier() internal {
+        string memory ppVersion = vm.envString("PP_VERSION");
+
         // compute the md5 hash of the verifier contracts
         string[] memory md5CmdArgs = new string[](2);
         md5CmdArgs[0] = "md5";
@@ -318,10 +327,11 @@ abstract contract DeploymentUtils is ChainConnections, Script {
         bytes32 verifierExtensionHash = keccak256(vm.ffi(md5CmdArgs));
 
         // run the copy verifier script
-        string[] memory copyVerifierCmdArgs = new string[](3);
+        string[] memory copyVerifierCmdArgs = new string[](4);
         copyVerifierCmdArgs[0] = "bash";
         copyVerifierCmdArgs[1] = "script/util/copy-verifier.sh";
         copyVerifierCmdArgs[2] = getEnv();
+        copyVerifierCmdArgs[3] = ppVersion;
         vm.ffi(copyVerifierCmdArgs);
 
         // compute the md5 hash of the new verifier contracts
