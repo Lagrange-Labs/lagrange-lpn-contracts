@@ -218,7 +218,7 @@ contract QueryExecutor is
             limit,
             offset,
             msg.value,
-            block.number
+            L1BlockNumber()
         );
 
         return requestId;
