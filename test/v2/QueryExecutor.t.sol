@@ -166,7 +166,7 @@ contract QueryExecutorTest is BaseTest {
             10,
             100,
             FEE,
-            block.number
+            block.number - 1
         );
 
         uint256 id = executor.request{value: FEE}(
