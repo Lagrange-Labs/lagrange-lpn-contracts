@@ -59,7 +59,8 @@ abstract contract DeploymentUtils is ChainConnections, Script {
         chainsByEnv["dev-1"] = ["hoodi", "holesky"];
         chainsByEnv["dev-3"] = ["hoodi"];
         // Test
-        chainsByEnv["test"] = ["hoodi"];
+        // chainsByEnv["test"] = ["hoodi"];
+        chainsByEnv["test"] = ["holesky"];
         // Prod
         chainsByEnv["prod"] = ["mainnet"];
 
