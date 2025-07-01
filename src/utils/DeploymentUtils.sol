@@ -57,6 +57,7 @@ abstract contract DeploymentUtils is ChainConnections, Script {
         // chainsByEnv["dev-0"] = ["holesky"];
         chainsByEnv["dev-0"] = ["hoodi", "holesky"];
         chainsByEnv["dev-1"] = ["hoodi", "holesky"];
+        chainsByEnv["dev-2"] = ["hoodi"];
         chainsByEnv["dev-3"] = ["hoodi"];
         // Test
         // chainsByEnv["test"] = ["hoodi"];
@@ -104,6 +105,9 @@ abstract contract DeploymentUtils is ChainConnections, Script {
             LagrangeQueryRouter(0x90594F0ED032E7adba9CF01607291bE7666d4BE8);
         routers["dev-1"][17000] =
             LagrangeQueryRouter(0x62126c172B79a5f2513B3943CceB2da3EfD2Ceec);
+        // dev-2
+        routers["dev-2"][560048] =
+            LagrangeQueryRouter(0xBEfF00B9C0E73D818d1b476a4dDBDa3229fDf22e);
         // dev-3
         routers["dev-3"][560048] =
             LagrangeQueryRouter(0x0c4B8fCB41548167dea619C4e00B101Efa6784d0);
