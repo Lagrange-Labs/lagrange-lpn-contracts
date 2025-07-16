@@ -1,14 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {MockERC20} from "forge-std/mocks/MockERC20.sol";
+import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
-contract TestERC20 is MockERC20 {
+contract TestERC20 is ERC20 {
     uint256 public s_transferFee;
 
-    constructor() {
-        MockERC20.initialize("Test ERC20", "LERC20", 18);
-    }
+    constructor() ERC20("Test ERC20", "TERC20") {}
 
     function transfer(address to, uint256 amount)
         public
@@ -16,7 +14,7 @@ contract TestERC20 is MockERC20 {
         returns (bool)
     {
         require(amount >= s_transferFee, "transfer fee");
-        _balanceOf[msg.sender] -= s_transferFee;
+        _burn(msg.sender, s_transferFee);
         return super.transfer(to, amount - s_transferFee);
     }
 
@@ -26,7 +24,7 @@ contract TestERC20 is MockERC20 {
         returns (bool)
     {
         require(amount >= s_transferFee, "transfer fee");
-        _balanceOf[from] -= s_transferFee;
+        _burn(from, s_transferFee);
         return super.transferFrom(from, to, amount - s_transferFee);
     }
 
