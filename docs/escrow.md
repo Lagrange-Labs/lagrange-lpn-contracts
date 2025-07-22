@@ -1,8 +1,8 @@
-# LAEscrow Contract
+# DeepProvePayments Contract
 
 ## Overview
 
-The `LAEscrow` contract establishes escrow agreements between clients and Lagrange for LA tokens. This contract is not open to the public - escrow agreements are pre-established with specific clients by the contract owner. Users deposit LA tokens upfront and receive periodic rebate payments over a specified duration.
+The `DeepProvePayments` contract establishes escrow agreements between clients and Lagrange for LA tokens. This contract is not open to the public - escrow agreements are pre-established with specific clients by the contract owner. Users deposit LA tokens upfront and receive periodic rebate payments over a specified duration.
 
 ## Requirements
 

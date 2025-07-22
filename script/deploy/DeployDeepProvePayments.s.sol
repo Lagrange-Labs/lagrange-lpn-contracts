@@ -2,18 +2,18 @@
 pragma solidity 0.8.25;
 
 import {DeploymentUtils} from "../utils/DeploymentUtils.sol";
-import {LAEscrow} from "../../src/latoken/LAEscrow.sol";
+import {DeepProvePayments} from "../../src/latoken/DeepProvePayments.sol";
 import {TransparentUpgradeableProxy} from
     "@openzeppelin-contracts-5.2.0/proxy/transparent/TransparentUpgradeableProxy.sol";
 import {console} from "forge-std/console.sol";
 import {Vm} from "forge-std/Vm.sol";
 
-/// @notice Script to deploy the LAEscrow contract
-/// @dev Deploys LAEscrow with a proxy and initializes it with configuration from environment variables
-contract DeployLAEscrow is DeploymentUtils {
-    /// @notice Deploys the LAEscrow contract
+/// @notice Script to deploy the DeepProvePayments contract
+/// @dev Deploys DeepProvePayments with a proxy and initializes it with configuration from environment variables
+contract DeployDeepProvePayments is DeploymentUtils {
+    /// @notice Deploys the DeepProvePayments contract
     function run() external {
-        console.log(unicode"🚀 Deploying LA Escrow");
+        console.log(unicode"🚀 Deploying Deep Prove Payments");
 
         vm.startBroadcast();
 
@@ -41,21 +41,23 @@ contract DeployLAEscrow is DeploymentUtils {
             );
         }
 
-        // Deploy LAEscrow implementation
-        LAEscrow escrowImpl = new LAEscrow(laToken, treasury);
+        // Deploy DeepProvePayments implementation
+        DeepProvePayments escrowImpl = new DeepProvePayments(laToken, treasury);
         address escrowImplAddr = address(escrowImpl);
 
-        // Deploy proxy and initialize LAEscrow
+        // Deploy proxy and initialize DeepProvePayments
         TransparentUpgradeableProxy proxy = new TransparentUpgradeableProxy(
             escrowImplAddr,
             initialOwner, // admin
-            abi.encodeWithSelector(LAEscrow.initialize.selector, initialOwner)
+            abi.encodeWithSelector(
+                DeepProvePayments.initialize.selector, initialOwner
+            )
         );
         address escrowProxy = address(proxy);
 
         vm.stopBroadcast();
 
-        console.log(unicode"✅ LA Escrow deployed successfully");
+        console.log(unicode"✅ Deep Prove Payments deployed successfully");
         console.log("Escrow Proxy: %s", escrowProxy);
         console.log("Escrow Implementation: %s", escrowImplAddr);
         console.log("LA Token: %s", laToken);
