@@ -9,11 +9,15 @@ import {Ownable2StepUpgradeable} from
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IVersioned} from "../interfaces/IVersioned.sol";
 
-/// @title LAEscrow
+/// @title DeepProvePayments
 /// @author Lagrange Engineering
 /// @notice This contract is used to establish an escrow agreement between a client and Lagrange
 /// This contract is not open to the public. These escrow agreements are pre-established with the client.
-contract LAEscrow is Initializable, Ownable2StepUpgradeable, IVersioned {
+contract DeepProvePayments is
+    Initializable,
+    Ownable2StepUpgradeable,
+    IVersioned
+{
     struct NewEscrowAgreementParams {
         uint88 paymentAmount; // Amount of LA tokens staked by the user, max of 2^88 - 1 is approx 300M LA
         uint88 rebateAmount; // Amount of LA tokens the user is eligible to claim as rebate, per claim
@@ -53,7 +57,7 @@ contract LAEscrow is Initializable, Ownable2StepUpgradeable, IVersioned {
 
     mapping(address => EscrowAgreement) public s_agreements;
 
-    /// @notice Creates a new LAEscrow contract
+    /// @notice Creates a new DeepProvePayments contract
     /// @param laToken The address of the LA token contract
     /// @param treasury The address of the treasury contract
     constructor(address laToken, address treasury) {
