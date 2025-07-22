@@ -135,7 +135,7 @@ contract DeepProvePayments is
     }
 
     /// @notice Claims all available rebates for the caller
-    function claim() external {
+    function claimRebates() external {
         EscrowAgreement memory agreement = s_agreements[msg.sender];
         if (agreement.activationDate == 0) revert InvalidAgreement();
 
