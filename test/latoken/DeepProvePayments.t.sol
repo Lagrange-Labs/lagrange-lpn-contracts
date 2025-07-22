@@ -328,7 +328,7 @@ contract DeepProvePaymentsTest is BaseTest {
         vm.prank(user1);
         vm.expectEmit(true, true, true, true);
         emit DeepProvePayments.RebateClaimed(user1, expectedClaim);
-        escrow.claim();
+        escrow.claimRebates();
 
         assertEq(laToken.balanceOf(user1), initialBalance + expectedClaim);
 
@@ -347,7 +347,7 @@ contract DeepProvePaymentsTest is BaseTest {
         uint256 expectedClaim = 12 * 10 ether; // All 12 rebates
 
         vm.prank(user1);
-        escrow.claim();
+        escrow.claimRebates();
 
         assertEq(laToken.balanceOf(user1), initialBalance + expectedClaim);
 
@@ -367,21 +367,21 @@ contract DeepProvePaymentsTest is BaseTest {
         uint256 firstClaim = 4 * 10 ether; // 4 rebates
 
         vm.prank(user1);
-        escrow.claim();
+        escrow.claimRebates();
 
         // Second claim after 20 days
         vm.warp(block.timestamp + 10 days);
         uint256 secondClaim = 4 * 10 ether; // 4 more rebates
 
         vm.prank(user1);
-        escrow.claim();
+        escrow.claimRebates();
 
         // Final claim after 31 days
         vm.warp(block.timestamp + 11 days);
         uint256 finalClaim = 4 * 10 ether; // Remaining 4 rebates
 
         vm.prank(user1);
-        escrow.claim();
+        escrow.claimRebates();
 
         // Agreement should be deleted
         DeepProvePayments.EscrowAgreement memory agreement =
@@ -397,7 +397,7 @@ contract DeepProvePaymentsTest is BaseTest {
     function test_Claim_RevertsWhen_NoAgreementExists() public {
         vm.prank(user1);
         vm.expectRevert(DeepProvePayments.InvalidAgreement.selector);
-        escrow.claim();
+        escrow.claimRebates();
     }
 
     function test_Claim_RevertsWhen_AgreementNotActivated() public {
@@ -405,7 +405,7 @@ contract DeepProvePaymentsTest is BaseTest {
 
         vm.prank(user1);
         vm.expectRevert(DeepProvePayments.InvalidAgreement.selector);
-        escrow.claim();
+        escrow.claimRebates();
     }
 
     function test_Claim_RevertsWhen_NoClaimableRebates() public {
@@ -414,7 +414,7 @@ contract DeepProvePaymentsTest is BaseTest {
         // Try to claim immediately after activation
         vm.prank(user1);
         vm.expectRevert(DeepProvePayments.NoClaimableRebates.selector);
-        escrow.claim();
+        escrow.claimRebates();
     }
 
     function test_Claim_RevertsWhen_TreasuryTransferFails() public {
@@ -434,7 +434,7 @@ contract DeepProvePaymentsTest is BaseTest {
 
         vm.prank(user1);
         vm.expectRevert();
-        escrow.claim();
+        escrow.claimRebates();
     }
 
     // ------------------------------------------------------------
@@ -525,7 +525,7 @@ contract DeepProvePaymentsTest is BaseTest {
         // Advance time and claim some rebates
         vm.warp(block.timestamp + 15 days);
         vm.prank(user1);
-        escrow.claim();
+        escrow.claimRebates();
 
         // Verify agreement still exists with some claims
         DeepProvePayments.EscrowAgreement memory agreement =
@@ -690,7 +690,7 @@ contract DeepProvePaymentsTest is BaseTest {
 
         // Should use contract balance first, then treasury
         vm.prank(user1);
-        escrow.claim();
+        escrow.claimRebates();
         assertEq(laToken.balanceOf(user1), initialBalance + expectedClaim);
     }
 
@@ -700,7 +700,7 @@ contract DeepProvePaymentsTest is BaseTest {
         vm.warp(block.timestamp + 1 days);
 
         vm.prank(user1);
-        escrow.claim();
+        escrow.claimRebates();
 
         // Agreement should be deleted
         DeepProvePayments.EscrowAgreement memory agreement =

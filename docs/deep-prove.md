@@ -71,9 +71,9 @@ struct NewEscrowAgreementParams {
 
 ### 3. Rebate Claiming
 
-**Function**: `claim()`
+**Function**: `claimRebates()`
 
-1. User calls `claim()` to collect available rebates
+1. User calls `claimRebates()` to collect available rebates
 2. Contract calculates claimable rebates based on:
    - Time elapsed since activation
    - Number of rebates already claimed
