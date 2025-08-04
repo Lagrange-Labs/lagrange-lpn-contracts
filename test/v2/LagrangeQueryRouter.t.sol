@@ -12,11 +12,11 @@ import {
 } from "../../src/v2/Groth16VerifierExtension.sol";
 
 import {Initializable} from
-    "@openzeppelin-contracts-upgradeable-5.2.0/proxy/utils/Initializable.sol";
+    "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {OwnableUpgradeable} from
-    "@openzeppelin-contracts-upgradeable-5.2.0/access/OwnableUpgradeable.sol";
+    "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {TransparentUpgradeableProxy} from
-    "@openzeppelin-contracts-5.2.0/proxy/transparent/TransparentUpgradeableProxy.sol";
+    "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 
 contract LagrangeQueryRouterTest is BaseTest {
     LagrangeQueryRouter public implementation;

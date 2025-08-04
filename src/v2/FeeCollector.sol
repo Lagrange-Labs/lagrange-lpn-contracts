@@ -8,7 +8,7 @@ import {
 } from "@openzeppelin/contracts/access/Ownable2Step.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from
-    "@openzeppelin-contracts-5.2.0/token/ERC20/utils/SafeERC20.sol";
+    "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 /// @title FeeCollector
 /// @notice Collects fees from on-chain components within the Lagrange ecosystem

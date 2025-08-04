@@ -2,10 +2,10 @@
 pragma solidity 0.8.25;
 
 import {AccessControlDefaultAdminRulesUpgradeable} from
-    "@openzeppelin-contracts-upgradeable-5.2.0/access/extensions/AccessControlDefaultAdminRulesUpgradeable.sol";
+    "@openzeppelin/contracts-upgradeable/access/extensions/AccessControlDefaultAdminRulesUpgradeable.sol";
 import {OFTUpgradable} from "./OFTUpgradable.sol";
 import {Initializable} from
-    "@openzeppelin-contracts-upgradeable-5.2.0/proxy/utils/Initializable.sol";
+    "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {IERC165} from "@openzeppelin/contracts/interfaces/IERC165.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IERC20Permit} from

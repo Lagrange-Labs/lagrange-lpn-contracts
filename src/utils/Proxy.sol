@@ -3,7 +3,7 @@ pragma solidity 0.8.25;
 
 import {Vm} from "forge-std/Vm.sol";
 import {ProxyAdmin} from
-    "@openzeppelin-contracts-5.2.0/proxy/transparent/ProxyAdmin.sol";
+    "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
 
 // EIP-1967 implementation slot
 bytes32 constant IMPLEMENTATION_SLOT =

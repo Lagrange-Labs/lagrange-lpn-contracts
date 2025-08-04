@@ -6,9 +6,9 @@ import {BaseTest} from "../BaseTest.t.sol";
 
 import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
 import {Initializable} from
-    "@openzeppelin-contracts-upgradeable-5.2.0/proxy/utils/Initializable.sol";
+    "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {TransparentUpgradeableProxy} from
-    "@openzeppelin-contracts-5.2.0/proxy/transparent/TransparentUpgradeableProxy.sol";
+    "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 
 contract DatabaseManagerTest is BaseTest {
     DatabaseManager public implementation;

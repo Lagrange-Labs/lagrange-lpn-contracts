@@ -7,12 +7,12 @@ import {QueryOutput} from "./Groth16VerifierExtension.sol";
 import {IVersioned} from "../interfaces/IVersioned.sol";
 
 import {Initializable} from
-    "@openzeppelin-contracts-upgradeable-5.2.0/proxy/utils/Initializable.sol";
+    "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {Ownable2StepUpgradeable} from
-    "@openzeppelin-contracts-upgradeable-5.2.0/access/Ownable2StepUpgradeable.sol";
+    "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
 import {ILPNClient} from "./interfaces/ILPNClient.sol";
 import {EnumerableSet} from
-    "@openzeppelin-contracts-5.2.0/utils/structs/EnumerableSet.sol";
+    "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
 /// @title LagrangeQueryRouter
 /// @notice Routes requests and responses to the appropriate QueryExecutor contract

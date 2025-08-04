@@ -2,9 +2,9 @@
 pragma solidity 0.8.25;
 
 import {Initializable} from
-    "@openzeppelin-contracts-upgradeable-5.2.0/proxy/utils/Initializable.sol";
+    "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {Ownable2StepUpgradeable} from
-    "@openzeppelin-contracts-upgradeable-5.2.0/access/Ownable2StepUpgradeable.sol";
+    "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IVersioned} from "../interfaces/IVersioned.sol";
