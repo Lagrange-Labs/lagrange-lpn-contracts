@@ -2,7 +2,9 @@ name: Slither
 
 on: push
 
-# DEV: we are intentionally not using the slither-action because it if fails to handle soldeer dependencies correctly
+# DEV: there appears to be a unique compatibility issue between the version of slither and the version of foundry
+# Slither installs foundry itself during the build step, but we must install it manually first to support installing
+# deps via soldeer
 
 jobs:
   analyze:
@@ -20,11 +22,15 @@ jobs:
       - name: Install Soldeer Dependencies
         run: forge soldeer install
 
-      # - name: Compile Contracts
-      #   run: forge build
+      - name: Compile Contracts
+        run: forge build --build-info --skip */test/** */script/**
 
-      - name: Install Slither
-        run: python3 -m pip install slither-analyzer
+      # - name: Run Slither
+      #   run: make slither
 
       - name: Run Slither
-        run: slither . --fail-high 
+        uses: crytic/slither-action@v0.4.1
+        id: slither
+        with:
+          fail-on: high
+          ignore-compile: true
