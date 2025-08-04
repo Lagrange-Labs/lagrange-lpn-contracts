@@ -12,9 +12,6 @@
 @openzeppelin/contracts/=dependencies/@openzeppelin-contracts-5.2.0/
 ds-test/=lib/openzeppelin-contracts-upgradeable/lib/forge-std/lib/ds-test/src/
 erc4626-tests/=lib/openzeppelin-contracts-upgradeable/lib/erc4626-tests/
-forge-safe/=lib/forge-safe/src/
-forge-std/=lib/forge-std/src/
+forge-std/=dependencies/forge-std-1.10.0/src/
 openzeppelin-contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable/
 openzeppelin-contracts/=lib/openzeppelin-contracts/
-safe-smart-account/=lib/safe-smart-account/contracts/
-solady/=lib/solady/src/
