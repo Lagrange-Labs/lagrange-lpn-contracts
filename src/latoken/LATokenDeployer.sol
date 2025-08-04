@@ -3,7 +3,7 @@ pragma solidity 0.8.25;
 
 import {LAToken} from "./LAToken.sol";
 import {TransparentUpgradeableProxy} from
-    "@openzeppelin-contracts-5.2.0/proxy/transparent/TransparentUpgradeableProxy.sol";
+    "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 
 /// @title LATokenDeployer
 /// @notice Deploys and configures the standard LA token with a proxy in a single transaction

@@ -3,12 +3,12 @@ pragma solidity 0.8.25;
 
 import {IVersioned} from "../interfaces/IVersioned.sol";
 import {AccessControlUpgradeable} from
-    "@openzeppelin-contracts-upgradeable-5.2.0/access/AccessControlUpgradeable.sol";
+    "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import {Initializable} from
-    "@openzeppelin-contracts-upgradeable-5.2.0/proxy/utils/Initializable.sol";
+    "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {IDatabaseManager} from "./interfaces/IDatabaseManager.sol";
 import {EnumerableSet} from
-    "@openzeppelin-contracts-5.2.0/utils/structs/EnumerableSet.sol";
+    "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
 /// @title DatabaseManager
 /// @notice Manages the registration of tables and queries for the system

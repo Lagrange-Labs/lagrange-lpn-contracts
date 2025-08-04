@@ -6,7 +6,7 @@ import {QueryExecutor} from "./QueryExecutor.sol";
 import {DatabaseManager} from "./DatabaseManager.sol";
 import {FeeCollector} from "./FeeCollector.sol";
 import {TransparentUpgradeableProxy} from
-    "@openzeppelin-contracts-5.2.0/proxy/transparent/TransparentUpgradeableProxy.sol";
+    "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import {LPNClientV2Example} from "./client/LPNClientV2Example.sol";
 
 /// @title Deployer

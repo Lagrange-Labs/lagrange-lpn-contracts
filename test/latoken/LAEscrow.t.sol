@@ -8,7 +8,7 @@ import {TransparentUpgradeableProxy} from
     "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable2Step.sol";
 import {Initializable} from
-    "@openzeppelin-contracts-5.2.0/proxy/utils/Initializable.sol";
+    "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import {console} from "forge-std/console.sol";
 
 contract LAEscrowTest is BaseTest {
