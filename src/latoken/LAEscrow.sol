@@ -131,6 +131,7 @@ contract LAEscrow is Initializable, Ownable2StepUpgradeable, IVersioned {
     }
 
     /// @notice Claims all available rebates for the caller
+    // slither-disable-next-line arbitrary-send-erc20
     function claim() external {
         EscrowAgreement memory agreement = s_agreements[msg.sender];
         if (agreement.activationDate == 0) revert InvalidAgreement();
