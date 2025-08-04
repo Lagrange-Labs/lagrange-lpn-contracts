@@ -5,7 +5,7 @@ import {DeploymentUtils} from "../../src/utils/DeploymentUtils.sol";
 import {LAPublicStaker} from "../../src/latoken/LAPublicStaker.sol";
 import {TransparentUpgradeableProxy} from
     "@openzeppelin-contracts-5.2.0/proxy/transparent/TransparentUpgradeableProxy.sol";
-import {SafeCast} from "@openzeppelin-contracts-5.2.0/utils/math/SafeCast.sol";
+import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import {console} from "forge-std/console.sol";
 import {Vm} from "forge-std/Vm.sol";
 

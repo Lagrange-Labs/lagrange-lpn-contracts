@@ -6,7 +6,7 @@ import {TestERC20} from "../../src/mocks/TestERC20.sol";
 import {LAEscrow} from "../../src/latoken/LAEscrow.sol";
 import {TransparentUpgradeableProxy} from
     "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
-import {Ownable} from "@openzeppelin-contracts-5.2.0/access/Ownable2Step.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable2Step.sol";
 import {Initializable} from
     "@openzeppelin-contracts-5.2.0/proxy/utils/Initializable.sol";
 import {console} from "forge-std/console.sol";

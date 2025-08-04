@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import {Test} from "forge-std/Test.sol";
 import {FeeCollector} from "../../src/v2/FeeCollector.sol";
 import {TestERC20} from "../../src/mocks/TestERC20.sol";
-import {Ownable} from "@openzeppelin-contracts-5.2.0/access/Ownable2Step.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable2Step.sol";
 
 contract FeeCollectorTest is Test {
     FeeCollector public feeCollector;
