@@ -12,7 +12,7 @@ import {
 } from "../../src/v2/Groth16VerifierExtension.sol";
 import {DatabaseManager} from "../../src/v2/DatabaseManager.sol";
 import {FeeCollector} from "../../src/v2/FeeCollector.sol";
-import {Ownable} from "@openzeppelin-contracts-5.2.0/access/Ownable2Step.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable2Step.sol";
 import {console} from "forge-std/console.sol";
 
 contract QueryExecutorTest is BaseTest {

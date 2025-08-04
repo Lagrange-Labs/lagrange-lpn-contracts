@@ -12,8 +12,8 @@ import {L1BlockHash, L1BlockNumber} from "../utils/L1Block.sol";
 import {
     Ownable2Step,
     Ownable
-} from "@openzeppelin-contracts-5.2.0/access/Ownable2Step.sol";
-import {SafeCast} from "@openzeppelin-contracts-5.2.0/utils/math/SafeCast.sol";
+} from "@openzeppelin/contracts/access/Ownable2Step.sol";
+import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import {IDatabaseManager} from "./interfaces/IDatabaseManager.sol";
 
 /// @title QueryExecutor

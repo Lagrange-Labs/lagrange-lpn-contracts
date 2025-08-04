@@ -1,7 +1,7 @@
 [profile.default]
 src = "src"
 out = "out"
-libs = ["lib", "dependencies"]
+libs = ["dependencies"]
 fs_permissions = [
     { access = "read", path = "./test" },
     { access = "read-write", path = "./script/output" },
@@ -54,3 +54,4 @@ berachain = "https://rpc.berachain.com"
 "@layerzerolabs-lz-evm-protocol-v2" = "3.0.84"
 "@layerzerolabs-oapp-evm" = "0.3.2"
 "@layerzerolabs-oft-evm" = "3.1.3"
+forge-std = "1.10.0"

@@ -5,8 +5,8 @@ import {IVersioned} from "../interfaces/IVersioned.sol";
 import {
     Ownable2Step,
     Ownable
-} from "@openzeppelin-contracts-5.2.0/access/Ownable2Step.sol";
-import {IERC20} from "@openzeppelin-contracts-5.2.0/token/ERC20/IERC20.sol";
+} from "@openzeppelin/contracts/access/Ownable2Step.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from
     "@openzeppelin-contracts-5.2.0/token/ERC20/utils/SafeERC20.sol";
 
