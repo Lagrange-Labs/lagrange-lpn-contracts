@@ -144,6 +144,7 @@ contract LAPublicStaker is
     /// with smaller inicies, so we may delete positions from the middle of the array.
     /// For this reason, it is important to always check that positions are still valid
     /// before considering them.
+    // slither-disable-next-line arbitrary-send-erc20
     function claim() external {
         uint256 length = s_userStakes[msg.sender].positions.length;
         uint256 offset = s_userStakes[msg.sender].offset;
