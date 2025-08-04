@@ -20,11 +20,11 @@ jobs:
       - name: Install Soldeer Dependencies
         run: forge soldeer install
 
-      - name: Compile Contracts
-        run: forge build
+      # - name: Compile Contracts
+      #   run: forge build
 
       - name: Install Slither
         run: python3 -m pip install slither-analyzer
 
       - name: Run Slither
-        run: slither . --fail-high --ignore-compile
+        run: slither . --fail-high 
