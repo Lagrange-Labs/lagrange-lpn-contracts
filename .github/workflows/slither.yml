@@ -2,10 +2,6 @@ name: Slither
 
 on: push
 
-# DEV: there appears to be a unique compatibility issue between the version of slither and the version of foundry
-# Slither installs foundry itself during the build step, but we must install it manually first to support installing
-# deps via soldeer
-
 jobs:
   analyze:
     runs-on: ubuntu-latest
@@ -23,10 +19,8 @@ jobs:
         run: forge soldeer install
 
       - name: Compile Contracts
+        # slither requires --build-info to be present in the build output
         run: forge build --build-info --skip */test/** */script/**
-
-      # - name: Run Slither
-      #   run: make slither
 
       - name: Run Slither
         uses: crytic/slither-action@v0.4.1
