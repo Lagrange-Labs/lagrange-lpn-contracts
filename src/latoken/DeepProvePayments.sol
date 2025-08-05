@@ -19,33 +19,35 @@ contract DeepProvePayments is
     IVersioned
 {
     struct NewEscrowAgreementParams {
-        uint88 paymentAmount; // Amount of LA tokens staked by the user, max of 2^88 - 1 is approx 300M LA
+        uint88 depositAmount; // Amount of LA tokens deposited by the user, max of 2^88 - 1 is approx 300M LA
         uint88 rebateAmount; // Amount of LA tokens the user is eligible to claim as rebate, per claim
         uint16 durationDays; // Number of days that the user can claim regular rebates during
-        uint16 numRebates; // Number of rebates the user is eligible to claim over the rebate period
+        uint8 numRebates; // Number of rebates the user is eligible to claim over the rebate period
     }
 
     struct EscrowAgreement {
-        uint88 paymentAmount; // See NewAgreementParams
+        uint88 depositAmount; // See NewAgreementParams
         uint88 rebateAmount; // See NewAgreementParams
+        uint88 balance; // Current balance available for charges
         uint16 durationDays; // See NewAgreementParams
-        uint16 numRebates; // See NewAgreementParams
-        uint16 numRebatesClaimed; // Number of rebates claimed for this agreement
+        uint8 numRebates; // See NewAgreementParams
+        uint8 numRebatesClaimed; // Number of rebates claimed for this agreement
         uint32 activationDate; // Date when the user deposits their LA tokens
     }
 
-    event Distributed(address indexed to, uint256 amount);
+    event Charged(address indexed user, uint256 amount);
     event AgreementActivated(address indexed user);
     event NewAgreement(address indexed user, EscrowAgreement agreement);
     event RebateClaimed(address indexed user, uint256 amount);
 
     error AgreementAlreadyActivated();
     error AgreementAlreadyExists();
+    error InsufficientBalance();
     error InvalidAgreement();
     error InvalidAmount();
     error InvalidConfig();
     error NoClaimableRebates();
-    error OnlyTreasuryCanDistribute();
+    error OnlyBillerCanCharge();
     error TransferFailed();
     error ZeroAddress();
 
@@ -55,7 +57,8 @@ contract DeepProvePayments is
     address public immutable TREASURY; // TODO: rename "Guarantor"
     address public immutable FEE_COLLECTOR;
 
-    mapping(address => EscrowAgreement) public s_agreements;
+    mapping(address => EscrowAgreement) private s_agreements;
+    address private s_biller;
 
     /// @notice Creates a new DeepProvePayments contract
     /// @param laToken The address of the LA token contract
@@ -75,8 +78,14 @@ contract DeepProvePayments is
 
     /// @notice Initializes the contract with an owner and configuration
     /// @param initialOwner The address of the initial owner
-    function initialize(address initialOwner) public initializer {
+    /// @param biller The address of the biller
+    function initialize(address initialOwner, address biller)
+        public
+        initializer
+    {
+        if (biller == address(0)) revert ZeroAddress();
         __Ownable_init(initialOwner);
+        s_biller = biller;
     }
 
     /// @notice Creates a new EscrowAgreement for a given address (owner only)
@@ -87,7 +96,7 @@ contract DeepProvePayments is
         NewEscrowAgreementParams calldata params
     ) external onlyOwner {
         if (user == address(0)) revert ZeroAddress();
-        if (params.paymentAmount == 0) revert InvalidAmount();
+        if (params.depositAmount == 0) revert InvalidAmount();
         if (params.rebateAmount == 0) revert InvalidAmount();
         if (params.durationDays == 0) revert InvalidConfig();
         if (params.numRebates == 0) revert InvalidConfig();
@@ -97,8 +106,9 @@ contract DeepProvePayments is
         }
 
         EscrowAgreement memory agreement = EscrowAgreement({
-            paymentAmount: params.paymentAmount,
+            depositAmount: params.depositAmount,
             rebateAmount: params.rebateAmount,
+            balance: 0,
             durationDays: params.durationDays,
             numRebates: params.numRebates,
             numRebatesClaimed: 0,
@@ -115,7 +125,7 @@ contract DeepProvePayments is
     /// @dev Reverts if no agreement exists for the caller or if the agreement has already been activated.
     function activateAgreement() external {
         EscrowAgreement memory agreement = s_agreements[msg.sender];
-        if (agreement.paymentAmount == 0) {
+        if (agreement.depositAmount == 0) {
             revert InvalidAgreement();
         }
 
@@ -123,12 +133,13 @@ contract DeepProvePayments is
             revert AgreementAlreadyActivated();
         }
 
+        s_agreements[msg.sender].balance = agreement.depositAmount;
         s_agreements[msg.sender].activationDate = uint32(block.timestamp);
 
         // Transfer LA tokens from user
         if (
             !LA_TOKEN.transferFrom(
-                msg.sender, address(this), uint256(agreement.paymentAmount)
+                msg.sender, address(this), uint256(agreement.depositAmount)
             )
         ) {
             revert TransferFailed();
@@ -143,7 +154,7 @@ contract DeepProvePayments is
         EscrowAgreement memory agreement = s_agreements[msg.sender];
         if (agreement.activationDate == 0) revert InvalidAgreement();
 
-        (bool isLastClaim, uint256 totalClaimable, uint16 numClaimableRebates) =
+        (bool isLastClaim, uint256 totalClaimable, uint8 numClaimableRebates) =
             _processClaim(agreement);
 
         if (numClaimableRebates == 0) revert NoClaimableRebates();
@@ -173,15 +184,27 @@ contract DeepProvePayments is
         emit RebateClaimed(msg.sender, totalClaimable);
     }
 
-    /// @notice Distributes LA tokens to the fee collector
-    /// @param amount The amount of LA tokens to distribute
-    function distribute(uint256 amount) external {
-        if (msg.sender != TREASURY) revert OnlyTreasuryCanDistribute();
+    /// @notice Charges a user for a specific amount of LA tokens
+    /// @param user The address of the user to charge
+    /// @param amount The amount of LA tokens to charge
+    function charge(address user, uint88 amount) external {
+        if (msg.sender != s_biller) revert OnlyBillerCanCharge();
         if (amount == 0) revert InvalidAmount();
 
-        if (!LA_TOKEN.transfer(FEE_COLLECTOR, amount)) revert TransferFailed();
+        EscrowAgreement memory agreement = s_agreements[user];
+        if (agreement.depositAmount == 0) revert InvalidAgreement();
 
-        emit Distributed(FEE_COLLECTOR, amount);
+        if (agreement.balance < amount) revert InsufficientBalance();
+
+        agreement.balance -= amount;
+        s_agreements[user] = agreement;
+
+        // Transfer tokens to fee collector
+        if (!LA_TOKEN.transfer(FEE_COLLECTOR, uint256(amount))) {
+            revert TransferFailed();
+        }
+
+        emit Charged(user, uint256(amount));
     }
 
     /// @notice Cancels an escrow agreement for a given address
@@ -189,8 +212,21 @@ contract DeepProvePayments is
     /// @dev This cancels the user's future rebate claims
     function cancelAgreement(address user) external onlyOwner {
         EscrowAgreement memory agreement = s_agreements[user];
-        if (agreement.paymentAmount == 0) revert InvalidAgreement();
+        if (agreement.depositAmount == 0) revert InvalidAgreement();
         delete s_agreements[user];
+    }
+
+    /// @notice Gets the biller address
+    /// @return address The current biller address
+    function getBiller() external view returns (address) {
+        return s_biller;
+    }
+
+    /// @notice Sets the biller address (owner only)
+    /// @param newBiller The new biller address
+    function setBiller(address newBiller) external onlyOwner {
+        if (newBiller == address(0)) revert ZeroAddress();
+        s_biller = newBiller;
     }
 
     /// @notice Gets the stakes for a user
@@ -269,7 +305,7 @@ contract DeepProvePayments is
     function _processClaim(EscrowAgreement memory agreement)
         private
         view
-        returns (bool, uint256, uint16)
+        returns (bool, uint256, uint8)
     {
         bool isLastClaim = agreement.activationDate
             + uint256(agreement.durationDays) * 1 days <= block.timestamp;
@@ -285,6 +321,6 @@ contract DeepProvePayments is
 
         uint256 totalClaimable = numClaimableRebates * agreement.rebateAmount;
 
-        return (isLastClaim, totalClaimable, uint16(numClaimableRebates));
+        return (isLastClaim, totalClaimable, uint8(numClaimableRebates));
     }
 }

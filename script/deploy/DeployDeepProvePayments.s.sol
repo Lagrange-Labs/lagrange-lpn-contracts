@@ -49,6 +49,14 @@ contract DeployDeepProvePayments is DeploymentUtils {
             );
         }
 
+        // Get biller address from environment variable
+        address biller = vm.envAddress("BILLER_ADDRESS");
+        if (biller == address(0)) {
+            revert(
+                "BILLER_ADDRESS environment variable not set or is zero address"
+            );
+        }
+
         // Deploy DeepProvePayments implementation
         DeepProvePayments escrowImpl =
             new DeepProvePayments(laToken, treasury, feeCollector);
@@ -59,7 +67,7 @@ contract DeployDeepProvePayments is DeploymentUtils {
             escrowImplAddr,
             initialOwner, // admin
             abi.encodeWithSelector(
-                DeepProvePayments.initialize.selector, initialOwner
+                DeepProvePayments.initialize.selector, initialOwner, biller
             )
         );
         address escrowProxy = address(proxy);
@@ -72,5 +80,7 @@ contract DeployDeepProvePayments is DeploymentUtils {
         console.log("LA Token: %s", laToken);
         console.log("Treasury: %s", treasury);
         console.log("Initial Owner: %s", initialOwner);
+        console.log("Fee Collector: %s", feeCollector);
+        console.log("Biller: %s", biller);
     }
 }
