@@ -44,7 +44,6 @@ contract DeepProvePayments is
     error InvalidAgreement();
     error InvalidAmount();
     error InvalidConfig();
-    error InvalidRecipient();
     error NoClaimableRebates();
     error OnlyTreasuryCanDistribute();
     error TransferFailed();
@@ -53,19 +52,23 @@ contract DeepProvePayments is
     string public constant VERSION = "1.0.0";
 
     IERC20 public immutable LA_TOKEN;
-    address public immutable TREASURY;
+    address public immutable TREASURY; // TODO: rename "Guarantor"
+    address public immutable FEE_COLLECTOR;
 
     mapping(address => EscrowAgreement) public s_agreements;
 
     /// @notice Creates a new DeepProvePayments contract
     /// @param laToken The address of the LA token contract
     /// @param treasury The address of the treasury contract
-    constructor(address laToken, address treasury) {
+    /// @param feeCollector The address of the fee collector contract
+    constructor(address laToken, address treasury, address feeCollector) {
         if (laToken == address(0)) revert ZeroAddress();
         if (treasury == address(0)) revert ZeroAddress();
+        if (feeCollector == address(0)) revert ZeroAddress();
 
         LA_TOKEN = IERC20(laToken);
         TREASURY = treasury;
+        FEE_COLLECTOR = feeCollector;
 
         _disableInitializers();
     }
@@ -170,17 +173,15 @@ contract DeepProvePayments is
         emit RebateClaimed(msg.sender, totalClaimable);
     }
 
-    /// @notice Distributes LA tokens to a recipient
-    /// @param to The address of the recipient
+    /// @notice Distributes LA tokens to the fee collector
     /// @param amount The amount of LA tokens to distribute
-    function distribute(address to, uint256 amount) external {
+    function distribute(uint256 amount) external {
         if (msg.sender != TREASURY) revert OnlyTreasuryCanDistribute();
-        if (to == address(0)) revert InvalidRecipient();
         if (amount == 0) revert InvalidAmount();
 
-        if (!LA_TOKEN.transfer(to, amount)) revert TransferFailed();
+        if (!LA_TOKEN.transfer(FEE_COLLECTOR, amount)) revert TransferFailed();
 
-        emit Distributed(to, amount);
+        emit Distributed(FEE_COLLECTOR, amount);
     }
 
     /// @notice Cancels an escrow agreement for a given address

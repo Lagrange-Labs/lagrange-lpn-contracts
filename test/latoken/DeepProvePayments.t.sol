@@ -16,6 +16,7 @@ contract DeepProvePaymentsTest is BaseTest {
     DeepProvePayments public escrow;
     TestERC20 public laToken;
     address public treasury;
+    address public feeCollector;
     address public owner;
     address public user1;
     address public user2;
@@ -24,6 +25,7 @@ contract DeepProvePaymentsTest is BaseTest {
     function setUp() public {
         owner = makeAddr("owner");
         treasury = makeAddr("treasury");
+        feeCollector = makeAddr("feeCollector");
         user1 = makeAddr("user1");
         user2 = makeAddr("user2");
         user3 = makeAddr("user3");
@@ -32,7 +34,8 @@ contract DeepProvePaymentsTest is BaseTest {
         laToken = new TestERC20();
 
         // Deploy DeepProvePayments implementation
-        implementation = new DeepProvePayments(address(laToken), treasury);
+        implementation =
+            new DeepProvePayments(address(laToken), treasury, feeCollector);
 
         // Prepare initializer data
         bytes memory initData =
@@ -75,17 +78,23 @@ contract DeepProvePaymentsTest is BaseTest {
 
     function test_Constructor_RevertsWhen_LaTokenIsZero() public {
         vm.expectRevert(DeepProvePayments.ZeroAddress.selector);
-        new DeepProvePayments(address(0), treasury);
+        new DeepProvePayments(address(0), treasury, feeCollector);
     }
 
     function test_Constructor_RevertsWhen_TreasuryIsZero() public {
         vm.expectRevert(DeepProvePayments.ZeroAddress.selector);
-        new DeepProvePayments(address(laToken), address(0));
+        new DeepProvePayments(address(laToken), address(0), feeCollector);
+    }
+
+    function test_Constructor_RevertsWhen_FeeCollectorIsZero() public {
+        vm.expectRevert(DeepProvePayments.ZeroAddress.selector);
+        new DeepProvePayments(address(laToken), treasury, address(0));
     }
 
     function test_Initialize_Success() public view {
         assertEq(address(escrow.LA_TOKEN()), address(laToken));
         assertEq(escrow.TREASURY(), treasury);
+        assertEq(escrow.FEE_COLLECTOR(), feeCollector);
         assertEq(escrow.owner(), owner);
     }
 
@@ -423,7 +432,7 @@ contract DeepProvePaymentsTest is BaseTest {
         // Drain contract balance
         uint256 balance = laToken.balanceOf(address(escrow));
         vm.prank(treasury);
-        escrow.distribute(address(0xdead), balance);
+        escrow.distribute(balance);
 
         // Drain treasury balance
         uint256 treasuryBalance = laToken.balanceOf(treasury);
@@ -442,34 +451,27 @@ contract DeepProvePaymentsTest is BaseTest {
     // ------------------------------------------------------------
 
     function test_Distribute_Success() public {
-        address recipient = makeAddr("recipient");
         uint256 amount = 100 ether;
         laToken.mint(address(escrow), amount);
 
         vm.prank(treasury);
         vm.expectEmit(true, true, true, true);
-        emit DeepProvePayments.Distributed(recipient, amount);
-        escrow.distribute(recipient, amount);
+        emit DeepProvePayments.Distributed(feeCollector, amount);
+        escrow.distribute(amount);
 
-        assertEq(laToken.balanceOf(recipient), amount);
+        assertEq(laToken.balanceOf(feeCollector), amount);
     }
 
     function test_Distribute_RevertsWhen_NotTreasury() public {
         vm.prank(user1);
         vm.expectRevert(DeepProvePayments.OnlyTreasuryCanDistribute.selector);
-        escrow.distribute(user1, 100 ether);
+        escrow.distribute(100 ether);
     }
 
     function test_Distribute_RevertsWhen_AmountIsZero() public {
         vm.prank(treasury);
         vm.expectRevert(DeepProvePayments.InvalidAmount.selector);
-        escrow.distribute(user1, 0);
-    }
-
-    function test_Distribute_RevertsWhen_RecipientIsZeroAddress() public {
-        vm.prank(treasury);
-        vm.expectRevert(DeepProvePayments.InvalidRecipient.selector);
-        escrow.distribute(address(0), 100 ether);
+        escrow.distribute(0);
     }
 
     function test_Distribute_RevertsWhen_TransferFails() public {
@@ -477,7 +479,7 @@ contract DeepProvePaymentsTest is BaseTest {
         vm.prank(treasury);
         uint256 balance = laToken.balanceOf(address(escrow));
         vm.expectRevert();
-        escrow.distribute(user1, balance + 1);
+        escrow.distribute(balance + 1);
     }
 
     // ------------------------------------------------------------
@@ -678,7 +680,7 @@ contract DeepProvePaymentsTest is BaseTest {
 
         // Remove most of the contract balance
         vm.prank(treasury);
-        escrow.distribute(treasury, 99 ether);
+        escrow.distribute(99 ether);
 
         vm.warp(block.timestamp + 15 days);
         uint256 expectedClaim = 60 ether;
