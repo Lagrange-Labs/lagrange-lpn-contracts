@@ -41,8 +41,17 @@ contract DeployDeepProvePayments is DeploymentUtils {
             );
         }
 
+        // Get fee collector address from environment variable
+        address feeCollector = vm.envAddress("FEE_COLLECTOR_ADDRESS");
+        if (feeCollector == address(0)) {
+            revert(
+                "FEE_COLLECTOR_ADDRESS environment variable not set or is zero address"
+            );
+        }
+
         // Deploy DeepProvePayments implementation
-        DeepProvePayments escrowImpl = new DeepProvePayments(laToken, treasury);
+        DeepProvePayments escrowImpl =
+            new DeepProvePayments(laToken, treasury, feeCollector);
         address escrowImplAddr = address(escrowImpl);
 
         // Deploy proxy and initialize DeepProvePayments
