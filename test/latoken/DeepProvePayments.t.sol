@@ -18,6 +18,7 @@ contract DeepProvePaymentsTest is BaseTest {
     address public treasury;
     address public feeCollector;
     address public owner;
+    address public biller;
     address public user1;
     address public user2;
     address public user3;
@@ -26,6 +27,7 @@ contract DeepProvePaymentsTest is BaseTest {
         owner = makeAddr("owner");
         treasury = makeAddr("treasury");
         feeCollector = makeAddr("feeCollector");
+        biller = makeAddr("biller");
         user1 = makeAddr("user1");
         user2 = makeAddr("user2");
         user3 = makeAddr("user3");
@@ -38,8 +40,9 @@ contract DeepProvePaymentsTest is BaseTest {
             new DeepProvePayments(address(laToken), treasury, feeCollector);
 
         // Prepare initializer data
-        bytes memory initData =
-            abi.encodeWithSelector(DeepProvePayments.initialize.selector, owner);
+        bytes memory initData = abi.encodeWithSelector(
+            DeepProvePayments.initialize.selector, owner, biller
+        );
 
         // Deploy proxy
         TransparentUpgradeableProxy proxy = new TransparentUpgradeableProxy(
@@ -96,18 +99,33 @@ contract DeepProvePaymentsTest is BaseTest {
         assertEq(escrow.TREASURY(), treasury);
         assertEq(escrow.FEE_COLLECTOR(), feeCollector);
         assertEq(escrow.owner(), owner);
+        assertEq(escrow.getBiller(), biller);
     }
 
     function test_Initialize_RevertsWhen_CalledAgain() public {
         vm.prank(owner);
         vm.expectRevert(Initializable.InvalidInitialization.selector);
-        escrow.initialize(owner);
+        escrow.initialize(owner, biller);
     }
 
     function test_Initialize_RevertsWhen_CalledOnImplementation() public {
         vm.prank(owner);
         vm.expectRevert(Initializable.InvalidInitialization.selector);
-        implementation.initialize(owner);
+        implementation.initialize(owner, biller);
+    }
+
+    function test_Initialize_RevertsWhen_BillerIsZero() public {
+        DeepProvePayments newImpl =
+            new DeepProvePayments(address(laToken), treasury, feeCollector);
+
+        vm.expectRevert(DeepProvePayments.ZeroAddress.selector);
+        new TransparentUpgradeableProxy(
+            address(newImpl),
+            owner,
+            abi.encodeWithSelector(
+                DeepProvePayments.initialize.selector, owner, address(0)
+            )
+        );
     }
 
     // ------------------------------------------------------------
@@ -117,7 +135,7 @@ contract DeepProvePaymentsTest is BaseTest {
     function test_CreateAgreement_Success() public {
         DeepProvePayments.NewEscrowAgreementParams memory params =
         DeepProvePayments.NewEscrowAgreementParams({
-            paymentAmount: 100 ether,
+            depositAmount: 100 ether,
             rebateAmount: 10 ether,
             durationDays: 30,
             numRebates: 12
@@ -128,8 +146,9 @@ contract DeepProvePaymentsTest is BaseTest {
         emit DeepProvePayments.NewAgreement(
             user1,
             DeepProvePayments.EscrowAgreement({
-                paymentAmount: 100 ether,
+                depositAmount: 100 ether,
                 rebateAmount: 10 ether,
+                balance: 0,
                 durationDays: 30,
                 numRebates: 12,
                 numRebatesClaimed: 0,
@@ -140,7 +159,7 @@ contract DeepProvePaymentsTest is BaseTest {
 
         DeepProvePayments.EscrowAgreement memory agreement =
             escrow.getEscrowAgreement(user1);
-        assertEq(agreement.paymentAmount, 100 ether);
+        assertEq(agreement.depositAmount, 100 ether);
         assertEq(agreement.rebateAmount, 10 ether);
         assertEq(agreement.durationDays, 30);
         assertEq(agreement.numRebates, 12);
@@ -151,7 +170,7 @@ contract DeepProvePaymentsTest is BaseTest {
     function test_CreateAgreement_RevertsWhen_NotOwner() public {
         DeepProvePayments.NewEscrowAgreementParams memory params =
         DeepProvePayments.NewEscrowAgreementParams({
-            paymentAmount: 100 ether,
+            depositAmount: 100 ether,
             rebateAmount: 10 ether,
             durationDays: 30,
             numRebates: 12
@@ -169,7 +188,7 @@ contract DeepProvePaymentsTest is BaseTest {
     function test_CreateAgreement_RevertsWhen_UserIsZeroAddress() public {
         DeepProvePayments.NewEscrowAgreementParams memory params =
         DeepProvePayments.NewEscrowAgreementParams({
-            paymentAmount: 100 ether,
+            depositAmount: 100 ether,
             rebateAmount: 10 ether,
             durationDays: 30,
             numRebates: 12
@@ -180,10 +199,10 @@ contract DeepProvePaymentsTest is BaseTest {
         escrow.createAgreement(address(0), params);
     }
 
-    function test_CreateAgreement_RevertsWhen_PaymentAmountIsZero() public {
+    function test_CreateAgreement_RevertsWhen_DepositAmountIsZero() public {
         DeepProvePayments.NewEscrowAgreementParams memory params =
         DeepProvePayments.NewEscrowAgreementParams({
-            paymentAmount: 0,
+            depositAmount: 0,
             rebateAmount: 10 ether,
             durationDays: 30,
             numRebates: 12
@@ -197,7 +216,7 @@ contract DeepProvePaymentsTest is BaseTest {
     function test_CreateAgreement_RevertsWhen_RebateAmountIsZero() public {
         DeepProvePayments.NewEscrowAgreementParams memory params =
         DeepProvePayments.NewEscrowAgreementParams({
-            paymentAmount: 100 ether,
+            depositAmount: 100 ether,
             rebateAmount: 0,
             durationDays: 30,
             numRebates: 12
@@ -211,7 +230,7 @@ contract DeepProvePaymentsTest is BaseTest {
     function test_CreateAgreement_RevertsWhen_DurationDaysIsZero() public {
         DeepProvePayments.NewEscrowAgreementParams memory params =
         DeepProvePayments.NewEscrowAgreementParams({
-            paymentAmount: 100 ether,
+            depositAmount: 100 ether,
             rebateAmount: 10 ether,
             durationDays: 0,
             numRebates: 12
@@ -225,7 +244,7 @@ contract DeepProvePaymentsTest is BaseTest {
     function test_CreateAgreement_RevertsWhen_NumRebatesIsZero() public {
         DeepProvePayments.NewEscrowAgreementParams memory params =
         DeepProvePayments.NewEscrowAgreementParams({
-            paymentAmount: 100 ether,
+            depositAmount: 100 ether,
             rebateAmount: 10 ether,
             durationDays: 30,
             numRebates: 0
@@ -241,7 +260,7 @@ contract DeepProvePaymentsTest is BaseTest {
 
         DeepProvePayments.NewEscrowAgreementParams memory params =
         DeepProvePayments.NewEscrowAgreementParams({
-            paymentAmount: 100 ether,
+            depositAmount: 100 ether,
             rebateAmount: 10 ether,
             durationDays: 30,
             numRebates: 12
@@ -270,6 +289,7 @@ contract DeepProvePaymentsTest is BaseTest {
         DeepProvePayments.EscrowAgreement memory agreement =
             escrow.getEscrowAgreement(user1);
         assertEq(agreement.activationDate, block.timestamp);
+        assertEq(agreement.balance, 100 ether);
         assertEq(laToken.balanceOf(user1), initialBalance - 100 ether);
         assertEq(
             laToken.balanceOf(address(escrow)),
@@ -363,7 +383,7 @@ contract DeepProvePaymentsTest is BaseTest {
         // Agreement should be deleted
         DeepProvePayments.EscrowAgreement memory agreement =
             escrow.getEscrowAgreement(user1);
-        assertEq(agreement.paymentAmount, 0);
+        assertEq(agreement.depositAmount, 0);
     }
 
     function test_Claim_MultipleClaims_Success() public {
@@ -395,7 +415,7 @@ contract DeepProvePaymentsTest is BaseTest {
         // Agreement should be deleted
         DeepProvePayments.EscrowAgreement memory agreement =
             escrow.getEscrowAgreement(user1);
-        assertEq(agreement.paymentAmount, 0);
+        assertEq(agreement.depositAmount, 0);
 
         assertEq(
             laToken.balanceOf(user1),
@@ -429,10 +449,9 @@ contract DeepProvePaymentsTest is BaseTest {
     function test_Claim_RevertsWhen_TreasuryTransferFails() public {
         _createAndActivateAgreement(user1, 100 ether, 10 ether, 30, 12);
 
-        // Drain contract balance
-        uint256 balance = laToken.balanceOf(address(escrow));
-        vm.prank(treasury);
-        escrow.distribute(balance);
+        // Drain contract balance by charging user
+        vm.prank(biller);
+        escrow.charge(user1, 99 ether);
 
         // Drain treasury balance
         uint256 treasuryBalance = laToken.balanceOf(treasury);
@@ -447,39 +466,140 @@ contract DeepProvePaymentsTest is BaseTest {
     }
 
     // ------------------------------------------------------------
-    //                      DISTRIBUTE TESTS                      |
+    //                      CHARGE TESTS                          |
     // ------------------------------------------------------------
 
-    function test_Distribute_Success() public {
-        uint256 amount = 100 ether;
-        laToken.mint(address(escrow), amount);
-
-        vm.prank(treasury);
-        vm.expectEmit(true, true, true, true);
-        emit DeepProvePayments.Distributed(feeCollector, amount);
-        escrow.distribute(amount);
-
-        assertEq(laToken.balanceOf(feeCollector), amount);
+    function test_GetBiller_Success() public view {
+        assertEq(escrow.getBiller(), biller);
     }
 
-    function test_Distribute_RevertsWhen_NotTreasury() public {
+    function test_SetBiller_Success() public {
+        address newBiller = makeAddr("newBiller");
+
+        vm.prank(owner);
+        escrow.setBiller(newBiller);
+
+        assertEq(escrow.getBiller(), newBiller);
+    }
+
+    function test_SetBiller_RevertsWhen_NotOwner() public {
+        address newBiller = makeAddr("newBiller");
+
         vm.prank(user1);
-        vm.expectRevert(DeepProvePayments.OnlyTreasuryCanDistribute.selector);
-        escrow.distribute(100 ether);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                Ownable.OwnableUnauthorizedAccount.selector, user1
+            )
+        );
+        escrow.setBiller(newBiller);
     }
 
-    function test_Distribute_RevertsWhen_AmountIsZero() public {
-        vm.prank(treasury);
+    function test_SetBiller_RevertsWhen_ZeroAddress() public {
+        vm.prank(owner);
+        vm.expectRevert(DeepProvePayments.ZeroAddress.selector);
+        escrow.setBiller(address(0));
+    }
+
+    // ------------------------------------------------------------
+    //                      CHARGE TESTS                          |
+    // ------------------------------------------------------------
+
+    function test_Charge_Success() public {
+        _createAndActivateAgreement(user1, 100 ether, 10 ether, 30, 12);
+
+        uint88 chargeAmount = 20 ether;
+        uint256 initialFeeCollectorBalance = laToken.balanceOf(feeCollector);
+        uint256 initialContractBalance = laToken.balanceOf(address(escrow));
+
+        vm.prank(biller);
+        vm.expectEmit(true, true, true, true);
+        emit DeepProvePayments.Charged(user1, chargeAmount);
+        escrow.charge(user1, chargeAmount);
+
+        DeepProvePayments.EscrowAgreement memory agreement =
+            escrow.getEscrowAgreement(user1);
+        assertEq(agreement.balance, 100 ether - chargeAmount);
+        assertEq(
+            laToken.balanceOf(feeCollector),
+            initialFeeCollectorBalance + chargeAmount
+        );
+        assertEq(
+            laToken.balanceOf(address(escrow)),
+            initialContractBalance - chargeAmount
+        );
+    }
+
+    function test_Charge_RevertsWhen_NotBiller() public {
+        _createAndActivateAgreement(user1, 100 ether, 10 ether, 30, 12);
+
+        vm.prank(user1);
+        vm.expectRevert(DeepProvePayments.OnlyBillerCanCharge.selector);
+        escrow.charge(user1, 20 ether);
+    }
+
+    function test_Charge_RevertsWhen_AmountIsZero() public {
+        _createAndActivateAgreement(user1, 100 ether, 10 ether, 30, 12);
+
+        vm.prank(biller);
         vm.expectRevert(DeepProvePayments.InvalidAmount.selector);
-        escrow.distribute(0);
+        escrow.charge(user1, 0);
     }
 
-    function test_Distribute_RevertsWhen_TransferFails() public {
-        // Try to distribute more than contract has
-        vm.prank(treasury);
-        uint256 balance = laToken.balanceOf(address(escrow));
-        vm.expectRevert();
-        escrow.distribute(balance + 1);
+    function test_Charge_RevertsWhen_NoAgreementExists() public {
+        vm.prank(biller);
+        vm.expectRevert(DeepProvePayments.InvalidAgreement.selector);
+        escrow.charge(user1, 20 ether);
+    }
+
+    function test_Charge_RevertsWhen_InsufficientBalance() public {
+        _createAndActivateAgreement(user1, 100 ether, 10 ether, 30, 12);
+
+        vm.prank(biller);
+        vm.expectRevert(DeepProvePayments.InsufficientBalance.selector);
+        escrow.charge(user1, 150 ether);
+    }
+
+    function test_Charge_MultipleCharges_Success() public {
+        _createAndActivateAgreement(user1, 100 ether, 10 ether, 30, 12);
+
+        uint256 initialFeeCollectorBalance = laToken.balanceOf(feeCollector);
+
+        // First charge
+        vm.prank(biller);
+        escrow.charge(user1, 30 ether);
+
+        DeepProvePayments.EscrowAgreement memory agreement =
+            escrow.getEscrowAgreement(user1);
+        assertEq(agreement.balance, 70 ether);
+        assertEq(
+            laToken.balanceOf(feeCollector),
+            initialFeeCollectorBalance + 30 ether
+        );
+
+        // Second charge
+        vm.prank(biller);
+        escrow.charge(user1, 20 ether);
+
+        agreement = escrow.getEscrowAgreement(user1);
+        assertEq(agreement.balance, 50 ether);
+        assertEq(
+            laToken.balanceOf(feeCollector),
+            initialFeeCollectorBalance + 50 ether
+        );
+    }
+
+    function test_Charge_RevertsWhen_ContractHasInsufficientTokens() public {
+        _createAndActivateAgreement(user1, 100 ether, 10 ether, 30, 12);
+
+        // Somehow drain contract tokens (e.g., through rebate claims)
+        vm.warp(block.timestamp + 15 days);
+        vm.prank(user1);
+        escrow.claimRebates(); // Claims 60 ether, leaves 40 ether
+
+        // Try to charge more than what's left in contract
+        vm.prank(biller);
+        vm.expectRevert(DeepProvePayments.TransferFailed.selector);
+        escrow.charge(user1, 50 ether);
     }
 
     // ------------------------------------------------------------
@@ -492,7 +612,7 @@ contract DeepProvePaymentsTest is BaseTest {
         // Verify agreement exists
         DeepProvePayments.EscrowAgreement memory agreement =
             escrow.getEscrowAgreement(user1);
-        assertEq(agreement.paymentAmount, 100 ether);
+        assertEq(agreement.depositAmount, 100 ether);
 
         // Cancel agreement
         vm.prank(owner);
@@ -500,7 +620,7 @@ contract DeepProvePaymentsTest is BaseTest {
 
         // Verify agreement is deleted
         agreement = escrow.getEscrowAgreement(user1);
-        assertEq(agreement.paymentAmount, 0);
+        assertEq(agreement.depositAmount, 0);
     }
 
     function test_CancelAgreement_WhenActivated_Success() public {
@@ -509,7 +629,7 @@ contract DeepProvePaymentsTest is BaseTest {
         // Verify agreement exists and is activated
         DeepProvePayments.EscrowAgreement memory agreement =
             escrow.getEscrowAgreement(user1);
-        assertEq(agreement.paymentAmount, 100 ether);
+        assertEq(agreement.depositAmount, 100 ether);
         assertGt(agreement.activationDate, 0);
 
         // Cancel agreement
@@ -518,7 +638,7 @@ contract DeepProvePaymentsTest is BaseTest {
 
         // Verify agreement is deleted
         agreement = escrow.getEscrowAgreement(user1);
-        assertEq(agreement.paymentAmount, 0);
+        assertEq(agreement.depositAmount, 0);
     }
 
     function test_CancelAgreement_WithPendingClaims_Success() public {
@@ -532,7 +652,7 @@ contract DeepProvePaymentsTest is BaseTest {
         // Verify agreement still exists with some claims
         DeepProvePayments.EscrowAgreement memory agreement =
             escrow.getEscrowAgreement(user1);
-        assertEq(agreement.paymentAmount, 100 ether);
+        assertEq(agreement.depositAmount, 100 ether);
         assertGt(agreement.numRebatesClaimed, 0);
 
         // Cancel agreement
@@ -541,7 +661,7 @@ contract DeepProvePaymentsTest is BaseTest {
 
         // Verify agreement is deleted
         agreement = escrow.getEscrowAgreement(user1);
-        assertEq(agreement.paymentAmount, 0);
+        assertEq(agreement.depositAmount, 0);
     }
 
     function test_CancelAgreement_RevertsWhen_NotOwner() public {
@@ -574,12 +694,12 @@ contract DeepProvePaymentsTest is BaseTest {
         // Verify agreement is deleted
         DeepProvePayments.EscrowAgreement memory agreement =
             escrow.getEscrowAgreement(user1);
-        assertEq(agreement.paymentAmount, 0);
+        assertEq(agreement.depositAmount, 0);
 
         // Create new agreement for same user
         DeepProvePayments.NewEscrowAgreementParams memory params =
         DeepProvePayments.NewEscrowAgreementParams({
-            paymentAmount: 150 ether,
+            depositAmount: 150 ether,
             rebateAmount: 15 ether,
             durationDays: 45,
             numRebates: 18
@@ -590,7 +710,7 @@ contract DeepProvePaymentsTest is BaseTest {
 
         // Verify new agreement exists
         agreement = escrow.getEscrowAgreement(user1);
-        assertEq(agreement.paymentAmount, 150 ether);
+        assertEq(agreement.depositAmount, 150 ether);
     }
 
     // ------------------------------------------------------------
@@ -602,7 +722,7 @@ contract DeepProvePaymentsTest is BaseTest {
 
         DeepProvePayments.EscrowAgreement memory agreement =
             escrow.getEscrowAgreement(user1);
-        assertEq(agreement.paymentAmount, 100 ether);
+        assertEq(agreement.depositAmount, 100 ether);
         assertEq(agreement.rebateAmount, 10 ether);
         assertEq(agreement.durationDays, 30);
         assertEq(agreement.numRebates, 12);
@@ -613,7 +733,7 @@ contract DeepProvePaymentsTest is BaseTest {
     function test_GetEscrowAgreement_ReturnsEmptyForNonExistent() public view {
         DeepProvePayments.EscrowAgreement memory agreement =
             escrow.getEscrowAgreement(user1);
-        assertEq(agreement.paymentAmount, 0);
+        assertEq(agreement.depositAmount, 0);
     }
 
     function test_HasClaimableRebates_Success() public {
@@ -678,9 +798,9 @@ contract DeepProvePaymentsTest is BaseTest {
     function test_Claim_WithContractBalanceAndTreasuryTransfer() public {
         _createAndActivateAgreement(user1, 100 ether, 10 ether, 30, 12);
 
-        // Remove most of the contract balance
-        vm.prank(treasury);
-        escrow.distribute(99 ether);
+        // Remove most of the contract balance by charging user
+        vm.prank(biller);
+        escrow.charge(user1, 99 ether);
 
         vm.warp(block.timestamp + 15 days);
         uint256 expectedClaim = 60 ether;
@@ -707,7 +827,7 @@ contract DeepProvePaymentsTest is BaseTest {
         // Agreement should be deleted
         DeepProvePayments.EscrowAgreement memory agreement =
             escrow.getEscrowAgreement(user1);
-        assertEq(agreement.paymentAmount, 0);
+        assertEq(agreement.depositAmount, 0);
     }
 
     // ------------------------------------------------------------
@@ -716,14 +836,14 @@ contract DeepProvePaymentsTest is BaseTest {
 
     function _createAgreementForUser(
         address user,
-        uint88 paymentAmount,
+        uint88 depositAmount,
         uint88 rebateAmount,
         uint16 durationDays,
-        uint16 numRebates
+        uint8 numRebates
     ) internal {
         DeepProvePayments.NewEscrowAgreementParams memory params =
         DeepProvePayments.NewEscrowAgreementParams({
-            paymentAmount: paymentAmount,
+            depositAmount: depositAmount,
             rebateAmount: rebateAmount,
             durationDays: durationDays,
             numRebates: numRebates
@@ -735,13 +855,13 @@ contract DeepProvePaymentsTest is BaseTest {
 
     function _createAndActivateAgreement(
         address user,
-        uint88 paymentAmount,
+        uint88 depositAmount,
         uint88 rebateAmount,
         uint16 durationDays,
-        uint16 numRebates
+        uint8 numRebates
     ) internal {
         _createAgreementForUser(
-            user, paymentAmount, rebateAmount, durationDays, numRebates
+            user, depositAmount, rebateAmount, durationDays, numRebates
         );
         vm.prank(user);
         escrow.activateAgreement();
