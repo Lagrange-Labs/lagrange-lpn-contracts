@@ -250,6 +250,7 @@ contract DeepProvePaymentsTest is BaseTest {
         assertEq(agreement.activationDate, block.timestamp);
         assertEq(agreement.balance, 100 ether);
         assertEq(escrow.getBalance(user1), 100 ether);
+        assertEq(escrow.getEscrowBalance(user1), 100 ether);
         assertEq(laToken.balanceOf(user1), initialBalance - 100 ether);
         assertEq(
             laToken.balanceOf(address(escrow)),
@@ -340,10 +341,12 @@ contract DeepProvePaymentsTest is BaseTest {
 
         assertEq(laToken.balanceOf(user1), initialBalance + expectedClaim);
 
-        // Agreement should be deleted
+        // Agreement should still exist with all rebates claimed
         DeepProvePayments.EscrowAgreement memory agreement =
             escrow.getEscrowAgreement(user1);
-        assertEq(agreement.depositAmountGwei, 0);
+        assertEq(agreement.depositAmountGwei, 100000000000); // Still exists
+        assertEq(agreement.numRebatesClaimed, 12); // All rebates claimed
+        assertFalse(escrow.hasClaimableRebates(user1));
     }
 
     function test_Claim_MultipleClaims_Success() public {
@@ -372,10 +375,11 @@ contract DeepProvePaymentsTest is BaseTest {
         vm.prank(user1);
         escrow.claimRebates();
 
-        // Agreement should be deleted
+        // Agreement should still exist with all rebates claimed
         DeepProvePayments.EscrowAgreement memory agreement =
             escrow.getEscrowAgreement(user1);
-        assertEq(agreement.depositAmountGwei, 0);
+        assertEq(agreement.depositAmountGwei, 100000000000); // Still exists
+        assertEq(agreement.numRebatesClaimed, 12); // All rebates claimed
 
         assertEq(
             laToken.balanceOf(user1),
@@ -501,12 +505,6 @@ contract DeepProvePaymentsTest is BaseTest {
         vm.prank(biller);
         vm.expectRevert(DeepProvePayments.InvalidAmount.selector);
         escrow.charge(user1, 0);
-    }
-
-    function test_Charge_RevertsWhen_NoAgreementExists() public {
-        vm.prank(biller);
-        vm.expectRevert(DeepProvePayments.InvalidAgreement.selector);
-        escrow.charge(user1, 20 ether);
     }
 
     function test_Charge_RevertsWhen_InsufficientBalance() public {
@@ -690,6 +688,8 @@ contract DeepProvePaymentsTest is BaseTest {
         // Check balance before activation
         uint256 balance = escrow.getBalance(user1);
         assertEq(balance, 0);
+        assertEq(escrow.getEscrowBalance(user1), 0);
+        assertEq(escrow.getALaCarteBalance(user1), 0);
 
         // Activate agreement
         vm.startPrank(user1);
@@ -700,6 +700,8 @@ contract DeepProvePaymentsTest is BaseTest {
         // Check balance after activation
         balance = escrow.getBalance(user1);
         assertEq(balance, 100 ether);
+        assertEq(escrow.getEscrowBalance(user1), 100 ether);
+        assertEq(escrow.getALaCarteBalance(user1), 0);
 
         // Charge some amount and check balance
         vm.prank(biller);
@@ -707,6 +709,8 @@ contract DeepProvePaymentsTest is BaseTest {
 
         balance = escrow.getBalance(user1);
         assertEq(balance, 70 ether);
+        assertEq(escrow.getEscrowBalance(user1), 70 ether);
+        assertEq(escrow.getALaCarteBalance(user1), 0);
     }
 
     function test_HasClaimableRebates_Success() public {
@@ -797,10 +801,84 @@ contract DeepProvePaymentsTest is BaseTest {
         vm.prank(user1);
         escrow.claimRebates();
 
-        // Agreement should be deleted
+        // Agreement should still exist with all rebates claimed
         DeepProvePayments.EscrowAgreement memory agreement =
             escrow.getEscrowAgreement(user1);
-        assertEq(agreement.depositAmountGwei, 0);
+        assertEq(agreement.depositAmountGwei, 100000000000); // Still exists
+        assertEq(agreement.numRebatesClaimed, 1); // All rebates claimed
+    }
+
+    // ------------------------------------------------------------
+    //                      USER STRUCT TESTS                     |
+    // ------------------------------------------------------------
+
+    function test_GetALaCarteBalance_Success() public view {
+        assertEq(escrow.getALaCarteBalance(user1), 0);
+    }
+
+    function test_GetEscrowBalance_Success() public {
+        _createAndActivateAgreement(user1, 100 ether, 10 ether, 30, 12);
+
+        assertEq(escrow.getEscrowBalance(user1), 100 ether);
+        assertEq(escrow.getALaCarteBalance(user1), 0);
+        assertEq(escrow.getBalance(user1), 100 ether);
+    }
+
+    function test_Charge_WithOnlyALaCarte_RevertsWhen_NoBalance() public {
+        vm.prank(biller);
+        vm.expectRevert(DeepProvePayments.InsufficientBalance.selector);
+        escrow.charge(user1, 20 ether);
+    }
+
+    function test_GetBalance_ReturnsTotal() public {
+        _createAndActivateAgreement(user1, 100 ether, 10 ether, 30, 12);
+
+        // Without a la carte balance, total balance equals escrow balance
+        assertEq(escrow.getBalance(user1), 100 ether);
+        assertEq(escrow.getEscrowBalance(user1), 100 ether);
+        assertEq(escrow.getALaCarteBalance(user1), 0 ether);
+    }
+
+    function test_IsWhitelisted_Success() public {
+        // Initially not whitelisted
+        assertEq(escrow.isWhitelisted(user1), false);
+
+        // Create and activate agreement
+        _createAndActivateAgreement(user1, 100 ether, 10 ether, 30, 12);
+
+        // Should be whitelisted after activation
+        assertEq(escrow.isWhitelisted(user1), true);
+    }
+
+    function test_SetWhitelisted_Success() public {
+        // Initially not whitelisted
+        assertEq(escrow.isWhitelisted(user1), false);
+
+        // Set to whitelisted
+        vm.prank(owner);
+        escrow.setWhitelisted(user1, true);
+        assertEq(escrow.isWhitelisted(user1), true);
+
+        // Set back to not whitelisted
+        vm.prank(owner);
+        escrow.setWhitelisted(user1, false);
+        assertEq(escrow.isWhitelisted(user1), false);
+    }
+
+    function test_SetWhitelisted_RevertsWhen_NotOwner() public {
+        vm.prank(user1);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                Ownable.OwnableUnauthorizedAccount.selector, user1
+            )
+        );
+        escrow.setWhitelisted(user1, true);
+    }
+
+    function test_SetWhitelisted_RevertsWhen_ZeroAddress() public {
+        vm.prank(owner);
+        vm.expectRevert(DeepProvePayments.ZeroAddress.selector);
+        escrow.setWhitelisted(address(0), true);
     }
 
     // ------------------------------------------------------------
