@@ -882,6 +882,168 @@ contract DeepProvePaymentsTest is BaseTest {
     }
 
     // ------------------------------------------------------------
+    //                        TOP UP TESTS                        |
+    // ------------------------------------------------------------
+
+    function test_TopUp_Success() public {
+        // First whitelist user2
+        vm.prank(owner);
+        escrow.setWhitelisted(user2, true);
+
+        uint88 topUpAmount = 50 ether;
+
+        // Check initial balances
+        assertEq(escrow.getALaCarteBalance(user2), 0);
+        assertEq(laToken.balanceOf(user1), 1000 ether);
+        assertEq(laToken.balanceOf(address(escrow)), 0);
+
+        // Expect TopUp event
+        vm.expectEmit(true, true, false, true);
+        emit DeepProvePayments.TopUp(user1, user2, topUpAmount);
+
+        // user1 tops up user2's account
+        vm.prank(user1);
+        escrow.topUp(user2, topUpAmount);
+
+        // Check balances after top up
+        assertEq(escrow.getALaCarteBalance(user2), topUpAmount);
+        assertEq(escrow.getBalance(user2), topUpAmount);
+        assertEq(laToken.balanceOf(user1), 1000 ether - topUpAmount);
+        assertEq(laToken.balanceOf(address(escrow)), topUpAmount);
+    }
+
+    function test_TopUp_Success_MultipleTopUps() public {
+        // First whitelist user2
+        vm.prank(owner);
+        escrow.setWhitelisted(user2, true);
+
+        uint88 firstTopUp = 30 ether;
+        uint88 secondTopUp = 20 ether;
+
+        // First top up by user1
+        vm.prank(user1);
+        escrow.topUp(user2, firstTopUp);
+        assertEq(escrow.getALaCarteBalance(user2), firstTopUp);
+
+        // Second top up by user3 (different user)
+        vm.prank(user3);
+        escrow.topUp(user2, secondTopUp);
+        assertEq(escrow.getALaCarteBalance(user2), firstTopUp + secondTopUp);
+        assertEq(escrow.getBalance(user2), firstTopUp + secondTopUp);
+    }
+
+    function test_TopUp_Success_WithExistingAgreement() public {
+        // Create and activate agreement for user1
+        _createAndActivateAgreement(user1, 100 ether, 10 ether, 30, 12);
+
+        uint88 topUpAmount = 25 ether;
+        uint88 initialEscrowBalance = 100 ether;
+
+        // Check initial balances
+        assertEq(escrow.getEscrowBalance(user1), initialEscrowBalance);
+        assertEq(escrow.getALaCarteBalance(user1), 0);
+        assertEq(escrow.getBalance(user1), initialEscrowBalance);
+
+        // user2 tops up user1's account (user1 is already whitelisted via agreement)
+        vm.prank(user2);
+        escrow.topUp(user1, topUpAmount);
+
+        // Check balances - escrow balance unchanged, a la carte increased
+        assertEq(escrow.getEscrowBalance(user1), initialEscrowBalance);
+        assertEq(escrow.getALaCarteBalance(user1), topUpAmount);
+        assertEq(escrow.getBalance(user1), initialEscrowBalance + topUpAmount);
+    }
+
+    function test_TopUp_RevertsWhen_UserNotWhitelisted() public {
+        uint88 topUpAmount = 50 ether;
+
+        // user2 is not whitelisted
+        assertEq(escrow.isWhitelisted(user2), false);
+
+        vm.prank(user1);
+        vm.expectRevert(DeepProvePayments.UserNotWhitelisted.selector);
+        escrow.topUp(user2, topUpAmount);
+    }
+
+    function test_TopUp_RevertsWhen_ZeroAddress() public {
+        uint88 topUpAmount = 50 ether;
+
+        vm.prank(user1);
+        vm.expectRevert(DeepProvePayments.ZeroAddress.selector);
+        escrow.topUp(address(0), topUpAmount);
+    }
+
+    function test_TopUp_RevertsWhen_ZeroAmount() public {
+        // First whitelist user2
+        vm.prank(owner);
+        escrow.setWhitelisted(user2, true);
+
+        vm.prank(user1);
+        vm.expectRevert(DeepProvePayments.InvalidAmount.selector);
+        escrow.topUp(user2, 0);
+    }
+
+    function test_TopUp_RevertsWhen_InsufficientBalance() public {
+        // First whitelist user2
+        vm.prank(owner);
+        escrow.setWhitelisted(user2, true);
+
+        uint88 topUpAmount = 2000 ether; // More than user1's balance
+
+        vm.prank(user1);
+        vm.expectRevert(); // ERC20InsufficientBalance error
+        escrow.topUp(user2, topUpAmount);
+    }
+
+    function test_TopUp_RevertsWhen_InsufficientApproval() public {
+        // First whitelist user2
+        vm.prank(owner);
+        escrow.setWhitelisted(user2, true);
+
+        // Create a new user with tokens but no approval
+        address user4 = makeAddr("user4");
+        laToken.mint(user4, 1000 ether);
+
+        uint88 topUpAmount = 50 ether;
+
+        vm.prank(user4);
+        vm.expectRevert(); // ERC20InsufficientAllowance error
+        escrow.topUp(user2, topUpAmount);
+    }
+
+    function test_TopUp_WorksAfterCharging() public {
+        // Create and activate agreement for user1
+        _createAndActivateAgreement(user1, 100 ether, 10 ether, 30, 12);
+
+        // Top up user1's a la carte balance
+        uint88 topUpAmount = 30 ether;
+        vm.prank(user2);
+        escrow.topUp(user1, topUpAmount);
+
+        assertEq(escrow.getEscrowBalance(user1), 100 ether);
+        assertEq(escrow.getALaCarteBalance(user1), topUpAmount);
+        assertEq(escrow.getBalance(user1), 100 ether + topUpAmount);
+
+        // Charge user1 - should use escrow first, then a la carte
+        uint88 chargeAmount = 120 ether;
+        vm.prank(biller);
+        escrow.charge(user1, chargeAmount);
+
+        // Escrow should be depleted, a la carte should have remainder
+        assertEq(escrow.getEscrowBalance(user1), 0);
+        assertEq(escrow.getALaCarteBalance(user1), 10 ether); // 130 - 120 = 10
+        assertEq(escrow.getBalance(user1), 10 ether);
+
+        // Top up again to verify it still works
+        uint88 secondTopUp = 15 ether;
+        vm.prank(user3);
+        escrow.topUp(user1, secondTopUp);
+
+        assertEq(escrow.getALaCarteBalance(user1), 25 ether); // 10 + 15
+        assertEq(escrow.getBalance(user1), 25 ether);
+    }
+
+    // ------------------------------------------------------------
     //                    TEST HELPER FUNCTIONS                   |
     // ------------------------------------------------------------
 
