@@ -25,11 +25,11 @@ contract DeployDeepProvePayments is DeploymentUtils {
             );
         }
 
-        // Get treasury address from environment variable
-        address treasury = vm.envAddress("TREASURY_ADDRESS");
-        if (treasury == address(0)) {
+        // Get guarantor address from environment variable
+        address guarantor = vm.envAddress("GUARANTOR_ADDRESS");
+        if (guarantor == address(0)) {
             revert(
-                "TREASURY_ADDRESS environment variable not set or is zero address"
+                "GUARANTOR_ADDRESS environment variable not set or is zero address"
             );
         }
 
@@ -59,7 +59,7 @@ contract DeployDeepProvePayments is DeploymentUtils {
 
         // Deploy DeepProvePayments implementation
         DeepProvePayments escrowImpl =
-            new DeepProvePayments(laToken, treasury, feeCollector);
+            new DeepProvePayments(laToken, guarantor, feeCollector);
         address escrowImplAddr = address(escrowImpl);
 
         // Deploy proxy and initialize DeepProvePayments
@@ -78,7 +78,7 @@ contract DeployDeepProvePayments is DeploymentUtils {
         console.log("Escrow Proxy: %s", escrowProxy);
         console.log("Escrow Implementation: %s", escrowImplAddr);
         console.log("LA Token: %s", laToken);
-        console.log("Treasury: %s", treasury);
+        console.log("Guarantor: %s", guarantor);
         console.log("Initial Owner: %s", initialOwner);
         console.log("Fee Collector: %s", feeCollector);
         console.log("Biller: %s", biller);

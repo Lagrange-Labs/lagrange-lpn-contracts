@@ -15,7 +15,7 @@ contract DeepProvePaymentsTest is BaseTest {
     DeepProvePayments public implementation;
     DeepProvePayments public escrow;
     TestERC20 public laToken;
-    address public treasury;
+    address public guarantor;
     address public feeCollector;
     address public owner;
     address public biller;
@@ -25,7 +25,7 @@ contract DeepProvePaymentsTest is BaseTest {
 
     function setUp() public {
         owner = makeAddr("owner");
-        treasury = makeAddr("treasury");
+        guarantor = makeAddr("guarantor");
         feeCollector = makeAddr("feeCollector");
         biller = makeAddr("biller");
         user1 = makeAddr("user1");
@@ -37,7 +37,7 @@ contract DeepProvePaymentsTest is BaseTest {
 
         // Deploy DeepProvePayments implementation
         implementation =
-            new DeepProvePayments(address(laToken), treasury, feeCollector);
+            new DeepProvePayments(address(laToken), guarantor, feeCollector);
 
         // Prepare initializer data
         bytes memory initData = abi.encodeWithSelector(
@@ -58,7 +58,7 @@ contract DeepProvePaymentsTest is BaseTest {
         laToken.mint(user1, 1000 ether);
         laToken.mint(user2, 1000 ether);
         laToken.mint(user3, 1000 ether);
-        laToken.mint(treasury, 10000 ether);
+        laToken.mint(guarantor, 10000 ether);
 
         // Approve escrow to spend tokens
         vm.prank(user1);
@@ -67,7 +67,7 @@ contract DeepProvePaymentsTest is BaseTest {
         laToken.approve(address(escrow), type(uint256).max);
         vm.prank(user3);
         laToken.approve(address(escrow), type(uint256).max);
-        vm.prank(treasury);
+        vm.prank(guarantor);
         laToken.approve(address(escrow), type(uint256).max);
     }
 
@@ -81,22 +81,22 @@ contract DeepProvePaymentsTest is BaseTest {
 
     function test_Constructor_RevertsWhen_LaTokenIsZero() public {
         vm.expectRevert(DeepProvePayments.ZeroAddress.selector);
-        new DeepProvePayments(address(0), treasury, feeCollector);
+        new DeepProvePayments(address(0), guarantor, feeCollector);
     }
 
-    function test_Constructor_RevertsWhen_TreasuryIsZero() public {
+    function test_Constructor_RevertsWhen_GuarantorIsZero() public {
         vm.expectRevert(DeepProvePayments.ZeroAddress.selector);
         new DeepProvePayments(address(laToken), address(0), feeCollector);
     }
 
     function test_Constructor_RevertsWhen_FeeCollectorIsZero() public {
         vm.expectRevert(DeepProvePayments.ZeroAddress.selector);
-        new DeepProvePayments(address(laToken), treasury, address(0));
+        new DeepProvePayments(address(laToken), guarantor, address(0));
     }
 
     function test_Initialize_Success() public view {
         assertEq(address(escrow.LA_TOKEN()), address(laToken));
-        assertEq(escrow.TREASURY(), treasury);
+        assertEq(escrow.GUARANTOR(), guarantor);
         assertEq(escrow.FEE_COLLECTOR(), feeCollector);
         assertEq(escrow.owner(), owner);
         assertEq(escrow.getBiller(), biller);
@@ -116,7 +116,7 @@ contract DeepProvePaymentsTest is BaseTest {
 
     function test_Initialize_RevertsWhen_BillerIsZero() public {
         DeepProvePayments newImpl =
-            new DeepProvePayments(address(laToken), treasury, feeCollector);
+            new DeepProvePayments(address(laToken), guarantor, feeCollector);
 
         vm.expectRevert(DeepProvePayments.ZeroAddress.selector);
         new TransparentUpgradeableProxy(
@@ -410,17 +410,17 @@ contract DeepProvePaymentsTest is BaseTest {
         escrow.claimRebates();
     }
 
-    function test_Claim_RevertsWhen_TreasuryTransferFails() public {
+    function test_Claim_RevertsWhen_GuarantorTransferFails() public {
         _createAndActivateAgreement(user1, 100 ether, 10 ether, 30, 12);
 
         // Drain contract balance by charging user
         vm.prank(biller);
         escrow.charge(user1, 99 ether);
 
-        // Drain treasury balance
-        uint256 treasuryBalance = laToken.balanceOf(treasury);
-        vm.prank(treasury);
-        laToken.transfer(address(0xdead), treasuryBalance);
+        // Drain guarantor balance
+        uint256 guarantorBalance = laToken.balanceOf(guarantor);
+        vm.prank(guarantor);
+        laToken.transfer(address(0xdead), guarantorBalance);
 
         vm.warp(block.timestamp + 15 days);
 
@@ -772,7 +772,7 @@ contract DeepProvePaymentsTest is BaseTest {
     //                    EDGE CASE TESTS                         |
     // ------------------------------------------------------------
 
-    function test_Claim_WithContractBalanceAndTreasuryTransfer() public {
+    function test_Claim_WithContractBalanceAndGuarantorTransfer() public {
         _createAndActivateAgreement(user1, 100 ether, 10 ether, 30, 12);
 
         // Remove most of the contract balance by charging user
@@ -787,7 +787,7 @@ contract DeepProvePaymentsTest is BaseTest {
 
         uint256 initialBalance = laToken.balanceOf(user1);
 
-        // Should use contract balance first, then treasury
+        // Should use contract balance first, then guarantor
         vm.prank(user1);
         escrow.claimRebates();
         assertEq(laToken.balanceOf(user1), initialBalance + expectedClaim);

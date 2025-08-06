@@ -22,9 +22,9 @@ contract DeepProvePayments is
     using SafeCast for uint256;
 
     struct User {
-        bool isWhitelisted;
-        uint88 aLaCarteBalance;
-        EscrowAgreement escrowAgreement;
+        bool isWhitelisted; // Whether the user is approved to use DeepProve or not
+        uint88 aLaCarteBalance; // Amount of LA tokens the user can use for a la carte charges
+        EscrowAgreement escrowAgreement; // The escrow agreement for the user (if any)
     }
 
     struct EscrowAgreement {
@@ -58,7 +58,7 @@ contract DeepProvePayments is
     string public constant VERSION = "1.0.0";
 
     IERC20 public immutable LA_TOKEN;
-    address public immutable TREASURY; // TODO: rename "Guarantor"
+    address public immutable GUARANTOR;
     address public immutable FEE_COLLECTOR;
 
     mapping(address => User) private s_users;
@@ -66,15 +66,15 @@ contract DeepProvePayments is
 
     /// @notice Creates a new DeepProvePayments contract
     /// @param laToken The address of the LA token contract
-    /// @param treasury The address of the treasury contract
+    /// @param guarantor The address of the entity that guarantees the availability of LA tokens for rebate payments
     /// @param feeCollector The address of the fee collector contract
-    constructor(address laToken, address treasury, address feeCollector) {
+    constructor(address laToken, address guarantor, address feeCollector) {
         if (laToken == address(0)) revert ZeroAddress();
-        if (treasury == address(0)) revert ZeroAddress();
+        if (guarantor == address(0)) revert ZeroAddress();
         if (feeCollector == address(0)) revert ZeroAddress();
 
         LA_TOKEN = IERC20(laToken);
-        TREASURY = treasury;
+        GUARANTOR = guarantor;
         FEE_COLLECTOR = feeCollector;
 
         _disableInitializers();
@@ -184,12 +184,12 @@ contract DeepProvePayments is
         s_users[msg.sender].escrowAgreement.numRebatesClaimed =
             agreement.numRebatesClaimed + numClaimableRebates;
 
-        // If the contract's $LA balance is too low, transfer from treasury first
+        // If the contract's $LA balance is too low, transfer from guarantor first
         uint256 contractBalance = LA_TOKEN.balanceOf(address(this));
         if (contractBalance < totalClaimable) {
             if (
                 !LA_TOKEN.transferFrom(
-                    TREASURY, address(this), totalClaimable - contractBalance
+                    GUARANTOR, address(this), totalClaimable - contractBalance
                 )
             ) revert TransferFailed();
         }
