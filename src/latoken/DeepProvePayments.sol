@@ -41,6 +41,7 @@ contract DeepProvePayments is
     event AgreementActivated(address indexed user);
     event NewAgreement(address indexed user, EscrowAgreement agreement);
     event RebateClaimed(address indexed user, uint256 amount);
+    event TopUp(address indexed from, address indexed to, uint256 amount);
 
     error AgreementAlreadyActivated();
     error AgreementAlreadyExists();
@@ -51,6 +52,7 @@ contract DeepProvePayments is
     error NoClaimableRebates();
     error OnlyBillerCanCharge();
     error TransferFailed();
+    error UserNotWhitelisted();
     error ZeroAddress();
 
     string public constant VERSION = "1.0.0";
@@ -232,6 +234,26 @@ contract DeepProvePayments is
         }
 
         emit Charged(user, uint256(amount));
+    }
+
+    /// @notice Allows any user to top up the a la carte balance of a whitelisted user
+    /// @param user The address of the whitelisted user to top up
+    /// @param amount The amount of LA tokens to top up (in wei)
+    /// @dev The recipient user must be whitelisted. The caller must have sufficient LA token balance and approval
+    function topUp(address user, uint88 amount) external {
+        if (user == address(0)) revert ZeroAddress();
+        if (amount == 0) revert InvalidAmount();
+        if (!s_users[user].isWhitelisted) revert UserNotWhitelisted();
+
+        // Transfer LA tokens from caller to contract
+        if (!LA_TOKEN.transferFrom(msg.sender, address(this), amount)) {
+            revert TransferFailed();
+        }
+
+        // Increase the user's a la carte balance
+        s_users[user].aLaCarteBalance += amount;
+
+        emit TopUp(msg.sender, user, amount);
     }
 
     /// @notice Cancels an escrow agreement for a given address
