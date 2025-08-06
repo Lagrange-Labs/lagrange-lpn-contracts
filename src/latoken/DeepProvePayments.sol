@@ -21,6 +21,12 @@ contract DeepProvePayments is
 {
     using SafeCast for uint256;
 
+    struct User {
+        bool isWhitelisted;
+        uint88 aLaCarteBalance;
+        EscrowAgreement escrowAgreement;
+    }
+
     struct EscrowAgreement {
         uint56 depositAmountGwei; // Amount of LA tokens deposited by the user (max value is 72M LA)
         uint48 rebateAmountGwei; // Amount of LA tokens the user is eligible to claim as rebate, per claim (max value is 281K LA)
@@ -53,7 +59,7 @@ contract DeepProvePayments is
     address public immutable TREASURY; // TODO: rename "Guarantor"
     address public immutable FEE_COLLECTOR;
 
-    mapping(address => EscrowAgreement) private s_agreements;
+    mapping(address => User) private s_users;
     address private s_biller;
 
     /// @notice Creates a new DeepProvePayments contract
@@ -109,7 +115,7 @@ contract DeepProvePayments is
         if (durationDays == 0) revert InvalidConfig();
         if (numRebates == 0) revert InvalidConfig();
 
-        if (s_agreements[user].activationDate != 0) {
+        if (s_users[user].escrowAgreement.activationDate != 0) {
             revert AgreementAlreadyExists();
         }
 
@@ -123,7 +129,8 @@ contract DeepProvePayments is
             activationDate: 0
         });
 
-        s_agreements[user] = agreement;
+        s_users[user].escrowAgreement = agreement;
+        s_users[user].isWhitelisted = true; // creating a new agreement automatically whitelists the user
 
         emit NewAgreement(user, agreement);
     }
@@ -132,7 +139,7 @@ contract DeepProvePayments is
     /// @dev This function can only be called once per agreement. The caller must have approved the contract to spend their LA tokens.
     /// @dev Reverts if no agreement exists for the caller or if the agreement has already been activated.
     function activateAgreement() external {
-        EscrowAgreement memory agreement = s_agreements[msg.sender];
+        EscrowAgreement memory agreement = s_users[msg.sender].escrowAgreement;
         if (agreement.depositAmountGwei == 0) {
             revert InvalidAgreement();
         }
@@ -141,9 +148,11 @@ contract DeepProvePayments is
             revert AgreementAlreadyActivated();
         }
 
-        s_agreements[msg.sender].balance =
+        agreement.balance =
             (uint256(agreement.depositAmountGwei) * 1e9).toUint88();
-        s_agreements[msg.sender].activationDate = uint32(block.timestamp);
+        agreement.activationDate = uint32(block.timestamp);
+        s_users[msg.sender].escrowAgreement = agreement;
+        s_users[msg.sender].isWhitelisted = true;
 
         // Transfer LA tokens from user
         if (
@@ -162,20 +171,16 @@ contract DeepProvePayments is
     /// @notice Claims all available rebates for the caller
     // slither-disable-next-line arbitrary-send-erc20
     function claimRebates() external {
-        EscrowAgreement memory agreement = s_agreements[msg.sender];
+        EscrowAgreement memory agreement = s_users[msg.sender].escrowAgreement;
         if (agreement.activationDate == 0) revert InvalidAgreement();
 
-        (bool isLastClaim, uint256 totalClaimable, uint8 numClaimableRebates) =
+        (uint256 totalClaimable, uint8 numClaimableRebates) =
             _processClaim(agreement);
 
         if (numClaimableRebates == 0) revert NoClaimableRebates();
 
-        if (isLastClaim) {
-            delete s_agreements[msg.sender];
-        } else {
-            s_agreements[msg.sender].numRebatesClaimed =
-                agreement.numRebatesClaimed + numClaimableRebates;
-        }
+        s_users[msg.sender].escrowAgreement.numRebatesClaimed =
+            agreement.numRebatesClaimed + numClaimableRebates;
 
         // If the contract's $LA balance is too low, transfer from treasury first
         uint256 contractBalance = LA_TOKEN.balanceOf(address(this));
@@ -198,20 +203,31 @@ contract DeepProvePayments is
     /// @notice Charges a user for a specific amount of LA tokens
     /// @param user The address of the user to charge
     /// @param amount The amount of LA tokens to charge
+    /// @dev Charges against escrow balance first, then a la carte balance
     function charge(address user, uint88 amount) external {
         if (msg.sender != s_biller) revert OnlyBillerCanCharge();
         if (amount == 0) revert InvalidAmount();
 
-        EscrowAgreement memory agreement = s_agreements[user];
-        if (agreement.depositAmountGwei == 0) revert InvalidAgreement();
+        User memory userStruct = s_users[user];
+        uint256 totalBalance = uint256(userStruct.escrowAgreement.balance)
+            + uint256(userStruct.aLaCarteBalance);
 
-        if (agreement.balance < amount) revert InsufficientBalance();
+        if (totalBalance < amount) revert InsufficientBalance();
 
-        agreement.balance -= amount;
-        s_agreements[user] = agreement;
+        // First, charge against escrow balance
+        if (userStruct.escrowAgreement.balance >= amount) {
+            userStruct.escrowAgreement.balance -= amount;
+        } else {
+            // Charge remaining from a la carte balance
+            userStruct.aLaCarteBalance = userStruct.aLaCarteBalance
+                - (amount - userStruct.escrowAgreement.balance);
+            userStruct.escrowAgreement.balance = 0;
+        }
 
-        // Transfer tokens to fee collector
-        if (!LA_TOKEN.transfer(FEE_COLLECTOR, uint256(amount))) {
+        s_users[user] = userStruct; // update balances
+
+        // Transfer tokens to fee collector from contract
+        if (!LA_TOKEN.transfer(FEE_COLLECTOR, amount)) {
             revert TransferFailed();
         }
 
@@ -222,9 +238,9 @@ contract DeepProvePayments is
     /// @param user The address of the user to cancel the agreement for
     /// @dev This cancels the user's future rebate claims
     function cancelAgreement(address user) external onlyOwner {
-        EscrowAgreement memory agreement = s_agreements[user];
+        EscrowAgreement memory agreement = s_users[user].escrowAgreement;
         if (agreement.depositAmountGwei == 0) revert InvalidAgreement();
-        delete s_agreements[user];
+        delete s_users[user].escrowAgreement;
     }
 
     /// @notice Gets the biller address
@@ -233,8 +249,45 @@ contract DeepProvePayments is
         return s_biller;
     }
 
+    /// @notice Gets the total balance for a user (escrow + a la carte)
+    /// @param user The address of the user to check
+    /// @return uint256 The total balance for the user
     function getBalance(address user) external view returns (uint256) {
-        return s_agreements[user].balance;
+        User memory userStruct = s_users[user];
+        return uint256(userStruct.escrowAgreement.balance)
+            + uint256(userStruct.aLaCarteBalance);
+    }
+
+    /// @notice Gets the escrow balance for a user
+    /// @param user The address of the user to check
+    /// @return uint88 The escrow balance for the user
+    function getEscrowBalance(address user) external view returns (uint88) {
+        return s_users[user].escrowAgreement.balance;
+    }
+
+    /// @notice Gets the a la carte balance for a user
+    /// @param user The address of the user to check
+    /// @return uint88 The a la carte balance for the user
+    function getALaCarteBalance(address user) external view returns (uint88) {
+        return s_users[user].aLaCarteBalance;
+    }
+
+    /// @notice Gets the whitelisted status for a user
+    /// @param user The address of the user to check
+    /// @return bool True if the user is whitelisted
+    function isWhitelisted(address user) external view returns (bool) {
+        return s_users[user].isWhitelisted;
+    }
+
+    /// @notice Sets the whitelisted status for a user (owner only)
+    /// @param user The address of the user to set status for
+    /// @param whitelisted The new whitelisted status
+    function setWhitelisted(address user, bool whitelisted)
+        external
+        onlyOwner
+    {
+        if (user == address(0)) revert ZeroAddress();
+        s_users[user].isWhitelisted = whitelisted;
     }
 
     /// @notice Sets the biller address (owner only)
@@ -244,15 +297,12 @@ contract DeepProvePayments is
         s_biller = newBiller;
     }
 
-    /// @notice Gets the stakes for a user
-    /// @param user The address of the user to check
-    /// @return EscrowAgreement The agreement for the user
     function getEscrowAgreement(address user)
         public
         view
         returns (EscrowAgreement memory)
     {
-        return s_agreements[user];
+        return s_users[user].escrowAgreement;
     }
 
     /// @notice Checks if a user has any stakes available to claim
@@ -272,10 +322,10 @@ contract DeepProvePayments is
         view
         returns (uint256)
     {
-        EscrowAgreement memory agreement = s_agreements[user];
+        EscrowAgreement memory agreement = s_users[user].escrowAgreement;
         if (agreement.activationDate == 0) return 0;
 
-        (, uint256 totalClaimable,) = _processClaim(agreement);
+        (uint256 totalClaimable,) = _processClaim(agreement);
 
         return totalClaimable;
     }
@@ -290,7 +340,7 @@ contract DeepProvePayments is
         view
         returns (uint256)
     {
-        EscrowAgreement memory agreement = s_agreements[user];
+        EscrowAgreement memory agreement = s_users[user].escrowAgreement;
 
         uint256 agreementDuration = uint256(agreement.durationDays) * 1 days;
 
@@ -312,7 +362,6 @@ contract DeepProvePayments is
 
     /// @notice Processes a claim calculation for an escrow agreement
     /// @param agreement The escrow agreement to process
-    /// @return isLastClaim True if this is the final claim for the agreement
     /// @return totalClaimable The total amount of LA tokens that can be claimed
     /// @return numClaimableRebates The number of rebates that can be claimed
     /// @dev This function calculates the claimable amount based on the time elapsed since activation
@@ -320,7 +369,7 @@ contract DeepProvePayments is
     function _processClaim(EscrowAgreement memory agreement)
         private
         view
-        returns (bool, uint256, uint8)
+        returns (uint256, uint8)
     {
         bool isLastClaim = agreement.activationDate
             + uint256(agreement.durationDays) * 1 days <= block.timestamp;
@@ -337,6 +386,6 @@ contract DeepProvePayments is
         uint256 totalClaimable =
             numClaimableRebates * uint256(agreement.rebateAmountGwei) * 1e9;
 
-        return (isLastClaim, totalClaimable, uint8(numClaimableRebates));
+        return (totalClaimable, uint8(numClaimableRebates));
     }
 }
