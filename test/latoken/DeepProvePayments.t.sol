@@ -249,6 +249,7 @@ contract DeepProvePaymentsTest is BaseTest {
             escrow.getEscrowAgreement(user1);
         assertEq(agreement.activationDate, block.timestamp);
         assertEq(agreement.balance, 100 ether);
+        assertEq(escrow.getBalance(user1), 100 ether);
         assertEq(laToken.balanceOf(user1), initialBalance - 100 ether);
         assertEq(
             laToken.balanceOf(address(escrow)),
@@ -475,9 +476,7 @@ contract DeepProvePaymentsTest is BaseTest {
         emit DeepProvePayments.Charged(user1, chargeAmount);
         escrow.charge(user1, chargeAmount);
 
-        DeepProvePayments.EscrowAgreement memory agreement =
-            escrow.getEscrowAgreement(user1);
-        assertEq(agreement.balance, 100 ether - chargeAmount);
+        assertEq(escrow.getBalance(user1), 100 ether - chargeAmount);
         assertEq(
             laToken.balanceOf(feeCollector),
             initialFeeCollectorBalance + chargeAmount
@@ -527,9 +526,7 @@ contract DeepProvePaymentsTest is BaseTest {
         vm.prank(biller);
         escrow.charge(user1, 30 ether);
 
-        DeepProvePayments.EscrowAgreement memory agreement =
-            escrow.getEscrowAgreement(user1);
-        assertEq(agreement.balance, 70 ether);
+        assertEq(escrow.getBalance(user1), 70 ether);
         assertEq(
             laToken.balanceOf(feeCollector),
             initialFeeCollectorBalance + 30 ether
@@ -539,8 +536,7 @@ contract DeepProvePaymentsTest is BaseTest {
         vm.prank(biller);
         escrow.charge(user1, 20 ether);
 
-        agreement = escrow.getEscrowAgreement(user1);
-        assertEq(agreement.balance, 50 ether);
+        assertEq(escrow.getBalance(user1), 50 ether);
         assertEq(
             laToken.balanceOf(feeCollector),
             initialFeeCollectorBalance + 50 ether
@@ -685,6 +681,32 @@ contract DeepProvePaymentsTest is BaseTest {
         DeepProvePayments.EscrowAgreement memory agreement =
             escrow.getEscrowAgreement(user1);
         assertEq(agreement.depositAmountGwei, 0);
+    }
+
+    function test_GetBalance_Success() public {
+        // Create an agreement for user1
+        _createAgreementForUser(user1, 100 ether, 10 ether, 30, 12);
+
+        // Check balance before activation
+        uint256 balance = escrow.getBalance(user1);
+        assertEq(balance, 0);
+
+        // Activate agreement
+        vm.startPrank(user1);
+        laToken.approve(address(escrow), 100 ether);
+        escrow.activateAgreement();
+        vm.stopPrank();
+
+        // Check balance after activation
+        balance = escrow.getBalance(user1);
+        assertEq(balance, 100 ether);
+
+        // Charge some amount and check balance
+        vm.prank(biller);
+        escrow.charge(user1, 30 ether);
+
+        balance = escrow.getBalance(user1);
+        assertEq(balance, 70 ether);
     }
 
     function test_HasClaimableRebates_Success() public {

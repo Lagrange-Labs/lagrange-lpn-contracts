@@ -233,6 +233,10 @@ contract DeepProvePayments is
         return s_biller;
     }
 
+    function getBalance(address user) external view returns (uint256) {
+        return s_agreements[user].balance;
+    }
+
     /// @notice Sets the biller address (owner only)
     /// @param newBiller The new biller address
     function setBiller(address newBiller) external onlyOwner {
