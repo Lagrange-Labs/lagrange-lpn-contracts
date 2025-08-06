@@ -5,6 +5,7 @@ import {Initializable} from
     "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {Ownable2StepUpgradeable} from
     "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
+import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IVersioned} from "../interfaces/IVersioned.sol";
@@ -18,19 +19,14 @@ contract DeepProvePayments is
     Ownable2StepUpgradeable,
     IVersioned
 {
-    struct NewEscrowAgreementParams {
-        uint88 depositAmount; // Amount of LA tokens deposited by the user, max of 2^88 - 1 is approx 300M LA
-        uint88 rebateAmount; // Amount of LA tokens the user is eligible to claim as rebate, per claim
-        uint16 durationDays; // Number of days that the user can claim regular rebates during
-        uint8 numRebates; // Number of rebates the user is eligible to claim over the rebate period
-    }
+    using SafeCast for uint256;
 
     struct EscrowAgreement {
-        uint88 depositAmount; // See NewAgreementParams
-        uint88 rebateAmount; // See NewAgreementParams
-        uint88 balance; // Current balance available for charges
-        uint16 durationDays; // See NewAgreementParams
-        uint8 numRebates; // See NewAgreementParams
+        uint56 depositAmountGwei; // Amount of LA tokens deposited by the user (max value is 72M LA)
+        uint48 rebateAmountGwei; // Amount of LA tokens the user is eligible to claim as rebate, per claim (max value is 281K LA)
+        uint88 balance; // Current balance available for charges (max value is 300M LA)
+        uint16 durationDays; // Number of days that the user can claim regular rebates during
+        uint8 numRebates; // Number of rebates the user is eligible to claim over the rebate period
         uint8 numRebatesClaimed; // Number of rebates claimed for this agreement
         uint32 activationDate; // Date when the user deposits their LA tokens
     }
@@ -90,27 +86,39 @@ contract DeepProvePayments is
 
     /// @notice Creates a new EscrowAgreement for a given address (owner only)
     /// @param user The address to create the agreement for
-    /// @param params The params for the new agreement
+    /// @param depositAmount The amount of LA tokens to deposit
+    /// @param rebateAmount The amount of LA tokens to claim as rebate
+    /// @param durationDays The number of days that the user can claim regular rebates during
+    /// @param numRebates The number of rebates the user is eligible to claim over the rebate period
+    /// @dev The depositAmount and rebateAmounts are provided in wei, but must be divisible by 10**9 for storage as gwei
     function createAgreement(
         address user,
-        NewEscrowAgreementParams calldata params
+        uint256 depositAmount,
+        uint256 rebateAmount,
+        uint16 durationDays,
+        uint8 numRebates
     ) external onlyOwner {
         if (user == address(0)) revert ZeroAddress();
-        if (params.depositAmount == 0) revert InvalidAmount();
-        if (params.rebateAmount == 0) revert InvalidAmount();
-        if (params.durationDays == 0) revert InvalidConfig();
-        if (params.numRebates == 0) revert InvalidConfig();
+
+        if (depositAmount == 0) revert InvalidAmount();
+        if (depositAmount % 1e9 != 0) revert InvalidAmount();
+
+        if (rebateAmount == 0) revert InvalidAmount();
+        if (rebateAmount % 1e9 != 0) revert InvalidAmount();
+
+        if (durationDays == 0) revert InvalidConfig();
+        if (numRebates == 0) revert InvalidConfig();
 
         if (s_agreements[user].activationDate != 0) {
             revert AgreementAlreadyExists();
         }
 
         EscrowAgreement memory agreement = EscrowAgreement({
-            depositAmount: params.depositAmount,
-            rebateAmount: params.rebateAmount,
+            depositAmountGwei: (depositAmount / 1e9).toUint56(),
+            rebateAmountGwei: (rebateAmount / 1e9).toUint48(),
             balance: 0,
-            durationDays: params.durationDays,
-            numRebates: params.numRebates,
+            durationDays: durationDays,
+            numRebates: numRebates,
             numRebatesClaimed: 0,
             activationDate: 0
         });
@@ -125,7 +133,7 @@ contract DeepProvePayments is
     /// @dev Reverts if no agreement exists for the caller or if the agreement has already been activated.
     function activateAgreement() external {
         EscrowAgreement memory agreement = s_agreements[msg.sender];
-        if (agreement.depositAmount == 0) {
+        if (agreement.depositAmountGwei == 0) {
             revert InvalidAgreement();
         }
 
@@ -133,13 +141,16 @@ contract DeepProvePayments is
             revert AgreementAlreadyActivated();
         }
 
-        s_agreements[msg.sender].balance = agreement.depositAmount;
+        s_agreements[msg.sender].balance =
+            (uint256(agreement.depositAmountGwei) * 1e9).toUint88();
         s_agreements[msg.sender].activationDate = uint32(block.timestamp);
 
         // Transfer LA tokens from user
         if (
             !LA_TOKEN.transferFrom(
-                msg.sender, address(this), uint256(agreement.depositAmount)
+                msg.sender,
+                address(this),
+                uint256(agreement.depositAmountGwei) * 1e9
             )
         ) {
             revert TransferFailed();
@@ -192,7 +203,7 @@ contract DeepProvePayments is
         if (amount == 0) revert InvalidAmount();
 
         EscrowAgreement memory agreement = s_agreements[user];
-        if (agreement.depositAmount == 0) revert InvalidAgreement();
+        if (agreement.depositAmountGwei == 0) revert InvalidAgreement();
 
         if (agreement.balance < amount) revert InsufficientBalance();
 
@@ -212,7 +223,7 @@ contract DeepProvePayments is
     /// @dev This cancels the user's future rebate claims
     function cancelAgreement(address user) external onlyOwner {
         EscrowAgreement memory agreement = s_agreements[user];
-        if (agreement.depositAmount == 0) revert InvalidAgreement();
+        if (agreement.depositAmountGwei == 0) revert InvalidAgreement();
         delete s_agreements[user];
     }
 
@@ -319,7 +330,8 @@ contract DeepProvePayments is
                 ) / (uint256(agreement.durationDays) * 1 days)
             ) - agreement.numRebatesClaimed;
 
-        uint256 totalClaimable = numClaimableRebates * agreement.rebateAmount;
+        uint256 totalClaimable =
+            numClaimableRebates * uint256(agreement.rebateAmountGwei) * 1e9;
 
         return (isLastClaim, totalClaimable, uint8(numClaimableRebates));
     }
