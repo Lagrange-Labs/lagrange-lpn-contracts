@@ -4,6 +4,7 @@
     "compiler-version": [
       "warn",
       "^0.8.24"
-    ]
+    ],
+    "use-natspec": "warn"
   }
 }
