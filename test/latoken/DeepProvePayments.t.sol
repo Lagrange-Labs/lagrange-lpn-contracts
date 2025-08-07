@@ -210,7 +210,7 @@ contract DeepProvePaymentsTest is BaseTest {
         _createAndActivateAgreement(user1, 100 ether, 10 ether, 30, 12);
 
         vm.prank(owner);
-        vm.expectRevert(DeepProvePayments.AgreementAlreadyExists.selector);
+        vm.expectRevert(DeepProvePayments.AgreementAlreadyActivated.selector);
         escrow.createAgreement(user1, 100 ether, 10 ether, 30, 12);
     }
 
@@ -567,6 +567,10 @@ contract DeepProvePaymentsTest is BaseTest {
             escrow.getEscrowAgreement(user1);
         assertEq(agreement.depositAmountGwei, 100000000000); // 100 ether in gwei
 
+        // Expect AgreementCancelled event
+        vm.expectEmit(true, false, false, false);
+        emit DeepProvePayments.AgreementCancelled(user1);
+
         // Cancel agreement
         vm.prank(owner);
         escrow.cancelAgreement(user1);
@@ -579,11 +583,25 @@ contract DeepProvePaymentsTest is BaseTest {
     function test_CancelAgreement_WhenActivated_Success() public {
         _createAndActivateAgreement(user1, 100 ether, 10 ether, 30, 12);
 
+        // Add a la carte balance to user1
+        vm.prank(user1);
+        escrow.topUp(user1, 42 ether);
+
         // Verify agreement exists and is activated
         DeepProvePayments.EscrowAgreement memory agreement =
             escrow.getEscrowAgreement(user1);
         assertEq(agreement.depositAmountGwei, 100000000000); // 100 ether in gwei
         assertGt(agreement.activationDate, 0);
+
+        // Record initial balances
+        uint256 initialFeeCollectorBalance = laToken.balanceOf(feeCollector);
+        uint256 initialContractBalance = laToken.balanceOf(address(escrow));
+        uint88 escrowBalance = escrow.getEscrowBalance(user1);
+        uint88 aLaCarteBalance = escrow.getALaCarteBalance(user1);
+
+        // Expect AgreementCancelled event
+        vm.expectEmit(true, false, false, false);
+        emit DeepProvePayments.AgreementCancelled(user1);
 
         // Cancel agreement
         vm.prank(owner);
@@ -592,12 +610,25 @@ contract DeepProvePaymentsTest is BaseTest {
         // Verify agreement is deleted
         agreement = escrow.getEscrowAgreement(user1);
         assertEq(agreement.depositAmountGwei, 0);
+
+        // Verify fund recovery - escrow balance transferred to fee collector
+        assertEq(
+            laToken.balanceOf(feeCollector),
+            initialFeeCollectorBalance + escrowBalance
+        );
+        assertEq(
+            laToken.balanceOf(address(escrow)),
+            initialContractBalance - escrowBalance
+        );
+
+        // Verify a la carte balance is unchanged
+        assertEq(escrow.getALaCarteBalance(user1), aLaCarteBalance);
     }
 
     function test_CancelAgreement_WithPendingClaims_Success() public {
         _createAndActivateAgreement(user1, 100 ether, 10 ether, 30, 12);
 
-        // Advance time and claim some rebates
+        // Advance time and claim some rebates (this pays out additional funds but doesn't reduce escrow balance)
         vm.warp(block.timestamp + 15 days);
         vm.prank(user1);
         escrow.claimRebates();
@@ -608,6 +639,28 @@ contract DeepProvePaymentsTest is BaseTest {
         assertEq(agreement.depositAmountGwei, 100000000000); // 100 ether in gwei
         assertGt(agreement.numRebatesClaimed, 0);
 
+        // Record balances before cancellation
+        uint256 initialFeeCollectorBalance = laToken.balanceOf(feeCollector);
+        uint256 initialContractBalance = laToken.balanceOf(address(escrow));
+        uint88 escrowBalance = escrow.getEscrowBalance(user1);
+
+        // Note: escrow balance should still be 100 ETH because rebates don't reduce escrow
+        assertEq(escrowBalance, 100 ether);
+
+        // But the contract might not have enough balance due to rebate payouts
+        // So let's ensure the guarantor has enough funds for the transfer
+        if (initialContractBalance < escrowBalance) {
+            // Mint additional tokens to guarantor to cover the shortfall
+            uint256 shortfall = escrowBalance - initialContractBalance;
+            laToken.mint(guarantor, shortfall);
+            vm.prank(guarantor);
+            laToken.transfer(address(escrow), shortfall);
+        }
+
+        // Expect AgreementCancelled event
+        vm.expectEmit(true, false, false, false);
+        emit DeepProvePayments.AgreementCancelled(user1);
+
         // Cancel agreement
         vm.prank(owner);
         escrow.cancelAgreement(user1);
@@ -615,6 +668,12 @@ contract DeepProvePaymentsTest is BaseTest {
         // Verify agreement is deleted
         agreement = escrow.getEscrowAgreement(user1);
         assertEq(agreement.depositAmountGwei, 0);
+
+        // Verify fund recovery - escrow balance transferred to fee collector
+        assertEq(
+            laToken.balanceOf(feeCollector),
+            initialFeeCollectorBalance + escrowBalance
+        );
     }
 
     function test_CancelAgreement_RevertsWhen_NotOwner() public {
@@ -656,6 +715,97 @@ contract DeepProvePaymentsTest is BaseTest {
         // Verify new agreement exists
         agreement = escrow.getEscrowAgreement(user1);
         assertEq(agreement.depositAmountGwei, 150000000000); // 150 ether in gwei
+    }
+
+    function test_CancelAgreement_WithZeroBalance_Success() public {
+        _createAndActivateAgreement(user1, 100 ether, 10 ether, 30, 12);
+
+        // Charge user's full escrow balance
+        vm.prank(biller);
+        escrow.charge(user1, 100 ether);
+
+        // Verify escrow balance is zero
+        assertEq(escrow.getEscrowBalance(user1), 0);
+
+        // Record initial balances
+        uint256 initialFeeCollectorBalance = laToken.balanceOf(feeCollector);
+        uint256 initialContractBalance = laToken.balanceOf(address(escrow));
+
+        // Expect AgreementCancelled event
+        vm.expectEmit(true, false, false, false);
+        emit DeepProvePayments.AgreementCancelled(user1);
+
+        // Cancel agreement
+        vm.prank(owner);
+        escrow.cancelAgreement(user1);
+
+        // Verify agreement is deleted
+        DeepProvePayments.EscrowAgreement memory agreement =
+            escrow.getEscrowAgreement(user1);
+        assertEq(agreement.depositAmountGwei, 0);
+
+        // Verify no tokens transferred since balance was zero
+        assertEq(laToken.balanceOf(feeCollector), initialFeeCollectorBalance);
+        assertEq(laToken.balanceOf(address(escrow)), initialContractBalance);
+    }
+
+    function test_CancelAgreement_WithPartialBalance_AfterCharges_Success()
+        public
+    {
+        _createAndActivateAgreement(user1, 100 ether, 10 ether, 30, 12);
+
+        // Charge user partially
+        vm.prank(biller);
+        escrow.charge(user1, 30 ether);
+
+        // Verify remaining escrow balance
+        uint88 remainingBalance = escrow.getEscrowBalance(user1);
+        assertEq(remainingBalance, 70 ether);
+
+        // Record initial balances
+        uint256 initialFeeCollectorBalance = laToken.balanceOf(feeCollector);
+        uint256 initialContractBalance = laToken.balanceOf(address(escrow));
+
+        // Expect AgreementCancelled event
+        vm.expectEmit(true, false, false, false);
+        emit DeepProvePayments.AgreementCancelled(user1);
+
+        // Cancel agreement
+        vm.prank(owner);
+        escrow.cancelAgreement(user1);
+
+        // Verify agreement is deleted
+        DeepProvePayments.EscrowAgreement memory agreement =
+            escrow.getEscrowAgreement(user1);
+        assertEq(agreement.depositAmountGwei, 0);
+
+        // Verify fund recovery - remaining balance transferred to fee collector
+        assertEq(
+            laToken.balanceOf(feeCollector),
+            initialFeeCollectorBalance + remainingBalance
+        );
+        assertEq(
+            laToken.balanceOf(address(escrow)),
+            initialContractBalance - remainingBalance
+        );
+    }
+
+    function test_CancelAgreement_RevertsWhen_TransferFails() public {
+        _createAndActivateAgreement(user1, 100 ether, 10 ether, 30, 12);
+
+        // Simulate transfer failure by draining the contract balance first
+        // This will cause the ERC20 transfer to fail with insufficient balance
+        uint256 contractBalance = laToken.balanceOf(address(escrow));
+
+        // Manually transfer all tokens out to simulate insufficient balance for transfer
+        vm.prank(address(escrow));
+        laToken.transfer(address(0xdead), contractBalance);
+
+        // Now cancel agreement should revert due to ERC20 insufficient balance
+        // The actual error will be ERC20InsufficientBalance, not TransferFailed
+        vm.prank(owner);
+        vm.expectRevert(); // Just expect any revert since the specific error depends on ERC20 implementation
+        escrow.cancelAgreement(user1);
     }
 
     // ------------------------------------------------------------
