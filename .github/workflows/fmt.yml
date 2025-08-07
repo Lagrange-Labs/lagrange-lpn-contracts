@@ -1,4 +1,4 @@
-name: fmt
+name: Forge
 
 on: push
 
@@ -6,12 +6,12 @@ env:
   FOUNDRY_PROFILE: ci
 
 jobs:
-  check:
+  fmt:
     strategy:
       fail-fast: true
 
-    name: Foundry Format
     runs-on: ubuntu-22.04
+    
     steps:
       - uses: actions/checkout@v4
         with:

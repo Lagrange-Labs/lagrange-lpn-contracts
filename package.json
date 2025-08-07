@@ -1,0 +1,14 @@
+{
+  "name": "lagrange-lpn-contracts",
+  "type": "module",
+  "scripts": {
+    "lint": "solhint 'src/**/*.sol'"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "solhint": "^6.0.0"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  }
+}
