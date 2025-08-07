@@ -2,7 +2,8 @@
   "name": "lagrange-lpn-contracts",
   "type": "module",
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "solhint": "^6.0.0"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
