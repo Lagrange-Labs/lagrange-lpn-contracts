@@ -312,6 +312,24 @@ contract DeepProvePayments is
         emit AgreementCancelled(user);
     }
 
+    /// @notice Sets the whitelisted status for a user (owner only)
+    /// @param user The address of the user to set status for
+    /// @param whitelisted The new whitelisted status
+    function setWhitelisted(address user, bool whitelisted)
+        external
+        onlyOwner
+    {
+        if (user == address(0)) revert ZeroAddress();
+        s_users[user].isWhitelisted = whitelisted;
+    }
+
+    /// @notice Sets the biller address (owner only)
+    /// @param newBiller The new biller address
+    function setBiller(address newBiller) external onlyOwner {
+        if (newBiller == address(0)) revert ZeroAddress();
+        s_biller = newBiller;
+    }
+
     /// @notice Gets the biller address
     /// @return address The current biller address
     function getBiller() external view returns (address) {
@@ -346,24 +364,6 @@ contract DeepProvePayments is
     /// @return bool True if the user is whitelisted
     function isWhitelisted(address user) external view returns (bool) {
         return s_users[user].isWhitelisted;
-    }
-
-    /// @notice Sets the whitelisted status for a user (owner only)
-    /// @param user The address of the user to set status for
-    /// @param whitelisted The new whitelisted status
-    function setWhitelisted(address user, bool whitelisted)
-        external
-        onlyOwner
-    {
-        if (user == address(0)) revert ZeroAddress();
-        s_users[user].isWhitelisted = whitelisted;
-    }
-
-    /// @notice Sets the biller address (owner only)
-    /// @param newBiller The new biller address
-    function setBiller(address newBiller) external onlyOwner {
-        if (newBiller == address(0)) revert ZeroAddress();
-        s_biller = newBiller;
     }
 
     /// @notice Gets the escrow agreement for a user
