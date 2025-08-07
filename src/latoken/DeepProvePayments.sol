@@ -24,7 +24,7 @@ contract DeepProvePayments is
     using SafeCast for uint256;
     using SafeERC20 for IERC20;
 
-    struct User {
+    struct UserInfo {
         bool isWhitelisted; // Whether the user is approved to use DeepProve or not
         uint88 aLaCarteBalance; // Amount of LA tokens the user can use for a la carte charges
         EscrowAgreement escrowAgreement; // The escrow agreement for the user (if any)
@@ -109,7 +109,7 @@ contract DeepProvePayments is
     address public immutable FEE_COLLECTOR;
 
     /// @notice Mapping from user addresses to their account information
-    mapping(address user => User userInfo) private s_users;
+    mapping(address user => UserInfo userInfo) private s_users;
 
     /// @notice The address authorized to charge users for services
     address private s_biller;
@@ -254,23 +254,23 @@ contract DeepProvePayments is
         if (msg.sender != s_biller) revert OnlyBillerCanCharge();
         if (amount == 0) revert InvalidAmount();
 
-        User memory userStruct = s_users[user];
-        uint256 totalBalance = uint256(userStruct.escrowAgreement.balance)
-            + uint256(userStruct.aLaCarteBalance);
+        UserInfo memory userInfo = s_users[user];
+        uint256 totalBalance = uint256(userInfo.escrowAgreement.balance)
+            + uint256(userInfo.aLaCarteBalance);
 
         if (totalBalance < amount) revert InsufficientBalance();
 
         // First, charge against escrow balance
-        if (userStruct.escrowAgreement.balance >= amount) {
-            userStruct.escrowAgreement.balance -= amount;
+        if (userInfo.escrowAgreement.balance >= amount) {
+            userInfo.escrowAgreement.balance -= amount;
         } else {
             // Charge remaining from a la carte balance
-            userStruct.aLaCarteBalance -=
-                amount - userStruct.escrowAgreement.balance;
-            userStruct.escrowAgreement.balance = 0;
+            userInfo.aLaCarteBalance -=
+                amount - userInfo.escrowAgreement.balance;
+            userInfo.escrowAgreement.balance = 0;
         }
 
-        s_users[user] = userStruct; // update balances
+        s_users[user] = userInfo; // update balances
 
         // Transfer tokens to fee collector from contract
         LA_TOKEN.safeTransfer(FEE_COLLECTOR, amount);
@@ -322,9 +322,9 @@ contract DeepProvePayments is
     /// @param user The address of the user to check
     /// @return uint256 The total balance for the user
     function getBalance(address user) external view returns (uint256) {
-        User memory userStruct = s_users[user];
-        return uint256(userStruct.escrowAgreement.balance)
-            + uint256(userStruct.aLaCarteBalance);
+        UserInfo memory userInfo = s_users[user];
+        return uint256(userInfo.escrowAgreement.balance)
+            + uint256(userInfo.aLaCarteBalance);
     }
 
     /// @notice Gets the escrow balance for a user
@@ -404,7 +404,6 @@ contract DeepProvePayments is
     /// @param user The address of the user to check
     /// @return uint256 The timestamp of the next rebate claim date
     /// @dev Returns 0 if there is no active agreement, and thus no payout date
-    /// @dev External view function, not for use in transactions
     function getNextRebateClaimDate(address user)
         public
         view
