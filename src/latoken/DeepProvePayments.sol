@@ -38,6 +38,7 @@ contract DeepProvePayments is
     }
 
     event AgreementActivated(address indexed user);
+    event AgreementCancelled(address indexed user);
     event Charged(address indexed user, uint256 amount);
     event NewAgreement(address indexed user, EscrowAgreement agreement);
     event RebateClaimed(address indexed user, uint256 amount);
@@ -98,6 +99,7 @@ contract DeepProvePayments is
     /// @param rebateDurationDays The number of days that the user can claim regular rebates during
     /// @param numRebates The number of rebates the user is eligible to claim over the rebate period
     /// @dev The depositAmount and rebateAmounts are provided in wei, but must be divisible by 10**9 for storage as gwei
+    /// @dev The owner is allowed to overwrite an existing agreement for a user, provided it is not already activated
     function createAgreement(
         address user,
         uint256 depositAmount,
@@ -262,6 +264,15 @@ contract DeepProvePayments is
         EscrowAgreement memory agreement = s_users[user].escrowAgreement;
         if (agreement.depositAmountGwei == 0) revert InvalidAgreement();
         delete s_users[user].escrowAgreement;
+
+        // If any LA tokens remain in the user's escrow agreement, transfer them to the fee collector
+        if (agreement.balance > 0) {
+            if (!LA_TOKEN.transfer(FEE_COLLECTOR, agreement.balance)) {
+                revert TransferFailed();
+            }
+        }
+
+        emit AgreementCancelled(user);
     }
 
     /// @notice Gets the biller address
