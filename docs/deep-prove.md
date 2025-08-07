@@ -37,7 +37,7 @@ The `DeepProvePayments` contract establishes escrow agreements between clients a
 3. New agreement is stored with:
    - `paymentAmount`: LA tokens user must deposit (max ~300M LA)
    - `rebateAmount`: LA tokens per rebate claim
-   - `durationDays`: Total duration for rebate period
+   - `rebateDurationDays`: Total duration for rebate period
    - `numRebates`: Total number of rebates available
    - `activationDate`: Set to 0 (inactive)
 4. Event `NewAgreement` is emitted
@@ -47,7 +47,7 @@ The `DeepProvePayments` contract establishes escrow agreements between clients a
 struct NewEscrowAgreementParams {
     uint88 paymentAmount;  // Amount of LA tokens to deposit
     uint88 rebateAmount;   // Amount per rebate claim
-    uint16 durationDays;   // Rebate period duration
+    uint16 rebateDurationDays;   // Rebate period duration
     uint16 numRebates;     // Total rebates available
 }
 ```
@@ -137,7 +137,7 @@ The `distribute` function provides a direct distribution mechanism for the treas
 struct EscrowAgreement {
     uint88 paymentAmount;      // Amount deposited by user
     uint88 rebateAmount;       // Amount per rebate
-    uint16 durationDays;       // Total rebate period
+    uint16 rebateDurationDays;       // Total rebate period
     uint16 numRebates;         // Total rebates available
     uint16 numRebatesClaimed;  // Rebates already claimed
     uint32 activationDate;     // When agreement was activated

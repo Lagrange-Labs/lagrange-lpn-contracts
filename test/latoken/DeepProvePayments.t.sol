@@ -135,7 +135,7 @@ contract DeepProvePaymentsTest is BaseTest {
     function test_CreateAgreement_Success() public {
         uint256 depositAmount = 100 ether;
         uint256 rebateAmount = 10 ether;
-        uint16 durationDays = 30;
+        uint16 rebateDurationDays = 30;
         uint8 numRebates = 12;
 
         vm.prank(owner);
@@ -146,21 +146,21 @@ contract DeepProvePaymentsTest is BaseTest {
                 depositAmountGwei: 100000000000, // 100 ether in gwei (100 * 1e9)
                 rebateAmountGwei: 10000000000, // 10 ether in gwei (10 * 1e9)
                 balance: 0,
-                durationDays: 30,
+                rebateDurationDays: 30,
                 numRebates: 12,
                 numRebatesClaimed: 0,
                 activationDate: 0
             })
         );
         escrow.createAgreement(
-            user1, depositAmount, rebateAmount, durationDays, numRebates
+            user1, depositAmount, rebateAmount, rebateDurationDays, numRebates
         );
 
         DeepProvePayments.EscrowAgreement memory agreement =
             escrow.getEscrowAgreement(user1);
         assertEq(agreement.depositAmountGwei, 100000000000); // 100 ether in gwei
         assertEq(agreement.rebateAmountGwei, 10000000000); // 10 ether in gwei
-        assertEq(agreement.durationDays, 30);
+        assertEq(agreement.rebateDurationDays, 30);
         assertEq(agreement.numRebates, 12);
         assertEq(agreement.numRebatesClaimed, 0);
         assertEq(agreement.activationDate, 0);
@@ -669,7 +669,7 @@ contract DeepProvePaymentsTest is BaseTest {
             escrow.getEscrowAgreement(user1);
         assertEq(agreement.depositAmountGwei, 100000000000); // 100 ether in gwei
         assertEq(agreement.rebateAmountGwei, 10000000000); // 10 ether in gwei
-        assertEq(agreement.durationDays, 30);
+        assertEq(agreement.rebateDurationDays, 30);
         assertEq(agreement.numRebates, 12);
         assertEq(agreement.numRebatesClaimed, 0);
         assertEq(agreement.activationDate, 0);
@@ -1051,12 +1051,12 @@ contract DeepProvePaymentsTest is BaseTest {
         address user,
         uint256 depositAmount,
         uint256 rebateAmount,
-        uint16 durationDays,
+        uint16 rebateDurationDays,
         uint8 numRebates
     ) internal {
         vm.prank(owner);
         escrow.createAgreement(
-            user, depositAmount, rebateAmount, durationDays, numRebates
+            user, depositAmount, rebateAmount, rebateDurationDays, numRebates
         );
     }
 
@@ -1064,11 +1064,11 @@ contract DeepProvePaymentsTest is BaseTest {
         address user,
         uint256 depositAmount,
         uint256 rebateAmount,
-        uint16 durationDays,
+        uint16 rebateDurationDays,
         uint8 numRebates
     ) internal {
         _createAgreementForUser(
-            user, depositAmount, rebateAmount, durationDays, numRebates
+            user, depositAmount, rebateAmount, rebateDurationDays, numRebates
         );
         vm.prank(user);
         escrow.activateAgreement();

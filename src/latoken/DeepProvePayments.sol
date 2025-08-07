@@ -31,20 +31,19 @@ contract DeepProvePayments is
         uint56 depositAmountGwei; // Amount of LA tokens deposited by the user (max value is 72M LA)
         uint48 rebateAmountGwei; // Amount of LA tokens the user is eligible to claim as rebate, per claim (max value is 281K LA)
         uint88 balance; // Current balance available for charges (max value is 300M LA)
-        uint16 durationDays; // Number of days that the user can claim regular rebates during
+        uint16 rebateDurationDays; // Number of days that the user can claim regular rebates during
         uint8 numRebates; // Number of rebates the user is eligible to claim over the rebate period
         uint8 numRebatesClaimed; // Number of rebates claimed for this agreement
         uint32 activationDate; // Date when the user deposits their LA tokens
     }
 
-    event Charged(address indexed user, uint256 amount);
     event AgreementActivated(address indexed user);
+    event Charged(address indexed user, uint256 amount);
     event NewAgreement(address indexed user, EscrowAgreement agreement);
     event RebateClaimed(address indexed user, uint256 amount);
     event TopUp(address indexed from, address indexed to, uint256 amount);
 
     error AgreementAlreadyActivated();
-    error AgreementAlreadyExists();
     error InsufficientBalance();
     error InvalidAgreement();
     error InvalidAmount();
@@ -96,14 +95,14 @@ contract DeepProvePayments is
     /// @param user The address to create the agreement for
     /// @param depositAmount The amount of LA tokens to deposit
     /// @param rebateAmount The amount of LA tokens to claim as rebate
-    /// @param durationDays The number of days that the user can claim regular rebates during
+    /// @param rebateDurationDays The number of days that the user can claim regular rebates during
     /// @param numRebates The number of rebates the user is eligible to claim over the rebate period
     /// @dev The depositAmount and rebateAmounts are provided in wei, but must be divisible by 10**9 for storage as gwei
     function createAgreement(
         address user,
         uint256 depositAmount,
         uint256 rebateAmount,
-        uint16 durationDays,
+        uint16 rebateDurationDays,
         uint8 numRebates
     ) external onlyOwner {
         if (user == address(0)) revert ZeroAddress();
@@ -114,18 +113,18 @@ contract DeepProvePayments is
         if (rebateAmount == 0) revert InvalidAmount();
         if (rebateAmount % 1e9 != 0) revert InvalidAmount();
 
-        if (durationDays == 0) revert InvalidConfig();
+        if (rebateDurationDays == 0) revert InvalidConfig();
         if (numRebates == 0) revert InvalidConfig();
 
         if (s_users[user].escrowAgreement.activationDate != 0) {
-            revert AgreementAlreadyExists();
+            revert AgreementAlreadyActivated();
         }
 
         EscrowAgreement memory agreement = EscrowAgreement({
             depositAmountGwei: (depositAmount / 1e9).toUint56(),
             rebateAmountGwei: (rebateAmount / 1e9).toUint48(),
             balance: 0,
-            durationDays: durationDays,
+            rebateDurationDays: rebateDurationDays,
             numRebates: numRebates,
             numRebatesClaimed: 0,
             activationDate: 0
@@ -364,7 +363,8 @@ contract DeepProvePayments is
     {
         EscrowAgreement memory agreement = s_users[user].escrowAgreement;
 
-        uint256 agreementDuration = uint256(agreement.durationDays) * 1 days;
+        uint256 agreementDuration =
+            uint256(agreement.rebateDurationDays) * 1 days;
 
         if (agreement.activationDate == 0) return 0;
         if (block.timestamp >= agreement.activationDate + agreementDuration) {
@@ -394,7 +394,7 @@ contract DeepProvePayments is
         returns (uint256, uint8)
     {
         bool isLastClaim = agreement.activationDate
-            + uint256(agreement.durationDays) * 1 days <= block.timestamp;
+            + uint256(agreement.rebateDurationDays) * 1 days <= block.timestamp;
 
         uint256 numClaimableRebates = isLastClaim
             ? agreement.numRebates - agreement.numRebatesClaimed
@@ -402,7 +402,7 @@ contract DeepProvePayments is
                 (
                     (block.timestamp - agreement.activationDate)
                         * uint256(agreement.numRebates)
-                ) / (uint256(agreement.durationDays) * 1 days)
+                ) / (uint256(agreement.rebateDurationDays) * 1 days)
             ) - agreement.numRebatesClaimed;
 
         uint256 totalClaimable =
