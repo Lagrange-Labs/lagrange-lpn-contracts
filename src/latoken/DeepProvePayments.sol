@@ -6,6 +6,8 @@ import {Initializable} from
 import {Ownable2StepUpgradeable} from
     "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
 import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
+import {SafeERC20} from
+    "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IVersioned} from "../interfaces/IVersioned.sol";
@@ -20,6 +22,7 @@ contract DeepProvePayments is
     IVersioned
 {
     using SafeCast for uint256;
+    using SafeERC20 for IERC20;
 
     struct User {
         bool isWhitelisted; // Whether the user is approved to use DeepProve or not
@@ -51,7 +54,6 @@ contract DeepProvePayments is
     error InvalidConfig();
     error NoClaimableRebates();
     error OnlyBillerCanCharge();
-    error TransferFailed();
     error UserNotWhitelisted();
     error ZeroAddress();
 
@@ -158,15 +160,11 @@ contract DeepProvePayments is
         s_users[msg.sender].isWhitelisted = true;
 
         // Transfer LA tokens from user
-        if (
-            !LA_TOKEN.transferFrom(
-                msg.sender,
-                address(this),
-                uint256(agreement.depositAmountGwei) * 1e9
-            )
-        ) {
-            revert TransferFailed();
-        }
+        LA_TOKEN.safeTransferFrom(
+            msg.sender,
+            address(this),
+            uint256(agreement.depositAmountGwei) * 1e9
+        );
 
         emit AgreementActivated(msg.sender);
     }
@@ -188,17 +186,13 @@ contract DeepProvePayments is
         // If the contract's $LA balance is too low, transfer from guarantor first
         uint256 contractBalance = LA_TOKEN.balanceOf(address(this));
         if (contractBalance < totalClaimable) {
-            if (
-                !LA_TOKEN.transferFrom(
-                    GUARANTOR, address(this), totalClaimable - contractBalance
-                )
-            ) revert TransferFailed();
+            LA_TOKEN.safeTransferFrom(
+                GUARANTOR, address(this), totalClaimable - contractBalance
+            );
         }
 
         // Transfer $LA tokens to the user
-        if (!LA_TOKEN.transfer(msg.sender, totalClaimable)) {
-            revert TransferFailed();
-        }
+        LA_TOKEN.safeTransfer(msg.sender, totalClaimable);
 
         emit RebateClaimed(msg.sender, totalClaimable);
     }
@@ -230,9 +224,7 @@ contract DeepProvePayments is
         s_users[user] = userStruct; // update balances
 
         // Transfer tokens to fee collector from contract
-        if (!LA_TOKEN.transfer(FEE_COLLECTOR, amount)) {
-            revert TransferFailed();
-        }
+        LA_TOKEN.safeTransfer(FEE_COLLECTOR, amount);
 
         emit Charged(user, uint256(amount));
     }
@@ -247,9 +239,7 @@ contract DeepProvePayments is
         if (!s_users[user].isWhitelisted) revert UserNotWhitelisted();
 
         // Transfer LA tokens from caller to contract
-        if (!LA_TOKEN.transferFrom(msg.sender, address(this), amount)) {
-            revert TransferFailed();
-        }
+        LA_TOKEN.safeTransferFrom(msg.sender, address(this), amount);
 
         // Increase the user's a la carte balance
         s_users[user].aLaCarteBalance += amount;
@@ -267,9 +257,7 @@ contract DeepProvePayments is
 
         // If any LA tokens remain in the user's escrow agreement, transfer them to the fee collector
         if (agreement.balance > 0) {
-            if (!LA_TOKEN.transfer(FEE_COLLECTOR, agreement.balance)) {
-                revert TransferFailed();
-            }
+            LA_TOKEN.safeTransfer(FEE_COLLECTOR, agreement.balance);
         }
 
         emit AgreementCancelled(user);
