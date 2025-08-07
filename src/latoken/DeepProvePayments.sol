@@ -40,30 +40,78 @@ contract DeepProvePayments is
         uint32 activationDate; // Date when the user deposits their LA tokens
     }
 
+    /// @notice Emitted when a user activates their escrow agreement
+    /// @param user The address of the user who activated their agreement
     event AgreementActivated(address indexed user);
+
+    /// @notice Emitted when an escrow agreement is cancelled by the owner
+    /// @param user The address of the user whose agreement was cancelled
     event AgreementCancelled(address indexed user);
+
+    /// @notice Emitted when a user is charged for DeepProve services
+    /// @param user The address of the user who was charged
+    /// @param amount The amount of LA tokens charged
     event Charged(address indexed user, uint256 amount);
+
+    /// @notice Emitted when a new escrow agreement is created
+    /// @param user The address of the user for whom the agreement was created
+    /// @param agreement The details of the escrow agreement
     event NewAgreement(address indexed user, EscrowAgreement agreement);
+
+    /// @notice Emitted when a user claims their rebates
+    /// @param user The address of the user who claimed rebates
+    /// @param amount The amount of LA tokens claimed
     event RebateClaimed(address indexed user, uint256 amount);
+
+    /// @notice Emitted when someone tops up a user's a la carte balance
+    /// @param from The address that provided the tokens for the top up
+    /// @param to The address whose balance was topped up
+    /// @param amount The amount of LA tokens added to the balance
     event TopUp(address indexed from, address indexed to, uint256 amount);
 
+    /// @notice Thrown when trying to create or activate an agreement that has already been activated
     error AgreementAlreadyActivated();
+
+    /// @notice Thrown when a user doesn't have sufficient balance for a charge operation
     error InsufficientBalance();
+
+    /// @notice Thrown when trying to operate on a non-existent or invalid escrow agreement
     error InvalidAgreement();
+
+    /// @notice Thrown when an invalid amount is provided (e.g., zero or not divisible by gwei)
     error InvalidAmount();
+
+    /// @notice Thrown when invalid configuration parameters are provided during agreement creation
     error InvalidConfig();
+
+    /// @notice Thrown when a user tries to claim rebates but has none available
     error NoClaimableRebates();
+
+    /// @notice Thrown when someone other than the authorized biller tries to charge a user
     error OnlyBillerCanCharge();
+
+    /// @notice Thrown when trying to top up a user who is not whitelisted
     error UserNotWhitelisted();
+
+    /// @notice Thrown when a zero address is provided where a valid address is required
     error ZeroAddress();
 
+    /// @notice The semantic version of this contract
     string public constant VERSION = "1.0.0";
 
+    /// @notice The LA token contract used for payments and rebates
     IERC20 public immutable LA_TOKEN;
+
+    /// @notice The address that guarantees the availability of LA tokens for rebate payments
     address public immutable GUARANTOR;
+
+    /// @notice The address that collects fees from user charges
     address public immutable FEE_COLLECTOR;
 
-    mapping(address => User) private s_users;
+    /// @notice Mapping from user addresses to their account information
+    mapping(address user => User userInfo) private s_users;
+
+    /// @notice The address authorized to charge users for services
     address private s_biller;
 
     /// @notice Creates a new DeepProvePayments contract
@@ -170,6 +218,8 @@ contract DeepProvePayments is
     }
 
     /// @notice Claims all available rebates for the caller
+    /// @dev This function calculates and claims all rebates that have become available since the last claim
+    /// @dev If the contract has insufficient balance, it will automatically transfer from the guarantor
     // slither-disable-next-line arbitrary-send-erc20
     function claimRebates() external {
         EscrowAgreement memory agreement = s_users[msg.sender].escrowAgreement;
@@ -191,7 +241,6 @@ contract DeepProvePayments is
             );
         }
 
-        // Transfer $LA tokens to the user
         LA_TOKEN.safeTransfer(msg.sender, totalClaimable);
 
         emit RebateClaimed(msg.sender, totalClaimable);
@@ -216,8 +265,8 @@ contract DeepProvePayments is
             userStruct.escrowAgreement.balance -= amount;
         } else {
             // Charge remaining from a la carte balance
-            userStruct.aLaCarteBalance = userStruct.aLaCarteBalance
-                - (amount - userStruct.escrowAgreement.balance);
+            userStruct.aLaCarteBalance -=
+                amount - userStruct.escrowAgreement.balance;
             userStruct.escrowAgreement.balance = 0;
         }
 
@@ -317,6 +366,9 @@ contract DeepProvePayments is
         s_biller = newBiller;
     }
 
+    /// @notice Gets the escrow agreement for a user
+    /// @param user The address of the user to check
+    /// @return EscrowAgreement The user's escrow agreement details
     function getEscrowAgreement(address user)
         public
         view
@@ -325,10 +377,9 @@ contract DeepProvePayments is
         return s_users[user].escrowAgreement;
     }
 
-    /// @notice Checks if a user has any stakes available to claim
+    /// @notice Checks if a user has any rebates available to claim
     /// @param user The address of the user to check
-    /// @return bool True if the user has stakes available to claim
-    /// @dev External view function, not for use in txs
+    /// @return bool True if the user has rebates available to claim
     function hasClaimableRebates(address user) external view returns (bool) {
         return getCurrentClaimableAmount(user) > 0;
     }
@@ -336,7 +387,6 @@ contract DeepProvePayments is
     /// @notice Gets the total amount of LA tokens that a user can claim
     /// @param user The address of the user to check
     /// @return uint256 The total amount of LA tokens that can be claimed
-    /// @dev External view function, not for use in txs
     function getCurrentClaimableAmount(address user)
         public
         view
@@ -350,11 +400,11 @@ contract DeepProvePayments is
         return totalClaimable;
     }
 
-    /// @notice Gets the next payout date for a user's stakes
+    /// @notice Gets the next payout date for a user's rebates
     /// @param user The address of the user to check
-    /// @return uint256 The timestamp of the next payout date
-    /// @dev Returns 0 if there is nothing at stake, and thus no payout date
-    /// @dev External view function, not for use in txs
+    /// @return uint256 The timestamp of the next rebate claim date
+    /// @dev Returns 0 if there is no active agreement, and thus no payout date
+    /// @dev External view function, not for use in transactions
     function getNextRebateClaimDate(address user)
         public
         view
