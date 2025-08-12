@@ -11,7 +11,6 @@ Be sure to include a `.env` file and export the environment variables shown in `
 
 ## Pre-requisites
 - [Foundry](https://book.getfoundry.sh)
-- Docker (if you want to run slither)
 - Make
 
 ## Installation
@@ -20,6 +19,12 @@ Install dependencies:
 forge install
 forge soldeer install
 ```
+
+## Optional:
+
+* Docker (for running slither)
+* [Aderyn](https://github.com/Cyfrin/aderyn)
+* [Glow](https://github.com/charmbracelet/glow) for reading markdown reports)
 
 ## Build & Test
 ```bash
@@ -31,6 +36,7 @@ forge test
 
 ```bash
 make slither
+make aderyn
 ```
 
 ## Deploy

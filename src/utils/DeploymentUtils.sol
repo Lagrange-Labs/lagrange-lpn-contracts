@@ -352,29 +352,4 @@ abstract contract DeploymentUtils is ChainConnections, Script {
             "Verifier.sol and/or Groth16VerifierExtension.sol have changed, please re-run deployment script"
         );
     }
-
-    function stringConcat(string memory a, string memory b)
-        internal
-        pure
-        returns (string memory)
-    {
-        return string(abi.encodePacked(a, b));
-    }
-
-    function stringConcat(string memory a, string memory b, string memory c)
-        internal
-        pure
-        returns (string memory)
-    {
-        return string(abi.encodePacked(a, b, c));
-    }
-
-    function stringConcat(
-        string memory a,
-        string memory b,
-        string memory c,
-        string memory d
-    ) internal pure returns (string memory) {
-        return string(abi.encodePacked(a, b, c, d));
-    }
 }
