@@ -80,10 +80,6 @@ contract Deployer {
             address(queryExecutor),
             address(lpnClientExample)
         );
-
-        // This contract is not needed after others are deployed, so we can selfdestruct
-        // This is permitted by EIP-6780
-        selfdestruct(payable(msg.sender));
     }
 
     /// @notice Deploys new QueryExecutor contract

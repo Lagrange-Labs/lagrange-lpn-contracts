@@ -88,10 +88,11 @@ contract DeployLPNV2Contracts is DeploymentUtils {
         console.log("LPN Client Example: %s", deployment.lpnClientExample);
 
         // Write contract addresses to a deployment json file
-        string memory outputDir = stringConcat("script/output/", getChainName());
+        string memory outputDir =
+            string.concat("script/output/", getChainName());
         vm.createDir(outputDir, true);
         string memory filePath =
-            stringConcat(outputDir, "/coprocessor-v2-deployment.json");
+            string.concat(outputDir, "/coprocessor-v2-deployment.json");
         vm.writeFile(
             filePath,
             string(
@@ -123,7 +124,7 @@ contract DeployLPNV2Contracts is DeploymentUtils {
             )
         );
         console.log(
-            stringConcat(unicode"📝 Deployment addresses written to ", filePath)
+            string.concat(unicode"📝 Deployment addresses written to ", filePath)
         );
     }
 }
