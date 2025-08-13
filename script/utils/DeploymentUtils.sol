@@ -3,10 +3,11 @@
 pragma solidity 0.8.25;
 
 import {Script} from "forge-std/Script.sol";
-import {LagrangeQueryRouter} from "../v2/LagrangeQueryRouter.sol";
+import {LagrangeQueryRouter} from "../../src/v2/LagrangeQueryRouter.sol";
 import {ChainConnections} from "./ChainConnections.sol";
-import {LATokenBase} from "../latoken/LATokenBase.sol";
+import {LATokenBase} from "../../src/latoken/LATokenBase.sol";
 
+/// @title DeploymentUtils
 /// @notice This contract contains many utility functions for deployment scripts
 abstract contract DeploymentUtils is ChainConnections, Script {
     struct PeerConfig {
@@ -308,10 +309,10 @@ abstract contract DeploymentUtils is ChainConnections, Script {
         LATokenBase.Peer[] memory filteredPeers =
             new LATokenBase.Peer[](peers.length);
         uint256 count = 0;
-        for (uint256 i = 0; i < peers.length; i++) {
+        for (uint256 i = 0; i < peers.length; ++i) {
             if (peers[i].chainId != block.chainid) {
                 filteredPeers[count] = peers[i].peer;
-                count++;
+                ++count;
             }
         }
         assembly {
@@ -352,7 +353,7 @@ abstract contract DeploymentUtils is ChainConnections, Script {
         // run the copy verifier script
         string[] memory copyVerifierCmdArgs = new string[](4);
         copyVerifierCmdArgs[0] = "bash";
-        copyVerifierCmdArgs[1] = "script/util/copy-verifier.sh";
+        copyVerifierCmdArgs[1] = "script/copy-verifier.sh";
         copyVerifierCmdArgs[2] = getEnv();
         copyVerifierCmdArgs[3] = ppVersion;
         vm.ffi(copyVerifierCmdArgs);

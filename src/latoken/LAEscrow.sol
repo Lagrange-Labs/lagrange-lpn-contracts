@@ -77,7 +77,7 @@ contract LAEscrow is Initializable, Ownable2StepUpgradeable, IVersioned {
     /// @param params The params for the new agreement
     function createAgreement(
         address user,
-        NewEscrowAgreementParams memory params
+        NewEscrowAgreementParams calldata params
     ) external onlyOwner {
         if (user == address(0)) revert ZeroAddress();
         if (params.paymentAmount == 0) revert InvalidAmount();

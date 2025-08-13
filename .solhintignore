@@ -1,0 +1,3 @@
+src/mocks/
+src/v2/Groth16VerifierExtension.sol
+src/v2/Verifier.sol

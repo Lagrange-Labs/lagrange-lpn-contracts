@@ -244,7 +244,7 @@ contract QueryExecutor is
 
     /// @notice Set the configuration parameters
     /// @param config The new configuration parameters
-    function setConfig(Config memory config) external onlyOwner {
+    function setConfig(Config calldata config) external onlyOwner {
         s_config = config;
     }
 

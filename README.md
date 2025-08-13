@@ -22,22 +22,31 @@ forge soldeer install
 
 ## Optional:
 
-* Docker (for running slither)
+* [Bun](https://bun.com/) (for running solhint) 
+* [Docker](https://www.docker.com/) (for running slither)
 * [Aderyn](https://github.com/Cyfrin/aderyn)
 * [Glow](https://github.com/charmbracelet/glow) (for reading markdown reports)
 * [Lintspec](https://github.com/beeb/lintspec) (for running the Natspec linter)
 
 ## Build & Test
+
 ```bash
 forge build
 forge test
 ```
 
-## Run Static Analysis
+## Static Analysis
 
 ```bash
 make slither
 make aderyn
+```
+
+## Lint
+
+```bash
+bun lint
+lintspec
 ```
 
 ## Deploy

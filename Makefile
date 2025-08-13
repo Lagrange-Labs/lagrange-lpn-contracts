@@ -60,7 +60,7 @@ $(1)_$(2):
 	$(if $(filter mantle%,$(2)),$(call switch-evm-version),)
 	$(if $(findstring dev-,$(2)),$(eval SALT=S2_$(2)),$(eval SALT=V1_REG_0))
 	
-	script/util/copy-verifier.sh $(ENV)
+	script/copy-verifier.sh $(ENV)
 	CHAIN_ALIAS=$(2) SALT=$(SALT) forge script $(1) --rpc-url $(2)  $${DEPLOY_FLAGS} $${CHAIN_FLAGS} $${DEPLOYER_FLAGS} $(ARGS)
 	$(if $(filter mantle%,$(2)),$(call restore-evm-version),)
 endef
@@ -82,7 +82,7 @@ fmt                 :; forge fmt
 slither             :; docker run -i --entrypoint=/home/ethsec/.local/bin/slither -v ./:/local/ --workdir=/local trailofbits/eth-security-toolbox:latest . --fail-high --ignore-compile
 aderyn              :; aderyn; glow report.md; rm report.md
 check-balances      :; forge script script/CheckDeploymentKeyBalances.s.sol --sig 'run(string)' $(env)
-upgrade-registries  :; script/util/copy-verifier.sh $(env) && forge script ./script/UpgradeLPNRegistries.s.sol --sig "run(string)" --verify --slow --broadcast $(env)
+upgrade-registries  :; script/copy-verifier.sh $(env) && forge script ./script/UpgradeLPNRegistries.s.sol --sig "run(string)" --verify --slow --broadcast $(env)
 deploy-v2           :; forge script script/deploy/DeployLPNV2Contracts.s.sol --rpc-url $(word 2, $(MAKECMDGOALS)) --ffi --etherscan-api-key $(ETHERSCAN_API_KEY) --verify --verifier etherscan --delay 10 --broadcast --retries 7
 update-v2-executors :; forge script script/UpdateQueryExecutors.s.sol --ffi --etherscan-api-key $(ETHERSCAN_API_KEY) --verify --verifier etherscan --delay 10 --broadcast --retries 7
 deploy-latoken      :; forge script script/deploy/DeployLAToken.s.sol --rpc-url $(word 2, $(MAKECMDGOALS)) --etherscan-api-key $(ETHERSCAN_API_KEY) --verify --verifier etherscan --delay 10 --retries 7 --broadcast

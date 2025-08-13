@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {QueryOutput, QueryInput} from "../Groth16VerifierExtension.sol";
+import {QueryOutput} from "../Groth16VerifierExtension.sol";
 
 /// @title IQueryExecutor
 /// @notice Interface for the QueryExecutor contract that handles requesting and responding to queries

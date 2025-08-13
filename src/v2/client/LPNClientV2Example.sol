@@ -34,7 +34,7 @@ contract LPNClientV2Example is ILPNClient {
     /// @dev Only callable by the configured router.
     /// @param requestId The unique identifier of the original request.
     /// @param result The verified query output produced by LPN.
-    function lpnCallback(uint256 requestId, QueryOutput memory result)
+    function lpnCallback(uint256 requestId, QueryOutput calldata result)
         external
         onlyLagrangeRouter
     {

@@ -1,13 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.25;
 
-import {
-    getProxyImplementation, getProxyAdmin
-} from "../../src/utils/Proxy.sol";
+import {getProxyImplementation, getProxyAdmin} from "../utils/Proxy.sol";
 import {Deployer} from "../../src/v2/Deployer.sol";
 import {console} from "forge-std/console.sol";
 import {Vm} from "forge-std/Vm.sol";
-import {DeploymentUtils} from "../../src/utils/DeploymentUtils.sol";
+import {DeploymentUtils} from "../utils/DeploymentUtils.sol";
 
 /// @notice Script to deploy and configure LPN V2 contracts
 /// @dev Reads private key & multisig addresses from environment variables

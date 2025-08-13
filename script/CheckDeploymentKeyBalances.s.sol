@@ -3,8 +3,8 @@ pragma solidity 0.8.25;
 
 import {console2 as console} from "forge-std/Script.sol";
 import {Script} from "forge-std/Script.sol";
-import {ChainConnections} from "../src/utils/ChainConnections.sol";
-import {Environments} from "../src/utils/Environments.sol";
+import {ChainConnections} from "./utils/ChainConnections.sol";
+import {Environments} from "./utils/Environments.sol";
 
 /// @dev Script to check the balance of the deployment key on all configured chains
 contract CheckDeploymentKeyBalances is

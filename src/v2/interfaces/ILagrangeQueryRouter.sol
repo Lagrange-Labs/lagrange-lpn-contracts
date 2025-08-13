@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+/// @title ILagrangeQueryRouter
+/// @notice Interface for the Lagrange Query Router
 interface ILagrangeQueryRouter {
     /// @notice Makes an aggregation query request to the default QueryExecutor
     /// @param queryHash The hash of the query to execute

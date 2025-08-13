@@ -136,7 +136,7 @@ function supportsL1BlockData() view returns (bool) {
 /// @param chains Fixed-size list of chain IDs to compare against.
 /// @return matches True if any entry equals `block.chainid`.
 function chainMatches(uint256[6] memory chains) view returns (bool) {
-    for (uint256 i = 0; i < chains.length; i++) {
+    for (uint256 i = 0; i < chains.length; ++i) {
         if (chains[i] == block.chainid) return true;
     }
     return false;
