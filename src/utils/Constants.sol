@@ -55,11 +55,15 @@ uint256 constant LAGRANGE_LOONS_LENGTH_SLOT = 8;
 
 uint256 constant TEST_ERC20_MAPPING_SLOT = 4;
 
+/// @notice Returns true if the current chain is an Ethereum L1 network (mainnet, Sepolia, Holesky, or Hoodi).
+/// @return isEthereumChain True if `block.chainid` matches one of the supported Ethereum L1 chain IDs.
 function isEthereum() view returns (bool) {
     return block.chainid == ETH_MAINNET || block.chainid == ETH_SEPOLIA
         || block.chainid == ETH_HOLESKY || block.chainid == ETH_HOODI;
 }
 
+/// @notice Returns true if the current chain is an OP Stack chain.
+/// @return isOPStackChain True if the OP Stack L1 block predeploy contract exists.
 function isOPStack() view returns (bool) {
     uint32 size;
     assembly {
@@ -68,22 +72,32 @@ function isOPStack() view returns (bool) {
     return (size > 0);
 }
 
+/// @notice Returns true if the current chain is Polygon zkEVM (CDK) mainnet.
+/// @return isCDKChain True if `block.chainid` equals Polygon zkEVM mainnet.
 function isCDK() view returns (bool) {
     return block.chainid == POLYGON_ZKEVM_MAINNET;
 }
 
+/// @notice Returns true if the current chain is Mantle (mainnet or Sepolia testnet).
+/// @return isMantleChain True if `block.chainid` matches a Mantle chain ID.
 function isMantle() view returns (bool) {
     return block.chainid == MANTLE_MAINNET || block.chainid == MANTLE_SEPOLIA;
 }
 
+/// @notice Returns true if the current chain is Scroll (mainnet or Sepolia testnet).
+/// @return isScrollChain True if `block.chainid` matches a Scroll chain ID.
 function isScroll() view returns (bool) {
     return block.chainid == SCROLL_MAINNET || block.chainid == SCROLL_SEPOLIA;
 }
 
+/// @notice Returns true if the current chain is a local development chain.
+/// @return isLocalChain True if `block.chainid` equals LOCAL or ANVIL.
 function isLocal() view returns (bool) {
     return block.chainid == LOCAL || block.chainid == ANVIL;
 }
 
+/// @notice Returns true if the current chain is a supported testnet.
+/// @return isTestnetChain True if `block.chainid` matches one of the known testnet chain IDs.
 function isTestnet() view returns (bool) {
     uint256[6] memory testnets = [
         ETH_SEPOLIA,
@@ -96,6 +110,8 @@ function isTestnet() view returns (bool) {
     return chainMatches(testnets);
 }
 
+/// @notice Returns true if the current chain is a supported mainnet.
+/// @return isMainnetChain True if `block.chainid` matches one of the known mainnet chain IDs.
 function isMainnet() view returns (bool) {
     uint256[6] memory mainnets = [
         ETH_MAINNET,
@@ -110,10 +126,15 @@ function isMainnet() view returns (bool) {
 
 /// @dev NOTE that Scroll plans to add blockhash/block number support in a future hardfork
 /// https://github.com/scroll-tech/scroll-contracts/issues/66
+/// @notice Returns true if the current chain supports L1 block data access.
+/// @return supports True if the chain is Ethereum or OP Stack.
 function supportsL1BlockData() view returns (bool) {
     return isEthereum() || isOPStack();
 }
 
+/// @notice Returns true if the provided list contains the current `block.chainid`.
+/// @param chains Fixed-size list of chain IDs to compare against.
+/// @return matches True if any entry equals `block.chainid`.
 function chainMatches(uint256[6] memory chains) view returns (bool) {
     for (uint256 i = 0; i < chains.length; i++) {
         if (chains[i] == block.chainid) return true;

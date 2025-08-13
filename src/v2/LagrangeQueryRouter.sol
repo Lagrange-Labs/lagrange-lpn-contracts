@@ -2,6 +2,7 @@
 pragma solidity 0.8.25;
 
 import {IDatabaseManager} from "./interfaces/IDatabaseManager.sol";
+import {ILagrangeQueryRouter} from "./interfaces/ILagrangeQueryRouter.sol";
 import {IQueryExecutor} from "./interfaces/IQueryExecutor.sol";
 import {QueryOutput} from "./Groth16VerifierExtension.sol";
 import {IVersioned} from "../interfaces/IVersioned.sol";
@@ -18,9 +19,10 @@ import {EnumerableSet} from
 /// @notice Routes requests and responses to the appropriate QueryExecutor contract
 /// @dev This contract is the entry point for all queries and responses
 contract LagrangeQueryRouter is
+    ILagrangeQueryRouter,
+    IVersioned,
     Initializable,
-    Ownable2StepUpgradeable,
-    IVersioned
+    Ownable2StepUpgradeable
 {
     using EnumerableSet for EnumerableSet.AddressSet;
 
@@ -83,12 +85,7 @@ contract LagrangeQueryRouter is
         _setDefaultQueryExecutor(queryExecutor);
     }
 
-    /// @notice Makes an aggregation query request to the default QueryExecutor
-    /// @param queryHash The hash of the query to execute
-    /// @param callbackGasLimit The gas limit for the callback
-    /// @param placeholders The placeholder values for the query
-    /// @param startBlock The starting block number for the query range
-    /// @param endBlock The ending block number for the query range
+    /// @inheritdoc ILagrangeQueryRouter
     function request(
         bytes32 queryHash,
         uint256 callbackGasLimit,
@@ -108,14 +105,7 @@ contract LagrangeQueryRouter is
         );
     }
 
-    /// @notice Makes a query request to the default QueryExecutor
-    /// @param queryHash The hash of the query to execute
-    /// @param callbackGasLimit The gas limit for the callback
-    /// @param placeholders The placeholder values for the query
-    /// @param startBlock The starting block number for the query range
-    /// @param endBlock The ending block number for the query range
-    /// @param limit The maximum number of rows to return
-    /// @param offset The number of rows to skip
+    /// @inheritdoc ILagrangeQueryRouter
     function request(
         bytes32 queryHash,
         uint256 callbackGasLimit,
@@ -146,6 +136,7 @@ contract LagrangeQueryRouter is
     /// @param endBlock The ending block number for the query range
     /// @param limit The maximum number of rows to return
     /// @param offset The number of rows to skip
+    /// @return requestId The ID of the request
     /// @dev This function is intended for use in tests, upgrades, etc, not intended for users
     function requestTo(
         IQueryExecutor executor,
@@ -173,7 +164,16 @@ contract LagrangeQueryRouter is
         );
     }
 
-    /// @notice request handler for public request functiolns
+    /// @notice request handler for public request functions
+    /// @param executor The executor to use
+    /// @param queryHash The hash of the query to execute
+    /// @param callbackGasLimit The gas limit for the callback
+    /// @param placeholders The placeholder values for the query
+    /// @param startBlock The starting block number for the query range
+    /// @param endBlock The ending block number for the query range
+    /// @param limit The maximum number of rows to return
+    /// @param offset The number of rows to skip
+    /// @return requestId The ID of the request
     function _requestTo(
         IQueryExecutor executor,
         bytes32 queryHash,

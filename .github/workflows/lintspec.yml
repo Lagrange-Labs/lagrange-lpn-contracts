@@ -1,0 +1,11 @@
+name: Lintspec
+
+on:
+  pull_request:
+
+jobs:
+  lintspec:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: beeb/lintspec@v0.4.1

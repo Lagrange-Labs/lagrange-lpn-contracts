@@ -24,7 +24,8 @@ forge soldeer install
 
 * Docker (for running slither)
 * [Aderyn](https://github.com/Cyfrin/aderyn)
-* [Glow](https://github.com/charmbracelet/glow) for reading markdown reports)
+* [Glow](https://github.com/charmbracelet/glow) (for reading markdown reports)
+* [Lintspec](https://github.com/beeb/lintspec) (for running the Natspec linter)
 
 ## Build & Test
 ```bash

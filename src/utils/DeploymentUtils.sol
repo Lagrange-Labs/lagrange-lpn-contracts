@@ -32,6 +32,7 @@ abstract contract DeploymentUtils is ChainConnections, Script {
     mapping(uint256 chainId => address addr) private treasuryAddresses;
     PeerConfig[] private peers;
 
+    /// @notice Initializes deployment utilities, loads config from environment, and seeds in-memory mappings
     constructor() {
         // Deployer Key
         uint256 deployerKey = vm.envUint("PRIVATE_KEY");
@@ -204,31 +205,26 @@ abstract contract DeploymentUtils is ChainConnections, Script {
         addPeer(80094, 30362, 0x389AD4bb96d0D6EE5B6eF0EFAF4b7db0bA2e02a0);
     }
 
+    /// @notice Returns the human-readable chain name for the current `block.chainid`
+    /// @return chainName The chain name associated with the current chain ID
     function getChainName() internal view returns (string memory) {
         return chainNames[block.chainid];
     }
 
+    /// @notice Returns the deployer EOA derived from the `PRIVATE_KEY` environment variable
+    /// @return deployer The deployer address used by scripts
     function getDeployerAddress() internal view returns (address) {
         return deployerAddress;
     }
 
-    /// @notice Check if an environment is valid
-    function validEnv() private view {
-        string memory env = getEnv();
-        require(
-            keccak256(bytes(env)) == keccak256(bytes("dev-0"))
-                || keccak256(bytes(env)) == keccak256(bytes("dev-1"))
-                || keccak256(bytes(env)) == keccak256(bytes("dev-3"))
-                || keccak256(bytes(env)) == keccak256(bytes("test"))
-                || keccak256(bytes(env)) == keccak256(bytes("prod")),
-            "Invalid environment. Must be 'dev-x', 'test', or 'prod'"
-        );
-    }
-
+    /// @notice Returns the active deployment environment string from `ENV`
+    /// @return env The current environment name (e.g. "dev-0", "test", "prod")
     function getEnv() internal view returns (string memory) {
         return vm.envString("ENV");
     }
 
+    /// @notice Checks whether the current environment is a dev environment
+    /// @return isDev True if the environment is one of the supported dev variants
     function isDevEnv() internal view returns (bool) {
         string memory env = getEnv();
         return keccak256(bytes(env)) == keccak256(bytes("dev-0"))
@@ -236,10 +232,14 @@ abstract contract DeploymentUtils is ChainConnections, Script {
             || keccak256(bytes(env)) == keccak256(bytes("dev-3"));
     }
 
+    /// @notice Checks whether the current environment is the test environment
+    /// @return isTest True if `ENV` equals "test"
     function isTestEnv() internal view returns (bool) {
         return keccak256(bytes(getEnv())) == keccak256(bytes("test"));
     }
 
+    /// @notice Checks whether the current environment is the production environment
+    /// @return isProd True if `ENV` equals "prod"
     function isProdEnv() internal view returns (bool) {
         return keccak256(bytes(getEnv())) == keccak256(bytes("prod"));
     }
@@ -250,6 +250,8 @@ abstract contract DeploymentUtils is ChainConnections, Script {
         return chainsByEnv[getEnv()];
     }
 
+    /// @notice Returns the engineering multisig for the current chain, or the deployer in dev envs
+    /// @return multisig The engineering multisig address
     function getEngMultiSig() internal view returns (address) {
         if (isDevEnv()) return getDeployerAddress();
         address addr = engMultiSigs[block.chainid];
@@ -257,6 +259,8 @@ abstract contract DeploymentUtils is ChainConnections, Script {
         return addr;
     }
 
+    /// @notice Returns the finance multisig for the current chain, or the deployer in dev envs
+    /// @return multisig The finance multisig address
     function getFinanceMultiSig() internal view returns (address) {
         if (isDevEnv()) return getDeployerAddress();
         address addr = financeMultiSigs[block.chainid];
@@ -264,18 +268,26 @@ abstract contract DeploymentUtils is ChainConnections, Script {
         return addr;
     }
 
+    /// @notice Returns the configured `LagrangeQueryRouter` for the current chain and environment
+    /// @return router The router proxy address
     function getRouter() internal view returns (LagrangeQueryRouter) {
         LagrangeQueryRouter router = routers[getEnv()][block.chainid];
         require(address(router) != address(0), "Router not found");
         return router;
     }
 
+    /// @notice Returns the LayerZero endpoint for the current chain
+    /// @return endpoint The LayerZero endpoint address
     function getLzEndpoint() internal view returns (address) {
         address addr = lzEndpoints[block.chainid];
         require(addr != address(0), "LayerZero endpoint not found");
         return addr;
     }
 
+    /// @notice Adds an OFT peer configuration for a specific chain
+    /// @param chainId The EVM chain ID where the peer contract is deployed
+    /// @param endpointID The LayerZero endpoint ID for the peer chain
+    /// @param peerAddress The peer contract address on the target chain
     function addPeer(uint256 chainId, uint32 endpointID, address peerAddress)
         private
     {
@@ -290,6 +302,8 @@ abstract contract DeploymentUtils is ChainConnections, Script {
         );
     }
 
+    /// @notice Returns the configured OFT peers for all chains other than the current one
+    /// @return peersForOtherChains The array of peer configurations
     function getPeers() internal view returns (LATokenBase.Peer[] memory) {
         LATokenBase.Peer[] memory filteredPeers =
             new LATokenBase.Peer[](peers.length);
@@ -306,12 +320,16 @@ abstract contract DeploymentUtils is ChainConnections, Script {
         return filteredPeers;
     }
 
+    /// @notice Returns the treasury address for the current chain
+    /// @return treasury The treasury address
     function getTreasuryAddress() internal view returns (address) {
         address addr = treasuryAddresses[block.chainid];
         require(addr != address(0), "Treasury address not found");
         return addr;
     }
 
+    /// @notice Indicates whether minting is enabled on the current chain
+    /// @return canMint True if minting is allowed on this chain
     function isMintableChain() internal view returns (bool) {
         return mintableChains[block.chainid];
     }

@@ -87,6 +87,7 @@ contract Deployer {
     /// @param routerProxy The address of the router proxy contract
     /// @param dbManagerProxy The address of the database manager proxy contract
     /// @param feeCollector The address of the fee collector contract
+    /// @param config The configuration parameters for the query executor
     /// @return QueryExecutor A new QueryExecutor instance
     /// @dev this is separated into it's own function so that it can be overridden for testing
     function deployQueryExecutor(

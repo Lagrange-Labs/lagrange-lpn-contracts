@@ -8,6 +8,7 @@ import {LATokenBase} from "./LATokenBase.sol";
 /// @dev This verstion is deployed on all evm chains other than eth mainnet
 contract LAToken is LATokenBase {
     /// @notice Disable initializers on the logic contract
+    /// @param lzEndpoint The address of the LayerZero endpoint
     constructor(address lzEndpoint) LATokenBase(lzEndpoint) {}
 
     /// @notice Initializes the token with name, symbol, and roles
