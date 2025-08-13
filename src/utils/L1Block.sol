@@ -9,7 +9,8 @@ import {
     isOPStack
 } from "./Constants.sol";
 
-/// @notice The latest L1 blockhash.
+/// @notice Gets the latest blockhash on the *L1* chain.
+/// @return The blockhash
 function L1BlockHash() view returns (bytes32) {
     if (isEthereum()) {
         // cannont calculate blockhash for a pending block, we can only lookup the blockhash of
@@ -24,7 +25,8 @@ function L1BlockHash() view returns (bytes32) {
     return bytes32(CANARY);
 }
 
-/// @notice The latest L1 block number.
+/// @notice Gets the latest block number on the *L1* chain.
+/// @return The block number
 function L1BlockNumber() view returns (uint256) {
     if (isEthereum()) {
         // block.number is the "pending" block, not actually the tip of the chain,

@@ -41,6 +41,7 @@ contract FeeCollector is IVersioned, Ownable2Step {
     error CannotTransferToZeroAddress();
 
     /// @notice Constructor to set initial owner
+    /// @param initialOwner The address of the initial owner
     constructor(address initialOwner) Ownable(initialOwner) {}
 
     /// @notice Allows the contract to receive native tokens

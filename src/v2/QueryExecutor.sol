@@ -123,6 +123,7 @@ contract QueryExecutor is
     /// @notice Error thrown when a zero address is used in the constructor
     error CannotUseZeroAddress();
 
+    /// @notice Modifier to ensure only the router can call the function
     modifier onlyRouter() {
         if (msg.sender != ROUTER) {
             revert OnlyRouter();
@@ -135,6 +136,7 @@ contract QueryExecutor is
     /// @param router The address of the router contract
     /// @param dbManager The address of the database manager (proxy) contract
     /// @param feeCollector The address of the fee collector contract
+    /// @param config The configuration parameters for the query executor
     constructor(
         address initialOwner,
         address router,

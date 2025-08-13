@@ -15,9 +15,12 @@ contract LATokenMintableDeployer {
     error ZeroAddress();
 
     /// @notice Deploys and configures the mintable LA token with a proxy
+    /// @param inflationRate The inflation rate for the token
+    /// @param initialSupply The initial supply of the token
     /// @param lzEndpoint The LayerZero endpoint address
     /// @param initialMintHandler The address to receive the initial mint
     /// @param treasury The address that will be granted the MINTER_ROLE
+    /// @param peers The OFT peers that will be added to the token
     constructor(
         uint256 inflationRate,
         uint256 initialSupply,

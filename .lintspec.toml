@@ -1,0 +1,78 @@
+[lintspec]
+paths = ["src/"]
+exclude = ["src/mocks/", "src/v2/Groth16VerifierExtension.sol"]
+inheritdoc = false
+notice_or_dev = false
+skip_version_detection = false
+
+[output]
+json = false
+compact = false
+sort = false
+
+[constructor]
+notice = "ignored"
+dev = "ignored"
+param = "required"
+
+[enum]
+notice = "ignored"
+dev = "ignored"
+param = "ignored"
+
+[error]
+notice = "ignored"
+dev = "ignored"
+param = "ignored"
+
+[event]
+notice = "ignored"
+dev = "ignored"
+param = "ignored"
+
+[function.private]
+notice = "required"
+dev = "ignored"
+param = "required"
+return = "required"
+
+[function.internal]
+notice = "required"
+dev = "ignored"
+param = "required"
+return = "required"
+
+[function.public]
+notice = "required"
+dev = "ignored"
+param = "required"
+return = "required"
+
+[function.external]
+notice = "required"
+dev = "ignored"
+param = "required"
+return = "required"
+
+[modifier]
+notice = "required"
+dev = "ignored"
+param = "required"
+
+[struct]
+notice = "ignored"
+dev = "ignored"
+param = "ignored"
+
+[variable.private]
+notice = "ignored"
+dev = "ignored"
+
+[variable.internal]
+notice = "ignored"
+dev = "ignored"
+
+[variable.public]
+notice = "ignored"
+dev = "ignored"
+return = "ignored"
