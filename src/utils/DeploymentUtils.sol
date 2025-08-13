@@ -353,7 +353,7 @@ abstract contract DeploymentUtils is ChainConnections, Script {
         // run the copy verifier script
         string[] memory copyVerifierCmdArgs = new string[](4);
         copyVerifierCmdArgs[0] = "bash";
-        copyVerifierCmdArgs[1] = "script/util/copy-verifier.sh";
+        copyVerifierCmdArgs[1] = "script/copy-verifier.sh";
         copyVerifierCmdArgs[2] = getEnv();
         copyVerifierCmdArgs[3] = ppVersion;
         vm.ffi(copyVerifierCmdArgs);
