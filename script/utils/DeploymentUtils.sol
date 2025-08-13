@@ -3,9 +3,9 @@
 pragma solidity 0.8.25;
 
 import {Script} from "forge-std/Script.sol";
-import {LagrangeQueryRouter} from "../v2/LagrangeQueryRouter.sol";
+import {LagrangeQueryRouter} from "../../src/v2/LagrangeQueryRouter.sol";
 import {ChainConnections} from "./ChainConnections.sol";
-import {LATokenBase} from "../latoken/LATokenBase.sol";
+import {LATokenBase} from "../../src/latoken/LATokenBase.sol";
 
 /// @title DeploymentUtils
 /// @notice This contract contains many utility functions for deployment scripts

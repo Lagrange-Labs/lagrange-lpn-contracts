@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.25;
 
-import {DeploymentUtils} from "../../src/utils/DeploymentUtils.sol";
+import {DeploymentUtils} from "../utils/DeploymentUtils.sol";
 import {LAPublicStaker} from "../../src/latoken/LAPublicStaker.sol";
 import {TransparentUpgradeableProxy} from
     "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";

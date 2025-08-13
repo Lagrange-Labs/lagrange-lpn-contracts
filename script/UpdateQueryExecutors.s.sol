@@ -2,7 +2,7 @@
 pragma solidity 0.8.25;
 
 import {console} from "forge-std/console.sol";
-import {DeploymentUtils} from "../src/utils/DeploymentUtils.sol";
+import {DeploymentUtils} from "./utils/DeploymentUtils.sol";
 import {QueryExecutor} from "../src/v2/QueryExecutor.sol";
 import {LagrangeQueryRouter} from "../src/v2/LagrangeQueryRouter.sol";
 

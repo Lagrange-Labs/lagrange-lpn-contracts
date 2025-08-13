@@ -2,7 +2,7 @@
 pragma solidity 0.8.25;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {DeploymentUtils} from "../../src/utils/DeploymentUtils.sol";
+import {DeploymentUtils} from "../utils/DeploymentUtils.sol";
 import {LATokenMintableDeployer} from
     "../../src/latoken/LATokenMintableDeployer.sol";
 import {LATokenDeployer} from "../../src/latoken/LATokenDeployer.sol";
