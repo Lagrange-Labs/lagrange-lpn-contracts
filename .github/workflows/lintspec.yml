@@ -1,7 +1,6 @@
 name: Lintspec
 
-on:
-  pull_request:
+on: push
 
 jobs:
   lintspec:
