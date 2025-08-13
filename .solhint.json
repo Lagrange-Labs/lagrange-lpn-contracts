@@ -1,10 +1,41 @@
 {
   "extends": "solhint:recommended",
   "rules": {
-    "compiler-version": [
-      "warn",
-      "^0.8.24"
+    "gas-increment-by-one": "error",
+    "no-unused-import": "error",
+    "compiler-version": "off",
+    "gas-calldata-parameters": "error",
+    "import-path-check": "off",
+    "func-visibility": [
+      "error",
+      {
+        "ignoreConstructors": true
+      }
     ],
-    "use-natspec": "warn"
+    "use-natspec": [
+      "error",
+      {
+        "title": {
+          "enabled": true,
+          "ignore": {}
+        },
+        "author": {
+          "enabled": false,
+          "ignore": {}
+        },
+        "notice": {
+          "enabled": false,
+          "ignore": {}
+        },
+        "param": {
+          "enabled": false,
+          "ignore": {}
+        },
+        "return": {
+          "enabled": false,
+          "ignore": {}
+        }
+      }
+    ]
   }
 }

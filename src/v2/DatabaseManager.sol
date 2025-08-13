@@ -151,7 +151,7 @@ contract DatabaseManager is
             revert InvalidIndexRange();
         }
         bytes32[] memory result = new bytes32[](end - start);
-        for (uint256 i = start; i < end; i++) {
+        for (uint256 i = start; i < end; ++i) {
             result[i - start] = s_tableIDs.at(i);
         }
         return result;
@@ -171,7 +171,7 @@ contract DatabaseManager is
             revert InvalidIndexRange();
         }
         bytes32[] memory result = new bytes32[](end - start);
-        for (uint256 i = start; i < end; i++) {
+        for (uint256 i = start; i < end; ++i) {
             result[i - start] = s_queriesByTable[tableID].at(i);
         }
         return result;

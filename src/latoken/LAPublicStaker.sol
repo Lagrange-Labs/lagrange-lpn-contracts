@@ -84,7 +84,7 @@ contract LAPublicStaker is
     /// @notice Initializes the contract with an owner and configuration
     /// @param initialOwner The address of the initial owner
     /// @param config The initial configuration for the contract
-    function initialize(address initialOwner, Config memory config)
+    function initialize(address initialOwner, Config calldata config)
         public
         initializer
     {
@@ -94,7 +94,7 @@ contract LAPublicStaker is
 
     /// @notice Sets a new configuration for the staking contract
     /// @param config The new configuration to set
-    function setConfig(Config memory config) external onlyOwner {
+    function setConfig(Config calldata config) external onlyOwner {
         _setConfig(config);
     }
 
@@ -158,7 +158,7 @@ contract LAPublicStaker is
 
             if (position.matureDate <= block.timestamp) {
                 totalClaimable += position.amountStaked + position.rewardsOwed;
-                if (shouldShift) offset++;
+                if (shouldShift) ++offset;
                 delete s_userStakes[msg.sender].positions[i];
             } else {
                 shouldShift = false; // Stop shifting if we've found an immature position
@@ -233,7 +233,7 @@ contract LAPublicStaker is
         for (uint256 i = offset; i < length; ++i) {
             if (s_userStakes[user].positions[i].amountStaked > 0) {
                 positions[count] = s_userStakes[user].positions[i];
-                count++;
+                ++count;
             }
         }
 
@@ -388,7 +388,7 @@ contract LAPublicStaker is
 
     /// @notice Internal function to validate and set configuration
     /// @param config The configuration to validate and set
-    function _setConfig(Config memory config) private {
+    function _setConfig(Config calldata config) private {
         if (config.apyPPT == 0) revert InvalidConfig();
         if (config.lockupPeriodDays == 0) revert InvalidConfig();
         if (config.stakeCap == 0) revert InvalidConfig();

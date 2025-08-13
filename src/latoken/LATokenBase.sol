@@ -45,7 +45,7 @@ abstract contract LATokenBase is Initializable, OFTUpgradable {
         __ERC20Permit_init(NAME);
         __AccessControlDefaultAdminRules_init(0, treasury);
         __OFT_init(treasury);
-        for (uint256 i = 0; i < peers.length; i++) {
+        for (uint256 i = 0; i < peers.length; ++i) {
             if (peers[i].endpointID == 0 || peers[i].peerAddress == bytes32(0))
             {
                 revert InvalidPeer(peers[i].endpointID, peers[i].peerAddress);

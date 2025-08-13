@@ -10,6 +10,7 @@ import {
     SCROLL_SEPOLIA
 } from "./Constants.sol";
 
+/// @title ChainConnections
 /// @notice This contract is used to register non-default chains for deployment scripts and tests
 /// @dev https://github.com/foundry-rs/forge-std/issues/440#issuecomment-1696115446
 abstract contract ChainConnections is StdChains {

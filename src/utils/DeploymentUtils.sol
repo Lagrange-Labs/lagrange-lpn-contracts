@@ -7,6 +7,7 @@ import {LagrangeQueryRouter} from "../v2/LagrangeQueryRouter.sol";
 import {ChainConnections} from "./ChainConnections.sol";
 import {LATokenBase} from "../latoken/LATokenBase.sol";
 
+/// @title DeploymentUtils
 /// @notice This contract contains many utility functions for deployment scripts
 abstract contract DeploymentUtils is ChainConnections, Script {
     struct PeerConfig {
@@ -308,10 +309,10 @@ abstract contract DeploymentUtils is ChainConnections, Script {
         LATokenBase.Peer[] memory filteredPeers =
             new LATokenBase.Peer[](peers.length);
         uint256 count = 0;
-        for (uint256 i = 0; i < peers.length; i++) {
+        for (uint256 i = 0; i < peers.length; ++i) {
             if (peers[i].chainId != block.chainid) {
                 filteredPeers[count] = peers[i].peer;
-                count++;
+                ++count;
             }
         }
         assembly {

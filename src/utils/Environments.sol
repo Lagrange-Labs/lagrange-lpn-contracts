@@ -2,6 +2,7 @@
 
 pragma solidity 0.8.25;
 
+/// @title Environments
 /// @notice This contract defines the chains that are configured for each environment
 abstract contract Environments {
     mapping(string => string[]) private chainsByEnv;
