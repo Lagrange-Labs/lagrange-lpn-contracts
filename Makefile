@@ -91,6 +91,14 @@ deploy-latoken-sim  :; forge script script/deploy/DeployLAToken.s.sol --rpc-url 
 deploy-la-staker    :; forge script script/deploy/DeployLAPublicStaker.s.sol --rpc-url $(word 2, $(MAKECMDGOALS)) --etherscan-api-key $(ETHERSCAN_API_KEY) --verify --verifier etherscan --delay 10 --retries 7 --broadcast
 deploy-la-escrow    :; forge script script/deploy/DeployLAEscrow.s.sol --rpc-url $(word 2, $(MAKECMDGOALS)) --etherscan-api-key $(ETHERSCAN_API_KEY) --verify --verifier etherscan --delay 10 --retries 7 --broadcast
 
+.PHONY: generate-docs
+generate-docs:
+	bun surya mdreport docs/coprocessor/SuryaReport.md src/v2/**/*.sol --title-deepness 1
+	bun surya mdreport docs/latoken/SuryaReport.md src/latoken/*.sol --title-deepness 1
+	bun surya graph src/v2/**/*.sol | dot -Tpng > docs/coprocessor/SuryaGraph.png
+	bun sol2uml src/v2/ --hideInterfaces --hideStructs --hideEnums --outputFileName docs/coprocessor/UML.svg
+	bun sol2uml src/latoken/ --hideInterfaces --hideStructs --hideEnums --outputFileName docs/latoken/UML.svg
+
 # List available scripts
 list-scripts:
 	@echo "Available scripts:"

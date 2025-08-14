@@ -22,12 +22,13 @@ forge soldeer install
 
 ## Optional:
 
-* [Bun](https://bun.com/) (for running solhint) 
-* [Docker](https://www.docker.com/) (for running slither)
+* [Bun](https://bun.com/)
+* [Docker](https://www.docker.com/)
 * [Aderyn](https://github.com/Cyfrin/aderyn)
 * [Glow](https://github.com/charmbracelet/glow)
 * [Lintspec](https://github.com/beeb/lintspec)
 * [Vertigo-rs](https://github.com/RareSkills/vertigo-rs)
+* [Graphviz](https://graphviz.org/)
 
 ## Build & Test
 
