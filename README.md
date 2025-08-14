@@ -25,8 +25,9 @@ forge soldeer install
 * [Bun](https://bun.com/) (for running solhint) 
 * [Docker](https://www.docker.com/) (for running slither)
 * [Aderyn](https://github.com/Cyfrin/aderyn)
-* [Glow](https://github.com/charmbracelet/glow) (for reading markdown reports)
-* [Lintspec](https://github.com/beeb/lintspec) (for running the Natspec linter)
+* [Glow](https://github.com/charmbracelet/glow)
+* [Lintspec](https://github.com/beeb/lintspec)
+* [Vertigo-rs](https://github.com/RareSkills/vertigo-rs)
 
 ## Build & Test
 
