@@ -89,7 +89,7 @@ update-v2-executors :; forge script script/UpdateQueryExecutors.s.sol --ffi --et
 deploy-latoken      :; forge script script/deploy/DeployLAToken.s.sol --rpc-url $(word 2, $(MAKECMDGOALS)) --etherscan-api-key $(ETHERSCAN_API_KEY) --verify --verifier etherscan --delay 10 --retries 7 --broadcast
 deploy-latoken-sim  :; forge script script/deploy/DeployLAToken.s.sol --rpc-url $(word 2, $(MAKECMDGOALS)) 
 deploy-la-staker    :; forge script script/deploy/DeployLAPublicStaker.s.sol --rpc-url $(word 2, $(MAKECMDGOALS)) --etherscan-api-key $(ETHERSCAN_API_KEY) --verify --verifier etherscan --delay 10 --retries 7 --broadcast
-deploy-la-escrow    :; forge script script/deploy/DeployLAEscrow.s.sol --rpc-url $(word 2, $(MAKECMDGOALS)) --etherscan-api-key $(ETHERSCAN_API_KEY) --verify --verifier etherscan --delay 10 --retries 7 --broadcast
+deploy-dp-payments  :; forge script script/deploy/DeployDeepProvePayments.s.sol --rpc-url $(word 2, $(MAKECMDGOALS)) --etherscan-api-key $(ETHERSCAN_API_KEY) --verify --verifier etherscan --delay 10 --retries 7 --broadcast
 
 # List available scripts
 list-scripts:
