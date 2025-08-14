@@ -6,7 +6,9 @@
   },
   "devDependencies": {
     "@types/bun": "latest",
-    "solhint": "^6.0.0"
+    "sol2uml": "^2.5.22",
+    "solhint": "^6.0.0",
+    "surya": "^0.4.13"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
