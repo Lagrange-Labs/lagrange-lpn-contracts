@@ -7,20 +7,13 @@ You can find the [user documentation here](https://docs.lagrange.dev/zk-coproces
 # Guide for Maintainers
 
 ## Environment Setup
-Be sure to include a `.env` file and export the environment variables shown in `.env.example`
 
 ## Pre-requisites
-- [Foundry](https://book.getfoundry.sh)
-- Make
 
-## Installation
-Install dependencies:
-```bash
-forge install
-forge soldeer install
-```
+* [Foundry](https://book.getfoundry.sh)
+* [Just](https://github.com/casey/just)
 
-## Optional:
+## Optional
 
 * [Bun](https://bun.com/)
 * [Docker](https://www.docker.com/)
@@ -30,25 +23,40 @@ forge soldeer install
 * [Vertigo-rs](https://github.com/RareSkills/vertigo-rs)
 * [Graphviz](https://graphviz.org/)
 
+## List Commands
+```bash
+just --list
+```
+
+## Install Dependencies
+
+```bash
+just install
+```
+
 ## Build & Test
 
 ```bash
-forge build
-forge test
+just build
+just test
 ```
 
 ## Static Analysis
 
+This requires docker, aderyn, glow
+
 ```bash
-make slither
-make aderyn
+just slither
+just aderyn
 ```
 
 ## Lint
 
+This requires bun & lintspec
+
 ```bash
-bun lint
-lintspec
+just lint
+just lintspec
 ```
 
 ## Deploy
@@ -63,7 +71,7 @@ lintspec
 export PRIVATE_KEY=<...>
 export ETHERSCAN_API_KEY=<...>
 export ENV=<dev-x/test/prod>
-make deploy-v2 [chain]
+just deploy-v2 [chain]
 ```
 
 ## Update
@@ -74,7 +82,7 @@ To update the verifier contract on a dev environment, the command is:
 export PRIVATE_KEY=<...>
 export ETHERSCAN_API_KEY=<...>
 export ENV=<dev-x/test/prod>
-make update-v2-executors
+just update-v2-executors
 ```
 
 ## Design

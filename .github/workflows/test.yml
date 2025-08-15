@@ -25,5 +25,5 @@ jobs:
         id: install-dependencies
 
       - name: Run unit tests
-        run: make test
+        run: forge test -v
         id: test

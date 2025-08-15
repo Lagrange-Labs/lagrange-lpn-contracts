@@ -28,7 +28,7 @@ jobs:
         uses: hrishikesh-kadam/setup-lcov@f5da1b26b0dcf5d893077a3c4f29cf78079c841d # v1.0.0
 
       - name: Generate coverage report
-        run: make coverage-report
+        run: forge coverage -v --no-match-coverage "(script|test|mocks)" --report lcov
         id: coverage
 
       - name: Report code coverage

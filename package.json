@@ -1,9 +1,6 @@
 {
   "name": "lagrange-lpn-contracts",
   "type": "module",
-  "scripts": {
-    "lint": "solhint 'src/**/*.sol'"
-  },
   "devDependencies": {
     "@types/bun": "latest",
     "sol2uml": "^2.5.22",
