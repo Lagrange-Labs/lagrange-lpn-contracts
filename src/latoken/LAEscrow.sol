@@ -43,7 +43,6 @@ contract LAEscrow is Initializable, Ownable2StepUpgradeable, IVersioned {
     error InvalidRecipient();
     error NoClaimableRebates();
     error OnlyLagrangeCanActivate();
-    error OnlyTreasuryCanDistribute();
     error TransferFailed();
     error ZeroAddress();
 
@@ -120,7 +119,7 @@ contract LAEscrow is Initializable, Ownable2StepUpgradeable, IVersioned {
 
     /// @notice Claims all available rebates for the caller
     // slither-disable-next-line arbitrary-send-erc20
-    function claim() external {
+    function claimRebates() external {
         EscrowAgreement memory agreement = s_agreements[msg.sender];
         if (agreement.activationDate == 0) revert InvalidAgreement();
 
@@ -157,8 +156,7 @@ contract LAEscrow is Initializable, Ownable2StepUpgradeable, IVersioned {
     /// @notice Distributes LA tokens to a recipient
     /// @param to The address of the recipient
     /// @param amount The amount of LA tokens to distribute
-    function distribute(address to, uint256 amount) external {
-        if (msg.sender != TREASURY) revert OnlyTreasuryCanDistribute();
+    function distribute(address to, uint256 amount) external onlyOwner {
         if (to == address(0)) revert InvalidRecipient();
         if (amount == 0) revert InvalidAmount();
 
