@@ -61,7 +61,7 @@ deploy-v2 chain:
 	forge script script/deploy/DeployLPNV2Contracts.s.sol \
 		--rpc-url {{chain}} \
 		--ffi \
-		--etherscan-api-key $(ETHERSCAN_API_KEY) \
+		--etherscan-api-key $ETHERSCAN_API_KEY \
 		--verify \
 		--verifier etherscan \
 		--delay 10 \
@@ -72,7 +72,7 @@ deploy-v2 chain:
 update-v2-executors chain:
 	forge script script/UpdateQueryExecutors.s.sol \
 		--ffi \
-		--etherscan-api-key $(ETHERSCAN_API_KEY) \
+		--etherscan-api-key $ETHERSCAN_API_KEY \
 		--verify \
 		--verifier etherscan \
 		--delay 10 \
@@ -83,7 +83,7 @@ update-v2-executors chain:
 deploy-latoken chain:
 	forge script script/deploy/DeployLAToken.s.sol \
 		--rpc-url {{chain}} \
-		--etherscan-api-key $(ETHERSCAN_API_KEY) \
+		--etherscan-api-key $ETHERSCAN_API_KEY \
 		--verify \
 		--verifier etherscan \
 		--delay 10 \
@@ -94,7 +94,7 @@ deploy-latoken chain:
 deploy-la-staker chain:
 	forge script script/deploy/DeployLAPublicStaker.s.sol \
 		--rpc-url {{chain}} \
-		--etherscan-api-key $(ETHERSCAN_API_KEY) \
+		--etherscan-api-key $ETHERSCAN_API_KEY \
 		--verify \
 		--verifier etherscan \
 		--delay 10 \
@@ -105,7 +105,7 @@ deploy-la-staker chain:
 deploy-la-escrow chain:
 	forge script script/deploy/DeployLAEscrow.s.sol \
 		--rpc-url {{chain}} \
-		--etherscan-api-key $(ETHERSCAN_API_KEY) \
+		--etherscan-api-key $ETHERSCAN_API_KEY \
 		--verify \
 		--verifier etherscan \
 		--delay 10 \

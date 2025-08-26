@@ -27,8 +27,8 @@
 <text text-anchor="start" x="8" y="-336.3" font-family="Times,serif" font-size="14.00">External:</text>
 <text text-anchor="start" x="8" y="-319.5" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;createAgreement(user: address, params: NewEscrowAgreementParams) &lt;&lt;onlyOwner&gt;&gt;</text>
 <text text-anchor="start" x="8" y="-302.7" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;activateAgreement()</text>
-<text text-anchor="start" x="8" y="-285.9" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;claim()</text>
-<text text-anchor="start" x="8" y="-269.1" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;distribute(to: address, amount: uint256)</text>
+<text text-anchor="start" x="8" y="-285.9" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;claimRebates()</text>
+<text text-anchor="start" x="8" y="-269.1" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;distribute(to: address, amount: uint256) &lt;&lt;onlyOwner&gt;&gt;</text>
 <text text-anchor="start" x="8" y="-252.3" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;cancelAgreement(user: address) &lt;&lt;onlyOwner&gt;&gt;</text>
 <text text-anchor="start" x="8" y="-235.5" font-family="Times,serif" font-size="14.00"> &#160;&#160;&#160;hasClaimableRebates(user: address): bool</text>
 <text text-anchor="start" x="8" y="-218.7" font-family="Times,serif" font-size="14.00">Public:</text>

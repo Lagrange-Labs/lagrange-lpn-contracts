@@ -5,7 +5,7 @@
 
 |  File Name  |  SHA-1 Hash  |
 |-------------|--------------|
-| src/latoken/LAEscrow.sol | 2b9f236c9e21ae28dd1ff561378a63f0601b479f |
+| src/latoken/LAEscrow.sol | 926861694dab236ad55209741f935520960df0e5 |
 | src/latoken/LAPublicStaker.sol | b3c76c7f3d9cd4e972d9eddaf35bcd9854aeefa5 |
 | src/latoken/LAToken.sol | d91dd8931a47f5ba9543242e273b8e85a0ae090d |
 | src/latoken/LATokenBase.sol | 61445d5a876368ef749dfce179bab1e888a2f17e |
@@ -27,8 +27,8 @@
 | └ | initialize | Public ❗️ | 🛑  | initializer |
 | └ | createAgreement | External ❗️ | 🛑  | onlyOwner |
 | └ | activateAgreement | External ❗️ | 🛑  |NO❗️ |
-| └ | claim | External ❗️ | 🛑  |NO❗️ |
-| └ | distribute | External ❗️ | 🛑  |NO❗️ |
+| └ | claimRebates | External ❗️ | 🛑  |NO❗️ |
+| └ | distribute | External ❗️ | 🛑  | onlyOwner |
 | └ | cancelAgreement | External ❗️ | 🛑  | onlyOwner |
 | └ | getEscrowAgreement | Public ❗️ |   |NO❗️ |
 | └ | hasClaimableRebates | External ❗️ |   |NO❗️ |

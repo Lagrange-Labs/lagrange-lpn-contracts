@@ -3,8 +3,6 @@
 @layerzerolabs/oapp-evm/=dependencies/@layerzerolabs-oapp-evm-0.3.2/
 @layerzerolabs/oft-evm-upgradeable/=vendor/layerzero/oft-evm-upgradeable/
 @layerzerolabs/oft-evm/=dependencies/@layerzerolabs-oft-evm-3.1.3/
-
 @openzeppelin/contracts-upgradeable=dependencies/@openzeppelin-contracts-upgradeable-5.2.0/
 @openzeppelin/contracts/=dependencies/@openzeppelin-contracts-5.2.0/
-
 forge-std/=dependencies/forge-std-1.10.0/src/

@@ -413,10 +413,10 @@ contract LAEscrowTest is BaseTest {
     }
 
     // ------------------------------------------------------------
-    //                        CLAIM TESTS                         |
+    //                    CLAIM REBATES TESTS                     |
     // ------------------------------------------------------------
 
-    function test_Claim_Success() public {
+    function test_ClaimRebates_Success() public {
         _createAndActivateAgreement(user1, 100 ether, 10 ether, 30, 12);
 
         // Fast forward 15 days (half the duration)
@@ -428,7 +428,7 @@ contract LAEscrowTest is BaseTest {
         vm.prank(user1);
         vm.expectEmit(true, true, true, true);
         emit LAEscrow.RebateClaimed(user1, expectedClaim);
-        escrow.claim();
+        escrow.claimRebates();
 
         assertEq(laToken.balanceOf(user1), initialBalance + expectedClaim);
 
@@ -437,7 +437,7 @@ contract LAEscrowTest is BaseTest {
         assertEq(agreement.numRebatesClaimed, 6);
     }
 
-    function test_Claim_FinalClaim_Success() public {
+    function test_ClaimRebates_FinalClaim_Success() public {
         _createAndActivateAgreement(user1, 100 ether, 10 ether, 30, 12);
 
         // Fast forward past the duration
@@ -447,7 +447,7 @@ contract LAEscrowTest is BaseTest {
         uint256 expectedClaim = 12 * 10 ether; // All 12 rebates
 
         vm.prank(user1);
-        escrow.claim();
+        escrow.claimRebates();
 
         assertEq(laToken.balanceOf(user1), initialBalance + expectedClaim);
 
@@ -457,7 +457,7 @@ contract LAEscrowTest is BaseTest {
         assertEq(agreement.paymentAmount, 0);
     }
 
-    function test_Claim_MultipleClaims_Success() public {
+    function test_ClaimRebates_MultipleClaims_Success() public {
         _createAndActivateAgreement(user1, 100 ether, 10 ether, 30, 12);
 
         uint256 initialBalance = laToken.balanceOf(user1);
@@ -467,21 +467,21 @@ contract LAEscrowTest is BaseTest {
         uint256 firstClaim = 4 * 10 ether; // 4 rebates
 
         vm.prank(user1);
-        escrow.claim();
+        escrow.claimRebates();
 
         // Second claim after 20 days
         vm.warp(block.timestamp + 10 days);
         uint256 secondClaim = 4 * 10 ether; // 4 more rebates
 
         vm.prank(user1);
-        escrow.claim();
+        escrow.claimRebates();
 
         // Final claim after 31 days
         vm.warp(block.timestamp + 11 days);
         uint256 finalClaim = 4 * 10 ether; // Remaining 4 rebates
 
         vm.prank(user1);
-        escrow.claim();
+        escrow.claimRebates();
 
         // Agreement should be deleted
         LAEscrow.EscrowAgreement memory agreement =
@@ -494,35 +494,35 @@ contract LAEscrowTest is BaseTest {
         );
     }
 
-    function test_Claim_RevertsWhen_NoAgreementExists() public {
+    function test_ClaimRebates_RevertsWhen_NoAgreementExists() public {
         vm.prank(user1);
         vm.expectRevert(LAEscrow.InvalidAgreement.selector);
-        escrow.claim();
+        escrow.claimRebates();
     }
 
-    function test_Claim_RevertsWhen_AgreementNotActivated() public {
+    function test_ClaimRebates_RevertsWhen_AgreementNotActivated() public {
         _createAgreementForUser(user1, 100 ether, 10 ether, 30, 12);
 
         vm.prank(user1);
         vm.expectRevert(LAEscrow.InvalidAgreement.selector);
-        escrow.claim();
+        escrow.claimRebates();
     }
 
-    function test_Claim_RevertsWhen_NoClaimableRebates() public {
+    function test_ClaimRebates_RevertsWhen_NoClaimableRebates() public {
         _createAndActivateAgreement(user1, 100 ether, 10 ether, 30, 12);
 
         // Try to claim immediately after activation
         vm.prank(user1);
         vm.expectRevert(LAEscrow.NoClaimableRebates.selector);
-        escrow.claim();
+        escrow.claimRebates();
     }
 
-    function test_Claim_RevertsWhen_TreasuryTransferFails() public {
+    function test_ClaimRebates_RevertsWhen_TreasuryTransferFails() public {
         _createAndActivateAgreement(user1, 100 ether, 10 ether, 30, 12);
 
         // Drain contract balance
         uint256 balance = laToken.balanceOf(address(escrow));
-        vm.prank(treasury);
+        vm.prank(owner);
         escrow.distribute(address(0xdead), balance);
 
         // Drain treasury balance
@@ -534,7 +534,7 @@ contract LAEscrowTest is BaseTest {
 
         vm.prank(user1);
         vm.expectRevert();
-        escrow.claim();
+        escrow.claimRebates();
     }
 
     // ------------------------------------------------------------
@@ -546,7 +546,7 @@ contract LAEscrowTest is BaseTest {
         uint256 amount = 100 ether;
         laToken.mint(address(escrow), amount);
 
-        vm.prank(treasury);
+        vm.prank(owner);
         vm.expectEmit(true, true, true, true);
         emit LAEscrow.Distributed(recipient, amount);
         escrow.distribute(recipient, amount);
@@ -556,25 +556,29 @@ contract LAEscrowTest is BaseTest {
 
     function test_Distribute_RevertsWhen_NotTreasury() public {
         vm.prank(user1);
-        vm.expectRevert(LAEscrow.OnlyTreasuryCanDistribute.selector);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                Ownable.OwnableUnauthorizedAccount.selector, user1
+            )
+        );
         escrow.distribute(user1, 100 ether);
     }
 
     function test_Distribute_RevertsWhen_AmountIsZero() public {
-        vm.prank(treasury);
+        vm.prank(owner);
         vm.expectRevert(LAEscrow.InvalidAmount.selector);
         escrow.distribute(user1, 0);
     }
 
     function test_Distribute_RevertsWhen_RecipientIsZeroAddress() public {
-        vm.prank(treasury);
+        vm.prank(owner);
         vm.expectRevert(LAEscrow.InvalidRecipient.selector);
         escrow.distribute(address(0), 100 ether);
     }
 
     function test_Distribute_RevertsWhen_TransferFails() public {
         // Try to distribute more than contract has
-        vm.prank(treasury);
+        vm.prank(owner);
         uint256 balance = laToken.balanceOf(address(escrow));
         vm.expectRevert();
         escrow.distribute(user1, balance + 1);
@@ -625,7 +629,7 @@ contract LAEscrowTest is BaseTest {
         // Advance time and claim some rebates
         vm.warp(block.timestamp + 15 days);
         vm.prank(user1);
-        escrow.claim();
+        escrow.claimRebates();
 
         // Verify agreement still exists with some claims
         LAEscrow.EscrowAgreement memory agreement =
@@ -777,7 +781,7 @@ contract LAEscrowTest is BaseTest {
         _createAndActivateAgreement(user1, 100 ether, 10 ether, 30, 12);
 
         // Remove most of the contract balance
-        vm.prank(treasury);
+        vm.prank(owner);
         escrow.distribute(treasury, 99 ether);
 
         vm.warp(block.timestamp + 15 days);
@@ -790,7 +794,7 @@ contract LAEscrowTest is BaseTest {
 
         // Should use contract balance first, then treasury
         vm.prank(user1);
-        escrow.claim();
+        escrow.claimRebates();
         assertEq(laToken.balanceOf(user1), initialBalance + expectedClaim);
     }
 
@@ -800,7 +804,7 @@ contract LAEscrowTest is BaseTest {
         vm.warp(block.timestamp + 1 days);
 
         vm.prank(user1);
-        escrow.claim();
+        escrow.claimRebates();
 
         // Agreement should be deleted
         LAEscrow.EscrowAgreement memory agreement =
