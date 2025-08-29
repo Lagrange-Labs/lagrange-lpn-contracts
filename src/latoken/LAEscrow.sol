@@ -42,6 +42,7 @@ contract LAEscrow is Initializable, Ownable2StepUpgradeable, IVersioned {
     error InvalidConfig();
     error InvalidRecipient();
     error NoClaimableRebates();
+    error OnlyLagrangeCanActivate();
     error OnlyTreasuryCanDistribute();
     error TransferFailed();
     error ZeroAddress();
@@ -103,31 +104,18 @@ contract LAEscrow is Initializable, Ownable2StepUpgradeable, IVersioned {
         emit NewAgreement(user, agreement);
     }
 
-    /// @notice Activates the escrow agreement for the caller by transferring LA tokens to the contract
-    /// @dev This function can only be called once per agreement. The caller must have approved the contract to spend their LA tokens.
-    /// @dev Reverts if no agreement exists for the caller or if the agreement has already been activated.
+    /// @notice Activates an escrow agreement for a specified user.
+    /// @param user The address of the user whose agreement will be activated.
+    function activateAgreement(address user) external {
+        if (msg.sender != TREASURY && msg.sender != owner()) {
+            revert OnlyLagrangeCanActivate();
+        }
+        _activateAgreement(user);
+    }
+
+    /// @notice Activates the escrow agreement for the caller.
     function activateAgreement() external {
-        EscrowAgreement memory agreement = s_agreements[msg.sender];
-        if (agreement.paymentAmount == 0) {
-            revert InvalidAgreement();
-        }
-
-        if (agreement.activationDate != 0) {
-            revert AgreementAlreadyActivated();
-        }
-
-        s_agreements[msg.sender].activationDate = uint32(block.timestamp);
-
-        // Transfer LA tokens from user
-        if (
-            !LA_TOKEN.transferFrom(
-                msg.sender, address(this), uint256(agreement.paymentAmount)
-            )
-        ) {
-            revert TransferFailed();
-        }
-
-        emit AgreementActivated(msg.sender);
+        _activateAgreement(msg.sender);
     }
 
     /// @notice Claims all available rebates for the caller
@@ -252,6 +240,34 @@ contract LAEscrow is Initializable, Ownable2StepUpgradeable, IVersioned {
                 (numDistributionsPassed + 1)
                     * (agreementDuration / agreement.numRebates)
             );
+    }
+
+    /// @notice Activates the escrow agreement for the user and transfers LA tokens to the contract
+    /// @param user The address of the user whose agreement will be activated.
+    /// @dev This function can only be called once per agreement. The caller must have approved the contract to spend their LA tokens.
+    /// @dev Reverts if no agreement exists for the user or if the agreement has already been activated.
+    function _activateAgreement(address user) private {
+        EscrowAgreement memory agreement = s_agreements[user];
+        if (agreement.paymentAmount == 0) {
+            revert InvalidAgreement();
+        }
+
+        if (agreement.activationDate != 0) {
+            revert AgreementAlreadyActivated();
+        }
+
+        s_agreements[user].activationDate = uint32(block.timestamp);
+
+        // Transfer LA tokens from caller (could differ from user)
+        if (
+            !LA_TOKEN.transferFrom(
+                msg.sender, address(this), uint256(agreement.paymentAmount)
+            )
+        ) {
+            revert TransferFailed();
+        }
+
+        emit AgreementActivated(user);
     }
 
     /// @notice Processes a claim calculation for an escrow agreement

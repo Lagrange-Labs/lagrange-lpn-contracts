@@ -9,7 +9,6 @@ import {TransparentUpgradeableProxy} from
 import {Ownable} from "@openzeppelin/contracts/access/Ownable2Step.sol";
 import {Initializable} from
     "@openzeppelin/contracts/proxy/utils/Initializable.sol";
-import {console} from "forge-std/console.sol";
 
 contract LAEscrowTest is BaseTest {
     LAEscrow public implementation;
@@ -246,6 +245,107 @@ contract LAEscrowTest is BaseTest {
     // ------------------------------------------------------------
     //                    AGREEMENT ACTIVATION TESTS              |
     // ------------------------------------------------------------
+
+    function test_ActivateAgreementForUser_ByTreasury_Success() public {
+        _createAgreementForUser(user1, 100 ether, 10 ether, 30, 12);
+
+        uint256 initialUserBalance = laToken.balanceOf(user1);
+        uint256 initialTreasuryBalance = laToken.balanceOf(treasury);
+        uint256 initialContractBalance = laToken.balanceOf(address(escrow));
+
+        vm.prank(treasury);
+        vm.expectEmit(true, true, true, true);
+        emit LAEscrow.AgreementActivated(user1);
+        escrow.activateAgreement(user1);
+
+        LAEscrow.EscrowAgreement memory agreement =
+            escrow.getEscrowAgreement(user1);
+        assertEq(agreement.activationDate, block.timestamp);
+        // User balance unchanged; tokens are taken from caller (treasury)
+        assertEq(laToken.balanceOf(user1), initialUserBalance);
+        assertEq(
+            laToken.balanceOf(treasury), initialTreasuryBalance - 100 ether
+        );
+        assertEq(
+            laToken.balanceOf(address(escrow)),
+            initialContractBalance + 100 ether
+        );
+    }
+
+    function test_ActivateAgreementForUser_RevertsWhen_UnauthorizedCaller()
+        public
+    {
+        _createAgreementForUser(user1, 100 ether, 10 ether, 30, 12);
+
+        vm.prank(user2);
+        vm.expectRevert(LAEscrow.OnlyLagrangeCanActivate.selector);
+        escrow.activateAgreement(user1);
+    }
+
+    function test_ActivateAgreementForUser_ByOwner_Success() public {
+        _createAgreementForUser(user2, 200 ether, 20 ether, 60, 6);
+
+        // Give owner funds and allowance because tokens are pulled from caller
+        laToken.mint(owner, 1000 ether);
+        vm.prank(owner);
+        laToken.approve(address(escrow), type(uint256).max);
+
+        uint256 initialOwnerBalance = laToken.balanceOf(owner);
+        uint256 initialContractBalance = laToken.balanceOf(address(escrow));
+
+        vm.prank(owner);
+        vm.expectEmit(true, true, true, true);
+        emit LAEscrow.AgreementActivated(user2);
+        escrow.activateAgreement(user2);
+
+        LAEscrow.EscrowAgreement memory agreement =
+            escrow.getEscrowAgreement(user2);
+        assertEq(agreement.activationDate, block.timestamp);
+        assertEq(laToken.balanceOf(owner), initialOwnerBalance - 200 ether);
+        assertEq(
+            laToken.balanceOf(address(escrow)),
+            initialContractBalance + 200 ether
+        );
+    }
+
+    function test_ActivateAgreementForUser_RevertsWhen_NoAgreementExists()
+        public
+    {
+        vm.prank(treasury);
+        vm.expectRevert(LAEscrow.InvalidAgreement.selector);
+        escrow.activateAgreement(user1);
+    }
+
+    function test_ActivateAgreementForUser_RevertsWhen_AlreadyActivated()
+        public
+    {
+        _createAgreementForUser(user1, 100 ether, 10 ether, 30, 12);
+
+        vm.prank(treasury);
+        escrow.activateAgreement(user1);
+
+        vm.prank(treasury);
+        vm.expectRevert(LAEscrow.AgreementAlreadyActivated.selector);
+        escrow.activateAgreement(user1);
+    }
+
+    function test_ActivateAgreementForUser_TransferFromCaller_NotUser()
+        public
+    {
+        _createAgreementForUser(user3, 150 ether, 15 ether, 45, 9);
+
+        uint256 initialUserBalance = laToken.balanceOf(user3);
+        uint256 initialTreasuryBalance = laToken.balanceOf(treasury);
+
+        vm.prank(treasury);
+        escrow.activateAgreement(user3);
+
+        // Confirm tokens were pulled from treasury and not from user3
+        assertEq(laToken.balanceOf(user3), initialUserBalance);
+        assertEq(
+            laToken.balanceOf(treasury), initialTreasuryBalance - 150 ether
+        );
+    }
 
     function test_ActivateAgreement_Success() public {
         _createAgreementForUser(user1, 100 ether, 10 ether, 30, 12);
